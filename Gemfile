@@ -169,6 +169,8 @@ group :development do
   gem 'rubocop-rails'
   gem 'spring'
   gem 'spring-commands-rspec'
+  # gem 'ruby-debug-ide'
+  # gem 'debase'
 
   gem "view_component_storybook", require: "view_component/storybook/engine"
 
