@@ -6,6 +6,7 @@ on:
   pull_request:
 
 env:
+  RAILS_ENV: test
   TIMEZONE: UTC
   COVERAGE: true
   CI_NODE_TOTAL: 10
@@ -49,8 +50,8 @@ jobs:
 
       - name: Set up database
         run: |
-          bundle exec rake db:create RAILS_ENV=test
-          bundle exec rake db:schema:load RAILS_ENV=test
+          bundle exec rake db:create
+          bundle exec rake db:schema:load
 
       - name: Run some specs
         run: CI_NODE_INDEX="${{ matrix.ci_node_index }}" bundle exec rake 'knapsack:rspec[--format progress --tag ~performance spec engines/*/spec]'
@@ -93,8 +94,8 @@ jobs:
 
       - name: Set up database
         run: |
-          bundle exec rake db:create RAILS_ENV=test
-          bundle exec rake db:schema:load RAILS_ENV=test
+          bundle exec rake db:create
+          bundle exec rake db:schema:load
 
       - name: Run JS tests
-        run: RAILS_ENV=test bundle exec rake karma:run
+        run: bundle exec rake karma:run
