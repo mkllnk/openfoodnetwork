@@ -51,6 +51,11 @@ Openfoodnetwork::Application.configure do
   config.active_support.deprecation = :stderr
 
   config.active_job.queue_adapter = :test
+
+  # Keep track of every request.
+  # The spec_helper waits for these requests before running the database cleaner.
+  require 'rack_request_blocker'
+  config.middleware.insert_before(0, RackRequestBlocker)
 end
 
 # Allows us to use _url helpers in Rspec

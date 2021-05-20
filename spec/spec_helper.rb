@@ -120,8 +120,11 @@ RSpec.configure do |config|
   config.before(:each, concurrency: true) { DatabaseCleaner.strategy = :deletion, { except: ['spree_countries', 'spree_states'] } }
   config.before(:each)           { DatabaseCleaner.start }
   config.after(:each)            { DatabaseCleaner.clean }
-  config.after(:each, js: true) do
+  config.after(:each, js: true) do |example|
     Capybara.reset_sessions!
+
+    # Wait for active AJAX calls. Otherwise DatabaseCleaner may fail randomly.
+    RackRequestBlocker.wait_for_no_active_requests(for_example: example)
   end
 
   def restart_driver
