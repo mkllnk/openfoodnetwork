@@ -54,51 +54,10 @@ jobs:
           bundle exec rake db:schema:load
 
       - name: Run some specs
-        run: CI_NODE_INDEX="${{ matrix.ci_node_index }}" bundle exec rake 'knapsack:rspec[--format progress --tag ~performance spec engines/*/spec]'
+        run: CI_NODE_INDEX="${{ matrix.ci_node_index }}" bundle exec rake 'knapsack:rspec[--format progress --tag ~performance .]'
 
         #- name: Generate Knapsack report
         #  run: KNAPSACK_GENERATE_REPORT=true bundle exec rspec --format progress --tag ~performance spec engines/*/spec
 
       - name: Codecov
         uses: codecov/codecov-action@v1.3.1
-
-  karma:
-    runs-on: ubuntu-18.04
-    services:
-      postgres:
-        image: postgres:10
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        env:
-          POSTGRES_DB: open_food_network_test
-          POSTGRES_USER: ofn
-          POSTGRES_PASSWORD: f00d
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14.15.5'
-
-      - name: Install JS dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Set up application.yml
-        run: cp config/application.yml.example config/application.yml
-
-      - name: Set up database
-        run: |
-          bundle exec rake db:create
-          bundle exec rake db:schema:load
-
-      - name: Run JS tests
-        run: bundle exec rake karma:run
