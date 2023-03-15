@@ -6,7 +6,7 @@ require 'concerns/product_stock'
 # PRODUCTS
 # Products represent an entity for sale in a store.
 # Products can have variations, called variants
-# Products properties include description, permalink, availability,
+# Products properties include description, availability,
 #   shipping category, etc. that do not change by variant.
 #
 # MASTER VARIANT
@@ -24,7 +24,6 @@ require 'concerns/product_stock'
 #
 module Spree
   class Product < ApplicationRecord
-    include PermalinkGenerator
     include ProductStock
 
     acts_as_paranoid
@@ -99,7 +98,6 @@ module Spree
     accepts_nested_attributes_for :variants, allow_destroy: true
 
     validates :name, presence: true
-    validates :permalink, presence: true
     validates :price, presence: true, if: proc { Spree::Config[:require_master_price] }
     validates :shipping_category, presence: true
 
@@ -121,20 +119,15 @@ module Spree
                                   allow_destroy: true,
                                   reject_if: lambda { |pp| pp[:property_name].blank? }
 
-    make_permalink order: :name
-
     alias :options :product_option_types
 
     after_initialize :ensure_master
     after_initialize :set_available_on_to_now, if: :new_record?
 
-    before_validation :sanitize_permalink
     before_save :add_primary_taxon_to_taxons
     after_save :remove_previous_primary_taxon_from_taxons
     after_save :ensure_standard_variant
     after_save :update_units
-
-    before_destroy :punch_permalink
 
     # -- Joins
     scope :with_order_cycles_outer, -> {
@@ -245,10 +238,6 @@ module Spree
 
     def self.group_by_products_id
       group(column_names.map { |col_name| "#{table_name}.#{col_name}" })
-    end
-
-    def to_param
-      permalink.present? ? permalink : (permalink_was || UrlGenerator.to_url(name))
     end
 
     def tax_category
@@ -427,11 +416,6 @@ module Spree
       self.master ||= Variant.new
     end
 
-    def punch_permalink
-      # Punch permalink with date prefix
-      update_attribute :permalink, "#{Time.now.to_i}_#{permalink}"
-    end
-
     def set_available_on_to_now
       self.available_on ||= Time.zone.now
     end
@@ -465,14 +449,6 @@ module Spree
       variant.product = self
       variant.is_master = false
       variants << variant
-    end
-
-    # Spree creates a permalink already but our implementation fixes an edge case.
-    def sanitize_permalink
-      return unless permalink.blank? || saved_change_to_permalink? || permalink_changed?
-
-      requested = permalink.presence || permalink_was.presence || name.presence || 'product'
-      self.permalink = create_unique_permalink(requested.parameterize)
     end
   end
 end
