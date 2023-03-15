@@ -107,10 +107,6 @@ module Spree
 
       protected
 
-      def find_resource
-        Product.find_by(permalink: params[:id]) || super
-      end
-
       def location_after_save
         spree.edit_admin_product_url(@product)
       end

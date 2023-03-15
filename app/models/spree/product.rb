@@ -26,6 +26,8 @@ module Spree
   class Product < ApplicationRecord
     include ProductStock
 
+    self.ignored_columns = [:permalink]
+
     acts_as_paranoid
 
     searchable_attributes :supplier_id, :primary_taxon_id, :meta_keywords
