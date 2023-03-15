@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_02_13_160135) do
+ActiveRecord::Schema.define(version: 2023_03_15_024645) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
@@ -717,7 +717,6 @@ ActiveRecord::Schema.define(version: 2023_02_13_160135) do
     t.text "description"
     t.datetime "available_on"
     t.datetime "deleted_at"
-    t.string "permalink", limit: 255
     t.text "meta_description"
     t.string "meta_keywords", limit: 255
     t.integer "tax_category_id"
@@ -736,8 +735,6 @@ ActiveRecord::Schema.define(version: 2023_02_13_160135) do
     t.index ["available_on"], name: "index_products_on_available_on"
     t.index ["deleted_at"], name: "index_products_on_deleted_at"
     t.index ["name"], name: "index_products_on_name"
-    t.index ["permalink"], name: "index_products_on_permalink"
-    t.index ["permalink"], name: "permalink_idx_unique", unique: true
     t.index ["primary_taxon_id"], name: "index_spree_products_on_primary_taxon_id"
     t.index ["supplier_id"], name: "index_spree_products_on_supplier_id"
   end
