@@ -114,7 +114,7 @@ def line_item_totals(order_cycle)
             sum(spree_line_items.price * spree_line_items.quantity) AS amount,
             round(sum(spree_line_items.final_weight_volume / coalesce(spree_products.variant_unit_scale, 1))::numeric, 2) AS total_units,
             NULL AS unit_name,
-            variant_unit,
+            spree_products.variant_unit,
             spree_products.variant_unit_scale,
             sum(spree_line_items.price * spree_line_items.quantity) - sum(coalesce(spree_adjustments.included_tax, 0)) AS total_cost_ex_tax,
             coalesce(spree_tax_categories.name, 'None') AS tax_code,
