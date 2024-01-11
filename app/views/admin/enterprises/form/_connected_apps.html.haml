@@ -4,6 +4,21 @@
     %div
       %h3= t ".title"
       %p= t ".tagline"
+    .connected-app__switch--off
+      - if enterprise.connected_apps.empty?
+        %button{ data: {reflex: "click->Admin::ConnectedApp#create", enterprise_id: enterprise.id} }
+          %i.icon-ok-circle
+          %i.icon-ban-circle
+          %i.icon-remove-circle
+            
+      - elsif enterprise.connected_apps.connecting.present?
+        %button{ disabled: true }
+          %i.spinner.fa.fa-spin.fa-circle-o-notch
+          &nbsp;
+          = t ".loading"
+      - else
+        %button{ data: {reflex: "click->Admin::ConnectedApp#destroy", enterprise_id: enterprise.id} }
+          = t ".disable"
     %div
       - if enterprise.connected_apps.empty?
         %button{ data: {reflex: "click->Admin::ConnectedApp#create", enterprise_id: enterprise.id} }
