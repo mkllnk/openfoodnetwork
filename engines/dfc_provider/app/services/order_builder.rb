@@ -10,6 +10,7 @@ class OrderBuilder < DfcBuilder
       date: ofn_order.completed_at.to_s,
       client: urls.enterprise_url(ofn_order.distributor_id),
       lines: order_lines(ofn_order),
+      # TODO: FulfillementState: held
     )
   end
 
@@ -21,7 +22,22 @@ class OrderBuilder < DfcBuilder
     DataFoodConsortium::Connector::OrderLine.new(
       nil,
       quantity: line_item.quantity,
-      offer: nil, # TODO: link to offer on other platform
+      offer: best_offer(line_item),
     )
+  end
+
+  def self.best_offer(line_item)
+    link = line_item.variant.semantic_links[0]
+
+    return unless link
+
+    importer = WebImporter.new(line_item.order.distributor.owner)
+    catalog = importer.import(link.semantic_id)
+
+    # WIP: possibly add more to the catalog, resolving more URIs
+    catalog.find do |item|
+      # Might there be multiple?
+      item.is_a?(DataFoodConsortium::Connector::Offer)
+    end
   end
 end
