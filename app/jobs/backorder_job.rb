@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class BackorderJob < ApplicationJob
+  FDC_CATALOG_URL = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts"
+  FDC_ORDERS_URL = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/Orders"
+
   queue_as :default
 
   def self.check_stock(order)
@@ -32,7 +35,7 @@ class BackorderJob < ApplicationJob
 
     # TODO: delete old order if exists
     # Create order via POST:
-    api.call("https://example.net/orders", json)
+    api.call(FDC_ORDERS_URL, json)
 
     # Once we have transformations and know the quantities in bulk products
     # we will need to increase on_hand by the ordered quantity.
@@ -56,13 +59,10 @@ class BackorderJob < ApplicationJob
     return unless link
 
     importer = WebImporter.new(user)
-    catalog = importer.import(link.semantic_id)
+    catalog = importer.import(FDC_CATALOG_URL)
+    product = catalog.find { |item| item.semanticId == link.semantic_id }
 
-    # WIP: possibly add more to the catalog, resolving more URIs
-    catalog.find do |item|
-      # Might there be multiple?
-      item.is_a?(DataFoodConsortium::Connector::Offer)
-    end
+    product&.catalogItems&.first&.offers&.first
   end
 
   def perform(*args)
