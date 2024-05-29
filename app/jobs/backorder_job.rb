@@ -55,7 +55,7 @@ class BackorderJob < ApplicationJob
 
     return unless link
 
-    importer = WebImporter.new(user)
+    importer = FdcWebImporter.new(user)
     catalog = importer.import(link.semantic_id)
 
     # WIP: possibly add more to the catalog, resolving more URIs

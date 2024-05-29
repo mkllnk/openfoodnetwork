@@ -71,19 +71,17 @@ RSpec.describe BackorderJob do
       JSON
     }
 
-    it "finds a linked offer" do
+    it "finds a linked offer", vcr: true do
       dfc_user = order.distributor.owner
       variant = order.line_items[0].variant
 
       dfc_user.oidc_account = OidcAccount.new(
-        uid: "me",
-        token: "xxx_token_xxx",
+        uid: "testdfc@protonmail.com",
+        refresh_token: ENV.fetch("OPENID_REFRESH_TOKEN"),
+        updated_at: 1.day.ago,
       )
       variant.semantic_links << SemanticLink.new(
-        semantic_id: "https://example.net/product-6"
-      )
-      stub_request(:get, "https://example.net/product-6").to_return(
-        status: 200, body: catalog_json
+        semantic_id: "https://food-data-collaboration-produc-fe870152f634.herokuapp.com/product/44519466467635?shop=test-hodmedod.myshopify.com"
       )
 
       offer = BackorderJob.best_offer(dfc_user, variant)
