@@ -6,18 +6,18 @@ require_relative '../../../engines/dfc_provider/spec/support/authorization_helpe
 RSpec.describe "DFC Product Import" do
   include AuthorizationHelper
 
-  let(:user) { create(:oidc_user, owned_enterprises: [enterprise]) }
+  let(:user) { create(:dfc_user, owned_enterprises: [enterprise]) }
   let(:enterprise) { create(:supplier_enterprise) }
-  let(:source_product) { create(:product, supplier: enterprise) }
+  let!(:source_product) { create(:product, supplier: enterprise) }
 
   before do
     login_as user
-    source_product # to be imported
-    allow(PrivateAddressCheck).to receive(:private_address?).and_return(false)
-    user.oidc_account.update!(token: allow_token_for(email: user.email))
   end
 
   it "imports from given catalog" do
+    allow(PrivateAddressCheck).to receive(:private_address?).and_return(false)
+    user.oidc_account.update!(token: allow_token_for(email: user.oidc_account.uid))
+
     visit admin_product_import_path
 
     select enterprise.name, from: "Enterprise"
@@ -43,12 +43,6 @@ RSpec.describe "DFC Product Import" do
   end
 
   it "imports from a FDC catalog", vcr: true do
-    user.oidc_account.update!(
-      uid: "testdfc@protonmail.com",
-      refresh_token: ENV.fetch("OPENID_REFRESH_TOKEN"),
-      updated_at: 1.day.ago,
-    )
-
     visit admin_product_import_path
 
     select enterprise.name, from: "Enterprise"
