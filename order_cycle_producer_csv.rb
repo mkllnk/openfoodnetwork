@@ -97,7 +97,7 @@ def line_item_totals(order_cycle)
            AND spree_adjustments.adjustable_type = 'Spree::LineItem'").
     group("
           order_cycle_id,
-          supplier_id,
+          spree_variants.supplier_id,
           enterprises.id,
           spree_products.id,
           spree_variants.sku,
@@ -105,7 +105,7 @@ def line_item_totals(order_cycle)
     ").
     select("
             order_cycle_id,
-            supplier_id,
+            spree_variants.supplier_id,
             enterprises.name AS supplier,
             enterprises.charges_sales_tax,
             spree_products.id AS product_id,
@@ -124,7 +124,7 @@ def line_item_totals(order_cycle)
 end
 
 def supplier_fee_totals(order_cycle_id, supplier_id)
-  items_of_supplier = line_items(order_cycle_id).where("supplier_id = ?", supplier_id)
+  items_of_supplier = line_items(order_cycle_id).where("spree_variants.supplier_id = ?", supplier_id)
   item_ids = items_of_supplier.distinct.select("spree_line_items.id")
   order_ids = items_of_supplier.distinct.select("spree_line_items.order_id")
   Spree::Adjustment.
@@ -180,7 +180,7 @@ def line_items(order_cycle_id)
     # Using explicit joins to avoid default scopes and consider deleted variants.
     joins("INNER JOIN spree_variants ON spree_variants.id = spree_line_items.variant_id").
     joins("INNER JOIN spree_products ON spree_products.id = spree_variants.product_id").
-    joins("INNER JOIN enterprises ON enterprises.id = spree_products.supplier_id")
+    joins("INNER JOIN enterprises ON enterprises.id = spree_variants.supplier_id")
 end
 
 export_csv_files_for_recently_closed_order_cycles
