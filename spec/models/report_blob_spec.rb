@@ -11,4 +11,8 @@ RSpec.describe ReportBlob, type: :model do
       content = blob.result
     end.not_to change { content.encoding }.from(Encoding::UTF_8)
   end
+
+  it "can be created first and filled later" do
+    expect(blob.checksum).to eq ""
+  end
 end
