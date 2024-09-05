@@ -5,6 +5,11 @@ class DfcLoader
     @connector ||= load_vocabularies
   end
 
+  def self.vocabulary(name)
+    @vocabs ||= {}
+    @vocabs[name] ||= connector.__send__(:loadThesaurus, read_file(name))
+  end
+
   def self.load_vocabularies
     connector = DataFoodConsortium::Connector::Connector.instance
     connector.loadMeasures(read_file("measures"))
