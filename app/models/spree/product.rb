@@ -14,11 +14,8 @@ require 'open_food_network/property_merge'
 # delegation).
 # Inventory units are tied to Variant.
 # All variants have option values and may have inventory units.
-# Sum of on_hand each variant's inventory level determine "on_hand" level for the product.
-#
 module Spree
   class Product < ApplicationRecord
-    include ProductStock
     include LogDestroyPerformer
 
     self.belongs_to_required_by_default = false
