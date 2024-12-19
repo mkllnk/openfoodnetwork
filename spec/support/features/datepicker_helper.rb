@@ -23,7 +23,6 @@ module Features
 
       find(element).click
       select_datetime_from_datepicker(datetime)
-      sleep 5
       close_datepicker
     end
 
@@ -40,6 +39,7 @@ module Features
         aria_date = date.strftime("%B %-d, %Y")
         find("[aria-label='#{aria_date}']").click
       end
+      sleep 5
     end
 
     def select_datetime_from_datepicker(datetime)
