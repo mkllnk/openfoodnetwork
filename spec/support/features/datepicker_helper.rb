@@ -23,6 +23,7 @@ module Features
 
       find(element).click
       select_datetime_from_datepicker(datetime)
+      sleep 5
       close_datepicker
     end
 

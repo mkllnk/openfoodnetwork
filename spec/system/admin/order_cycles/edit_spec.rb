@@ -90,7 +90,6 @@ RSpec.describe '
         expect(page).to have_field 'order_cycle_name', with: 'OC1 name updated'
 
         select_datetime_from "#order_cycle_orders_close_at", "2024-03-30 00:00"
-        sleep 5
         expect(page).to have_content 'You have unsaved changes'
 
         click_button('Save')
