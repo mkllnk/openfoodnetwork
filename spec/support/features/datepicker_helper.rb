@@ -48,7 +48,7 @@ module Features
 
       # Flatpickr needs time to update the time.
       # Otherwise submitting the form may not work.
-      # CI experimentation: 10ms -> 10%  success
+      # CI experimentation: 10ms ->   7% success
       #                    100ms -> 100% success
       sleep 0.05
     end
