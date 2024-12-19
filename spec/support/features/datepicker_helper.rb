@@ -45,7 +45,6 @@ module Features
       select_date_from_datepicker(datetime)
       fill_in "Hour", with: datetime.strftime("%H")
       fill_in "Minute", with: datetime.strftime("%M")
-      sleep 5
     end
 
     def pick_datetime(calendar_selector, datetime_selector)
