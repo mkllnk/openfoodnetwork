@@ -39,7 +39,6 @@ module Features
         aria_date = date.strftime("%B %-d, %Y")
         find("[aria-label='#{aria_date}']").click
       end
-      sleep 5
     end
 
     def select_datetime_from_datepicker(datetime)
@@ -48,6 +47,7 @@ module Features
       # Then select time
       find(".flatpickr-calendar.open .flatpickr-hour").set datetime.strftime("%H").to_s.strip
       find(".flatpickr-calendar.open .flatpickr-minute").set datetime.strftime("%M").to_s.strip
+      sleep 5
     end
 
     def pick_datetime(calendar_selector, datetime_selector)
