@@ -776,5 +776,33 @@ paths:
                 dfc-b:hasPhysicalCharacteristic: []
                 dfc-b:hasNutrientCharacteristic: []
                 dfc-b:hasAllergenCharacteristic: []
+  "/api/dfc/enterprises/{enterprise_id}/technical_products/{id}":
+    parameters:
+    - name: enterprise_id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Show TechnicalProduct
+      tags:
+      - TechnicalProducts
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples:
+                test_example:
+                  value:
+                    "@context": https://www.datafoodconsortium.org
+                    "@id": http://test.host/api/dfc/enterprises/10000/technical_products/90000
+                    "@type": dfc-b:TechnicalProduct
+                    dfc-b:hasVariant: http://test.host/api/dfc/enterprises/10000/supplied_products/10001
 servers:
 - url: "/"
