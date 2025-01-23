@@ -22,7 +22,7 @@ class SuppliedProductBuilder < DfcBuilder
       semantic_id(variant),
       name: variant.product_and_full_name,
       description: variant.description,
-      productType: product_type(variant),
+      productType: DfcProductTypeFactory.for(variant.primary_taxon&.dfc_id),
       quantity: QuantitativeValueBuilder.quantity(variant),
       isVariantOf: [technical_product_id],
       spree_product_uri: product_uri,
@@ -112,12 +112,6 @@ class SuppliedProductBuilder < DfcBuilder
     OfferBuilder.apply(offer, variant)
   end
 
-  def self.product_type(variant)
-    taxon_dfc_id = variant.primary_taxon&.dfc_id
-
-    DfcProductTypeFactory.for(taxon_dfc_id)
-  end
-
   def self.taxon(supplied_product)
     dfc_id = supplied_product.productType&.semanticId
 
@@ -126,5 +120,5 @@ class SuppliedProductBuilder < DfcBuilder
     Spree::Taxon.find_by(dfc_id:) || Spree::Taxon.first
   end
 
-  private_class_method :product_type, :taxon
+  private_class_method :taxon
 end
