@@ -90,7 +90,7 @@ RSpec.describe SuppliedProductImporter do
       )
     end
     let(:product_type) { DfcLoader.connector.PRODUCT_TYPES.VEGETABLE.NON_LOCAL_VEGETABLE }
-    let!(:taxon) {
+    let!(:veg) {
       create(
         :taxon,
         name: "Non local vegetable",
@@ -115,14 +115,7 @@ RSpec.describe SuppliedProductImporter do
       expect(product.image).to be_present
       expect(product.image.attachment).to be_attached
       expect(product.image.url(:product)).to match /^http.*tomato\.png/
-    end
-
-    describe "taxon" do
-      it "assigns the taxon matching the DFC product type" do
-        product = importer.import_product(supplied_product, supplier)
-
-        expect(product.variants.first.primary_taxon).to eq(taxon)
-      end
+      expect(product.variants.first.primary_taxon).to eq(veg)
     end
   end
 
@@ -199,7 +192,7 @@ RSpec.describe SuppliedProductImporter do
         )
       end
       let(:product_type) { DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK.FRUIT_JUICE }
-      let!(:new_taxon) {
+      let!(:juice) {
         create(
           :taxon,
           name: "Fruit Juice",
@@ -211,7 +204,7 @@ RSpec.describe SuppliedProductImporter do
         imported_product = imported_variant.product
         expect(imported_product.id).to eq(spree_product.id)
         expect(imported_product.description).to eq("Better Awesome tomato")
-        expect(imported_variant.primary_taxon).to eq(new_taxon)
+        expect(imported_variant.primary_taxon).to eq(juice)
       end
 
       context "when spree_product_uri doesn't match the server host" do
