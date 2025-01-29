@@ -131,12 +131,16 @@ class SuppliedProductImporter < DfcBuilder
     SemanticLink.new(semantic_id:) if semantic_id.present?
   end
 
+  # Try to find the taxon closest matching the given product type.
+  # If we don't find any matching taxon, we return a random one.
   def self.taxon(supplied_product)
-    dfc_id = supplied_product.productType&.semanticId
+    product_type = supplied_product.productType
+    priority_list = [product_type, *DfcProductTypeFactory.list_broaders(product_type)]
+    taxons = priority_list.compact.lazy.map do |type|
+      Spree::Taxon.find_by(dfc_id: type.semanticId)
+    end.compact
 
-    # Every product needs a primary taxon to be valid. So if we don't have
-    # one or can't find it we just take a random one.
-    Spree::Taxon.find_by(dfc_id:) || Spree::Taxon.first
+    taxons.first || Spree::Taxon.first
   end
   private_class_method :taxon
 end

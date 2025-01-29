@@ -91,10 +91,10 @@ RSpec.describe SuppliedProductImporter do
     end
     let(:product_type) { DfcLoader.connector.PRODUCT_TYPES.VEGETABLE.NON_LOCAL_VEGETABLE }
     let!(:veg) {
+      # Broader type than non-local-vegetable.
       create(
-        :taxon,
-        name: "Non local vegetable",
-        dfc_id: "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/productTypes.rdf#non-local-vegetable"
+        :taxon, name: "Vegetable",
+        dfc_id: "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/productTypes.rdf#vegetable"
       )
     }
 
@@ -115,6 +115,8 @@ RSpec.describe SuppliedProductImporter do
       expect(product.image).to be_present
       expect(product.image.attachment).to be_attached
       expect(product.image.url(:product)).to match /^http.*tomato\.png/
+
+      # We don't have non-local-vegetable and fall back to the broader type.
       expect(product.variants.first.primary_taxon).to eq(veg)
     end
   end

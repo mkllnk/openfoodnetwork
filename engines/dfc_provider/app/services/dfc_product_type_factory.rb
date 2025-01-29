@@ -9,6 +9,16 @@ class DfcProductTypeFactory
     instance.for(dfc_id)
   end
 
+  def self.list_broaders(type)
+    return [] if type.nil?
+
+    broaders = type.broaders.map { |id| self.for(id) }
+
+    broaders + broaders.flat_map do |broader|
+      list_broaders(broader)
+    end
+  end
+
   def initialize
     @product_types = {}
 
