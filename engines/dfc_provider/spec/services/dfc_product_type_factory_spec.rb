@@ -9,24 +9,18 @@ RSpec.describe DfcProductTypeFactory do
         .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK
     end
 
-    context "with second level product type" do
-      it "assigns a second level product type" do
-        expect(described_class.for(dfc_id("soft-drink")))
-          .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK
-      end
+    it "assigns a second level product type" do
+      expect(described_class.for(dfc_id("soft-drink")))
+        .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK
     end
 
-    context "with leaf level product type" do
-      it "assigns a leaf level product type" do
-        expect(described_class.for(dfc_id("lemonade")))
-          .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK.LEMONADE
-      end
+    it "assigns a leaf level product type" do
+      expect(described_class.for(dfc_id("lemonade")))
+        .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK.LEMONADE
     end
 
-    context "with non existing product type" do
-      it "returns nil" do
-        expect(described_class.for("other")).to be_nil
-      end
+    it "returns nil for unknown product type" do
+      expect(described_class.for("other")).to be_nil
     end
   end
 
