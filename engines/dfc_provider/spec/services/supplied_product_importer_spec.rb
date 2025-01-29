@@ -7,7 +7,7 @@ RSpec.describe SuppliedProductImporter do
 
   subject(:importer) { described_class }
   let(:variant) {
-    create(:variant, id: 5, product: spree_product, primary_taxon: taxon, supplier:)
+    create(:variant, id: 5, product: spree_product, primary_taxon: default_taxon, supplier:)
   }
   let(:spree_product) {
     create(:product, id: 6)
@@ -15,8 +15,10 @@ RSpec.describe SuppliedProductImporter do
   let(:supplier) {
     create(:supplier_enterprise, id: 7)
   }
-  let(:taxon) {
-    build(
+
+  # We need at least one taxon in the database to import products.
+  let!(:default_taxon) {
+    create(
       :taxon,
       name: "Soft Drink",
       dfc_id: "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/productTypes.rdf#soft-drink"
@@ -31,10 +33,6 @@ RSpec.describe SuppliedProductImporter do
       end
     }
     let(:product_json) { ExampleJson.read("product.GET") }
-
-    before do
-      taxon.save!
-    end
 
     it "stores a new Spree Product and Variant" do
       expect { subject }.to change {
@@ -161,8 +159,6 @@ RSpec.describe SuppliedProductImporter do
     }
 
     it "creates a new Spree::Product and variant" do
-      create(:taxon)
-
       expect(imported_variant).to be_a(Spree::Variant)
       expect(imported_variant).to be_valid
       expect(imported_variant.id).to be_nil
