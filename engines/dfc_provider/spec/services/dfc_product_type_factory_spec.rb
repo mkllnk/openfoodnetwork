@@ -9,9 +9,8 @@ RSpec.describe DfcProductTypeFactory do
     }
 
     it "assigns a top level product type" do
-      drink = DfcLoader.connector.PRODUCT_TYPES.DRINK
-
-      expect(described_class.for(dfc_id)).to eq drink
+      expect(described_class.for(dfc_id))
+        .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK
     end
 
     context "with second level product type" do
@@ -20,9 +19,8 @@ RSpec.describe DfcProductTypeFactory do
       }
 
       it "assigns a second level product type" do
-        soft_drink = DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK
-
-        expect(described_class.for(dfc_id)).to eq soft_drink
+        expect(described_class.for(dfc_id))
+          .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK
       end
     end
 
@@ -32,9 +30,8 @@ RSpec.describe DfcProductTypeFactory do
       }
 
       it "assigns a leaf level product type" do
-        lemonade = DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK.LEMONADE
-
-        expect(described_class.for(dfc_id)).to eq lemonade
+        expect(described_class.for(dfc_id))
+          .to eq DfcLoader.connector.PRODUCT_TYPES.DRINK.SOFT_DRINK.LEMONADE
       end
     end
 
