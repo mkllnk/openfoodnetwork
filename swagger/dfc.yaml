@@ -528,6 +528,18 @@ paths:
                 "@type": dfc-b:Offer
                 dfc-b:hasPrice: 9.99
                 dfc-b:stockLimitation: 7
+  "/api/dfc/enterprises/{enterprise_id}/orders":
+    get:
+      summary: List orders
+      parameters:
+      - name: enterprise_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: successful
   "/api/dfc/persons/{id}":
     get:
       summary: Show person
