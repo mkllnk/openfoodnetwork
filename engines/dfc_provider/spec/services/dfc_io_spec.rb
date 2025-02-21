@@ -17,8 +17,10 @@ RSpec.describe DfcIo do
   end
 
   describe ".export" do
-    it "exports nothing" do
-      expect(DfcIo.export).to eq ""
+    it "exports nothing as valid JSON-LD" do
+      json = DfcIo.export
+      expect(json).to eq "{}"
+      expect(DfcIo.import(json)).to eq nil
     end
 
     it "refers to the DFC context URI" do

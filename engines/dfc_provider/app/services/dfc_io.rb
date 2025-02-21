@@ -4,7 +4,7 @@
 module DfcIo
   # Serialise DFC Connector subjects as JSON-LD string.
   def self.export(*subjects)
-    return "" if subjects.empty?
+    return "{}" if subjects.empty?
 
     DfcLoader.connector.export(*subjects)
   end

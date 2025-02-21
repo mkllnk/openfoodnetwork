@@ -22,7 +22,8 @@ RSpec.describe "Orders", swagger_doc: "dfc.yaml" do
         let(:enterprise_id) { enterprise.id }
 
         run_test! do
-          # TODO: Enable Connector to export empty graph.
+          expect(json_response["@graph"]).to be_blank
+
           # expect(json_response).to include(
           #   "@id" => "http://test.host/api/dfc/enterprises/10000/orders",
           # )
