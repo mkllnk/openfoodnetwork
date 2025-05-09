@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  controllers_and_models:
+  models:
     runs-on: ubuntu-22.04
     services:
       postgres:
@@ -38,10 +38,10 @@ jobs:
         # [n] - where the n is a number of parallel jobs you want to run your tests on.
         # Use a higher number if you have slow tests to split them between more parallel jobs.
         # Remember to update the value of the `ci_node_index` below to (0..n-1).
-        ci_node_total: [4]
+        ci_node_total: [2]
         # Indexes for parallel jobs (starting from zero).
         # E.g. use [0, 1] for 2 parallel jobs, [0, 1, 2] for 3 parallel jobs, etc.
-        ci_node_index: [0, 1, 2, 3]
+        ci_node_index: [0, 1]
     steps:
       - uses: actions/checkout@v3
 
@@ -81,7 +81,7 @@ jobs:
           # RSpec split test files by test examples feature - it's optional
           # https://knapsackpro.com/faq/question/how-to-split-slow-rspec-test-files-by-test-examples-by-individual-it
           #KNAPSACK_PRO_RSPEC_SPLIT_BY_TEST_EXAMPLES: true
-          KNAPSACK_PRO_TEST_FILE_PATTERN: "{spec/controllers/**/*_spec.rb,spec/models/**/*_spec.rb}"
+          KNAPSACK_PRO_TEST_FILE_PATTERN: "{spec/models/**/*_spec.rb}"
         run: |
           git show --no-patch # the commit being tested (which is often a merge due to actions/checkout@v3)
           bin/rails assets:precompile knapsack_pro:rspec
@@ -89,7 +89,7 @@ jobs:
       - name: Save SimpleCov file
         uses: actions/upload-artifact@v4
         with:
-          name: simplecov-chunk-controllers-${{ matrix.ci_node_index }}
+          name: simplecov-chunk-models-${{ matrix.ci_node_index }}
           path: coverage/*.*
           retention-days: 2 # doesn't need to be long, because it's the combined results that matter
           if-no-files-found: ignore
@@ -282,10 +282,10 @@ jobs:
         # [n] - where the n is a number of parallel jobs you want to run your tests on.
         # Use a higher number if you have slow tests to split them between more parallel jobs.
         # Remember to update the value of the `ci_node_index` below to (0..n-1).
-        ci_node_total: [3]
+        ci_node_total: [5]
         # Indexes for parallel jobs (starting from zero).
         # E.g. use [0, 1] for 2 parallel jobs, [0, 1, 2] for 3 parallel jobs, etc.
-        ci_node_index: [0, 1, 2]
+        ci_node_index: [0, 1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v3
 
@@ -325,7 +325,7 @@ jobs:
           # RSpec split test files by test examples feature - it's optional
           # https://knapsackpro.com/faq/question/how-to-split-slow-rspec-test-files-by-test-examples-by-individual-it
           #KNAPSACK_PRO_RSPEC_SPLIT_BY_TEST_EXAMPLES: true
-          KNAPSACK_PRO_TEST_FILE_EXCLUDE_PATTERN: "{engines/**/*_spec.rb,spec/models/**/*_spec.rb,spec/controllers/**/*_spec.rb,spec/serializers/**/*_spec.rb,spec/lib/**/*_spec.rb,spec/migrations/**/*_spec.rb,spec/system/**/*_spec.rb}"
+          KNAPSACK_PRO_TEST_FILE_EXCLUDE_PATTERN: "{engines/**/*_spec.rb,spec/models/**/*_spec.rb,spec/serializers/**/*_spec.rb,spec/lib/**/*_spec.rb,spec/migrations/**/*_spec.rb,spec/system/**/*_spec.rb}"
         run: |
           bin/rails assets:precompile knapsack_pro:rspec
 
@@ -379,7 +379,7 @@ jobs:
   collate_simplecov_results:
     runs-on: ubuntu-22.04
     needs:
-      - controllers_and_models
+      - models
       - engines
       - system
       - test_the_rest
