@@ -5,6 +5,13 @@ DfcProvider::Engine.routes.draw do
   resources :enterprises, only: [:show] do
     resources :catalog_items, only: [:index, :show, :update]
     resources :offers, only: [:show, :update]
+    resources :scopes, only: [:show, :destroy] do
+      # Rails maps the collection path to the create action.
+      # But we want a member path according to the spec.
+      # POST /enterprises/10000/scopes                # Rails default create.
+      # POST /enterprises/10000/scopes/ReadEnterprise # Specified here.
+      post "", on: :member, to: "scopes#create"
+    end
     resources :supplied_products, only: [:create, :show, :update]
     resources :social_medias, only: [:show]
   end

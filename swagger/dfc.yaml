@@ -587,6 +587,73 @@ paths:
                     "@type": dfc-b:SuppliedProduct
                     dfc-b:name: Pesto
                     dfc-b:hasVariant: http://test.host/api/dfc/enterprises/10000/supplied_products/10001
+  "/api/dfc/enterprises/{enterprise_id}/scopes/{id}":
+    parameters:
+    - name: enterprise_id
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Show scope
+      tags:
+      - Scopes
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              examples:
+                test_example:
+                  value:
+                    "@id": http://www.example.com/api/dfc/enterprises/10000/scopes/ReadEnterprise
+                    description: Scopes granted to the following platforms.
+                    portals: []
+    post:
+      summary: Create scope
+      parameters: []
+      tags:
+      - Scopes
+      responses:
+        '201':
+          description: successful
+          content:
+            application/json:
+              examples:
+                test_example:
+                  value:
+                    message: Scope association added successfully
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                portalId: Discover Regenerative
+    delete:
+      summary: Destroy scope
+      parameters: []
+      tags:
+      - Scopes
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              examples:
+                test_example:
+                  value:
+                    message: Scope association removed successfully
+      requestBody:
+        content:
+          application/json:
+            schema:
+              example:
+                portalId: Discover Regenerative
   "/api/dfc/enterprises/{enterprise_id}/social_medias/{name}":
     get:
       summary: Show social media
