@@ -23,9 +23,13 @@ RSpec.describe "Scopes", swagger_doc: "dfc.yaml" do
       response "200", "successful" do
         let(:enterprise_id) { enterprise.id }
         let(:id) { "ReadEnterprise" }
+        let!(:permission) {
+          DfcPermission.create!(user:, enterprise:, grantee: "Discover Regenerative", scope: id)
+        }
 
         run_test! do
           expect(json_response["@id"]).to eq "http://www.example.com/api/dfc/enterprises/10000/scopes/ReadEnterprise"
+          expect(json_response["portals"]).to eq ["Discover Regenerative"]
         end
       end
     end
@@ -47,7 +51,13 @@ RSpec.describe "Scopes", swagger_doc: "dfc.yaml" do
           example.metadata[:operation][:parameters].first[:schema][:example]
         end
 
-        run_test!
+        run_test! do
+          permission = DfcPermission.last
+          expect(permission.enterprise).to eq enterprise
+          expect(permission.user).to eq user
+          expect(permission.grantee).to eq "Discover Regenerative"
+          expect(permission.scope).to eq "ReadEnterprise"
+        end
       end
     end
 
@@ -64,11 +74,16 @@ RSpec.describe "Scopes", swagger_doc: "dfc.yaml" do
       response "200", "successful" do
         let(:enterprise_id) { enterprise.id }
         let(:id) { "ReadEnterprise" }
+        let!(:permission) {
+          DfcPermission.create!(user:, enterprise:, grantee: "Discover Regenerative", scope: id)
+        }
         let(:platform) do |example|
           example.metadata[:operation][:parameters].first[:schema][:example]
         end
 
-        run_test!
+        run_test! do
+          expect { permission.reload }.to raise_error ActiveRecord::RecordNotFound
+        end
       end
     end
   end

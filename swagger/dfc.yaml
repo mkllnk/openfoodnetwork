@@ -613,7 +613,8 @@ paths:
                   value:
                     "@id": http://www.example.com/api/dfc/enterprises/10000/scopes/ReadEnterprise
                     description: Scopes granted to the following platforms.
-                    portals: []
+                    portals:
+                    - Discover Regenerative
     post:
       summary: Create scope
       parameters: []
