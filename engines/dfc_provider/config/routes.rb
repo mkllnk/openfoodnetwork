@@ -20,6 +20,7 @@ DfcProvider::Engine.routes.draw do
   end
   resources :persons, only: [:show]
   resources :product_groups, only: [:show]
+  resources :scopes, only: [:index]
 
   resource :affiliate_sales_data, only: [:show]
 end

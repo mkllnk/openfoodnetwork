@@ -32,6 +32,9 @@ module DfcProvider
       render json: response.to_json
     end
 
+    def index
+    end
+
     def destroy
       grantee = JSON.parse(request.body.read).fetch("portalId")
 
