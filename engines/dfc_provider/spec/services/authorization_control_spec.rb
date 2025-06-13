@@ -17,6 +17,15 @@ RSpec.describe AuthorizationControl do
       end
     end
 
+    it "accepts a token from Startin'Blox" do
+      user.oidc_account.update!(uid: "testdfc@protonmail.com")
+      sib_token = file_fixture("startinblox_access_token.jwt").read
+
+      Timecop.travel(Date.parse("2025-06-13")) do
+        expect(auth(oidc_token: sib_token).user).to eq user
+      end
+    end
+
     it "finds the right user" do
       create(:oidc_user) # another user
       token = allow_token_for(email: user.email)
