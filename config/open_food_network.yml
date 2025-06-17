@@ -1,0 +1,27 @@
+# Application specific configuration for each site/instance/server
+#
+# Rails divides these config files into environments like development and
+# production but our production environment runs on many different servers
+# in different countries. So we use the `shared` keyword to apply this config
+# to all environments and then distinguish by site name (domain).
+shared:
+  localhost:3000:
+    open_id_servers:
+      - https://login.lescommuns.org/auth/realms/data-food-consortium
+      - https://kc.cqcm.startinblox.com/realms/startinblox
+  test.host:
+    open_id_servers:
+      - https://login.lescommuns.org/auth/realms/data-food-consortium
+      - https://kc.cqcm.startinblox.com/realms/startinblox
+  coopcircuits.fr:
+    open_id_servers:
+      - https://login.lescommuns.org/auth/realms/data-food-consortium
+  openfoodnetwork.org.au:
+    open_id_servers:
+      - https://login.lescommuns.org/auth/realms/data-food-consortium
+  openfoodnetwork.org.uk:
+    open_id_servers:
+      - https://login.lescommuns.org/auth/realms/data-food-consortium
+  openfoodnetwork.ca:
+    open_id_servers:
+      - https://kc.cqcm.startinblox.com/realms/startinblox

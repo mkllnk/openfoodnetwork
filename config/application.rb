@@ -38,6 +38,9 @@ module Openfoodnetwork
     # Store a description of the current version
     config.x.git_version = GitUtils::git_version
 
+    # Load server specific configuration:
+    config.open_food_network = config_for(:open_food_network)[ENV["SITE_URL"]]
+
     config.after_initialize do
       # We need this here because the test env file loads before the Spree engine is loaded
       Spree::Core::Engine.routes.default_url_options[:host] = ENV["SITE_URL"] if Rails.env == 'test'
