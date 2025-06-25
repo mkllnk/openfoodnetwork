@@ -64,6 +64,8 @@ Openfoodnetwork::Application.configure do
 
       # `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2
       "Rails.application.secrets",
+
+      "Passing the class as positional argument",
     ]
     unless allowed_warnings.any? { |pattern| message.match(pattern) }
       ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecator)
