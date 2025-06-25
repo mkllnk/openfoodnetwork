@@ -55,12 +55,12 @@ Openfoodnetwork::Application.configure do
   # config.active_support.deprecation = :stderr
 
   # Fail tests on deprecated code unless it's a known case to solve.
-  ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) do
+  Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
     allowed_warnings = [
       # List strings here to allow matching deprecations.
     ]
     unless allowed_warnings.any? { |pattern| message.match(pattern) }
-      ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecation_horizon, gem_name)
+      ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecator)
     end
   end
 
