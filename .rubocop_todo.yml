@@ -148,7 +148,7 @@ Metrics/MethodLength:
     - 'lib/spree/localized_number.rb'
     - 'lib/tasks/sample_data/product_factory.rb'
 
-# Offense count: 47
+# Offense count: 10
 # Configuration parameters: CountComments, Max, CountAsOne.
 Metrics/ModuleLength:
   Exclude:
