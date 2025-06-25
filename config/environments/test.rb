@@ -58,6 +58,7 @@ Openfoodnetwork::Application.configure do
   Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
     allowed_warnings = [
       # List strings here to allow matching deprecations.
+      "config.active_support.cache_format_version",
     ]
     unless allowed_warnings.any? { |pattern| message.match(pattern) }
       ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecator)
