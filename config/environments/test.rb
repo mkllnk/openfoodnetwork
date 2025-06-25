@@ -58,7 +58,12 @@ Openfoodnetwork::Application.configure do
   Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
     allowed_warnings = [
       # List strings here to allow matching deprecations.
+      #
+      # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
       "config.active_support.cache_format_version",
+
+      # `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2
+      "Rails.application.secrets",
     ]
     unless allowed_warnings.any? { |pattern| message.match(pattern) }
       ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecator)
