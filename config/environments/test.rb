@@ -66,6 +66,9 @@ Openfoodnetwork::Application.configure do
       "Rails.application.secrets",
 
       "Passing the class as positional argument",
+
+      # Spree::Order model aliases `bill_address`, but `bill_address` is not an attribute. Starting in Rails 7.2, alias_attribute with non-attribute targets will raise. Use `alias_method :billing_address, :bill_address` or define the method manually. (called from initialize at app/models/spree/order.rb:188)
+      "alias_attribute with non-attribute targets will raise",
     ]
     unless allowed_warnings.any? { |pattern| message.match(pattern) }
       ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, callstack, deprecator)
