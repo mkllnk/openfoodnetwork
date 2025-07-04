@@ -1,5 +1,4 @@
 Openfoodnetwork::Application.configure do
-  config.action_controller.default_url_options = {host: "localhost", port: 3000}
   # Settings specified here will take precedence over those in config/application.rb
   #
   # PROFILE switches several settings to a more "production-like" value
