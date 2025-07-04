@@ -10,8 +10,6 @@ Openfoodnetwork::Application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = !!ENV["PROFILE"]
 
-  config.action_controller.default_url_options = {host: "localhost", port: 3000}
-
   # :file_store is used by default when no cache store is specifically configured.
   if !!ENV["PROFILE"] || !!ENV["DEV_CACHING"]
     config.cache_store = :redis_cache_store, {
