@@ -9,6 +9,7 @@ on:
 
 env:
   DISABLE_KNAPSACK_PRO: false
+  DISABLE_SPRING: true
   TIMEZONE: UTC
   COVERAGE: true
   RAILS_ENV: test
