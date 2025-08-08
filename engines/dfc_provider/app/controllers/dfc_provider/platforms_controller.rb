@@ -2,6 +2,13 @@
 
 module DfcProvider
   class PlatformsController < DfcProvider::ApplicationController
+    class CsrfTokenInAuthorization < ActionController::RequestForgeryProtection::ProtectionMethods::NullSession
+      def handle_unverified_request
+        raise "test" unless AuthorizationControl.new(@controller.request).dpm_csrf_token_match?
+        # super unless AuthorizationControl.new(@controller.request).dpm_csrf_token_match?
+      end
+    end
+
     # List of platform identifiers.
     #   local ID => semantic ID
     PLATFORM_IDS = {
@@ -12,7 +19,8 @@ module DfcProvider
     # This endpoint is open to CSRF attacks.
     # This is a temporary measure until the DFC Permissions module accesses
     # the API with a valid OIDC token to authenticate the user.
-    skip_before_action :verify_authenticity_token
+    #skip_before_action :verify_authenticity_token
+    protect_from_forgery with: CsrfTokenInAuthorization
 
     before_action :check_enterprise
 

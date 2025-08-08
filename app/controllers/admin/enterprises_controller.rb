@@ -32,6 +32,8 @@ module Admin
 
     include OrderCyclesHelper
 
+    helper_method :dpm_auth_token
+
     def index
       load_enterprise_set_on_index
 
@@ -165,6 +167,10 @@ module Admin
     # so that resources are found using permalink
     def find_resource
       Enterprise.find_by(permalink: params[:id])
+    end
+
+    def dpm_auth_token
+      AuthorizationControl.new(request).dpm_csrf_token
     end
 
     private

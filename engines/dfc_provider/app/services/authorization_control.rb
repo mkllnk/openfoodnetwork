@@ -24,9 +24,19 @@ class AuthorizationControl
     nil
   end
 
+  def dpm_csrf_token_match?
+    access_token && access_token == dpm_csrf_token
+  end
+
+  def dpm_csrf_token
+    @request.session[:dpm_csrf_token] ||= SecureRandom.urlsafe_base64(32)
+  end
+
   private
 
   def oidc_user
+    return if dpm_csrf_token_match?
+
     find_ofn_user(decode_token) if access_token
   end
 
