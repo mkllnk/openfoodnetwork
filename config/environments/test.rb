@@ -69,11 +69,6 @@ Rails.application.configure do
   # Fail tests on deprecated code unless it's a known case to solve.
   Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
     allowed_warnings = [
-      # List strings here to allow matching deprecations.
-      #
-      # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-      "config.active_support.cache_format_version",
-
       # `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2
       "Rails.application.secrets",
 

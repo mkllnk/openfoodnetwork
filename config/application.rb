@@ -29,6 +29,9 @@ module Openfoodnetwork
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 6.1
+    # Rails 7.0 defaults:
+    config.active_support.cache_format_version = 7.0
+
     config.action_view.form_with_generates_remote_forms = false
     config.active_record.cache_versioning = false
     config.active_record.has_many_inversing = false
