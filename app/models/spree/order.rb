@@ -674,7 +674,7 @@ module Spree
     end
 
     def process_each_payment
-      raise Core::GatewayError, Spree.t(:no_pending_payments) if pending_payments.empty?
+      # raise Core::GatewayError, Spree.t(:no_pending_payments) if pending_payments.empty?
 
       pending_payments.each do |payment|
         if payment.amount.zero? && zero_priced_order?
