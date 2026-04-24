@@ -92,7 +92,7 @@ RSpec.describe "SuppliedProducts", swagger_doc: "dfc.yaml" do
         example: {
           '@context': "https://www.datafoodconsortium.org",
           '@id': "http://test.host/api/dfc/enterprises/6201/supplied_products/0",
-          '@type': "dfc-b:SuppliedProduct",
+          '@type': "dfc-b:Variant",
           'dfc-b:name': "Apple",
           'dfc-b:description': "A delicious heritage apple",
           'dfc-b:hasType': "dfc-pt:non-local-vegetable",
