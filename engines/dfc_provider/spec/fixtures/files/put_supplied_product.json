@@ -85,7 +85,7 @@
     }
   },
   "@id": "https://staging.coopcircuits.fr/api/dfc-v1.7/enterprises/2731/supplied_products/56790",
-  "@type": "dfc-b:SuppliedProduct",
+  "@type": "dfc-b:Variant",
   "dfc-b:alcoholPercentage": 0,
   "dfc-b:description": "DFC-Pesto updated",
   "dfc-b:hasQuantity": {

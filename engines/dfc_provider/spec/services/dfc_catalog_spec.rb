@@ -18,7 +18,7 @@ RSpec.describe DfcCatalog do
 
     it "returns only products" do
       expect(products.count).to eq 4
-      expect(products.map(&:semanticType).uniq).to eq ["dfc-b:SuppliedProduct"]
+      expect(products.map(&:semanticType).uniq).to eq ["dfc-b:Variant"]
     end
   end
 

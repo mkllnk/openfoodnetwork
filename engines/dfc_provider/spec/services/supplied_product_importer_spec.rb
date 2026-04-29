@@ -27,7 +27,7 @@ RSpec.describe SuppliedProductImporter do
     let(:subject) { importer.store_product(product, supplier) }
     let(:product) {
       DfcIo.import(product_json).find do |subject|
-        subject.is_a? DataFoodConsortium::ConnectorV1::SuppliedProduct
+        subject.is_a? DataFoodConsortium::Connector::DefinedProduct
       end
     }
     let(:product_json) { ExampleJson.read("product.GET") }
@@ -66,7 +66,7 @@ RSpec.describe SuppliedProductImporter do
     let(:subject) { importer.update_product(product, variant) }
     let(:product) {
       DfcIo.import(product_json).find do |subject|
-        subject.is_a? DataFoodConsortium::ConnectorV1::SuppliedProduct
+        subject.is_a? DataFoodConsortium::Connector::DefinedProduct
       end
     }
     let(:product_json) { ExampleJson.read("product.GET") }

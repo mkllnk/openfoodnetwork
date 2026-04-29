@@ -18,5 +18,8 @@ require "dfc_provider/coordination"
 require "semantic_object_inspect"
 
 module DfcProvider
-  DataFoodConsortium::ConnectorV1::Importer.register_type(SuppliedProduct)
+  DataFoodConsortium::Connector::Importer.register_type(SuppliedProduct)
+  DataFoodConsortium::Connector::Importer
+    .type_map[DataFoodConsortium::Connector::SuppliedProduct::SEMANTIC_TYPE] =
+    SuppliedProduct
 end

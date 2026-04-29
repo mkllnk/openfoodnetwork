@@ -25,7 +25,7 @@ RSpec.describe DfcIo do
       json = DfcIo.export(person)
       result = JSON.parse(json)
 
-      expect(result["@context"]).to eq "https://w3id.org/dfc/ontology/context/context_1.16.0.json"
+      expect(result["@context"]).to eq "https://www.datafoodconsortium.org"
     end
 
     it "uses the context to shorten URIs" do

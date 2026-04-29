@@ -14,10 +14,11 @@ class ProductGroupBuilder < DfcBuilder
   end
 
   def self.apply(supplied_product, spree_product)
-    description = supplied_product.isVariantOf.first.try(:description) ||
+    dfc_product = supplied_product.try(:isVariantOf)&.first
+    description = dfc_product.try(:description) ||
                   supplied_product.description
-    name = supplied_product.isVariantOf.first.try(:name)
-    image_url = supplied_product.isVariantOf.first.try(:image) ||
+    name = dfc_product.try(:name)
+    image_url = dfc_product.try(:image) ||
                 supplied_product.image
 
     spree_product.description = description if description.present?

@@ -2,7 +2,7 @@
 
 class SuppliedProductImporter < DfcBuilder
   def self.store_product(subject, enterprise)
-    return unless subject.is_a? DataFoodConsortium::ConnectorV1::SuppliedProduct
+    return unless subject.is_a? DataFoodConsortium::Connector::DefinedProduct
 
     variant = import_variant(subject, enterprise)
     product = variant.product
@@ -50,6 +50,8 @@ class SuppliedProductImporter < DfcBuilder
   end
 
   def self.spree_product(supplied_product, supplier)
+    return unless supplied_product.respond_to?(:isVariantOf)
+
     supplied_product.isVariantOf.lazy.map do |group|
       # We may have an object or just the id here:
       group_id = group.try(:semanticId) || group
@@ -70,7 +72,7 @@ class SuppliedProductImporter < DfcBuilder
   end
 
   def self.spree_product_linked(supplied_product, supplier)
-    semantic_ids = supplied_product.isVariantOf.map do |id_or_object|
+    semantic_ids = supplied_product.try(:isVariantOf).to_a.map do |id_or_object|
       id_or_object.try(:semanticId) || id_or_object
     end
     supplier.supplied_products.includes(:semantic_link)
