@@ -90,7 +90,7 @@ RSpec.describe DfcRequest do
     json = JSON.parse(response)
 
     graph = DfcIo.import(json)
-    products = graph.select { |s| s.semanticType == "dfc-b:SuppliedProduct" }
+    products = graph.select { |s| s.semanticType == "dfc-b:Variant" }
     expect(products).to be_present
   end
 
