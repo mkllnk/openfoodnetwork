@@ -64,8 +64,7 @@ module Openfoodnetwork
     # in config/environments, which are processed later.
     #
 
-    if 
-Rails.env.staging? || Rails.env.production?
+    if Rails.env.staging? || Rails.env.production?
       config
         .middleware
         .insert_before(
