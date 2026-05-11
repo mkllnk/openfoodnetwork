@@ -20,8 +20,10 @@ class EnterpriseImporter
   def find
     semantic_id = @dfc_enterprise.semanticId
 
-    @owner.owned_enterprises.includes(:semantic_link)
-      .find_by(semantic_link: { semantic_id: })
+    @owner
+      .owned_enterprises
+      .includes(:semantic_link)
+      .find_by(semantic_link: {semantic_id:})
   end
 
   def new
@@ -29,7 +31,7 @@ class EnterpriseImporter
       address: Spree::Address.new,
       semantic_link: SemanticLink.new(semantic_id: @dfc_enterprise.semanticId),
       is_primary_producer: true,
-      visible: "public",
+      visible: "public"
     )
   end
 
@@ -43,7 +45,7 @@ class EnterpriseImporter
       city: address.city,
       zipcode: address.postalCode,
       state: find_state(country, address),
-      country:,
+      country:
     )
     enterprise.email_address = @dfc_enterprise.emails.first
     enterprise.description = @dfc_enterprise.description
@@ -58,6 +60,7 @@ class EnterpriseImporter
     @dfc_enterprise.socialMedias.each do |media|
       attributes[media.name.downcase] = media.url
     end
+
     attributes["twitter"] = attributes.delete("x") if attributes.key?("x")
     enterprise_attributes = attributes.slice(*SocialMediaBuilder::NAMES)
     enterprise.assign_attributes(enterprise_attributes)
@@ -72,11 +75,12 @@ class EnterpriseImporter
 
     url = URI.parse(link)
     filename = File.basename(url.path)
-    metadata = { custom: { origin: link } }
+    metadata = {custom: {origin: link}}
 
     PrivateAddressCheck.only_public_connections do
       logo.attach(io: url.open, filename:, metadata:)
     end
+
   rescue StandardError
     # Any URL parsing or network error shouldn't impact the import
     # at all. Maybe we'll add UX for error handling later.

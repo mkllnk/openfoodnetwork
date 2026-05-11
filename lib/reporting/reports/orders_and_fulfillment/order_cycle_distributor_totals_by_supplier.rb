@@ -26,8 +26,7 @@ module Reporting
               summary_row: proc do |_key, line_items, rows|
                 {
                   total_cost: rows.map(&:total_cost).compact.sum,
-                  total_shipping_cost:
-                    line_items.map(&:first).map(&:order).uniq.map(&:ship_total).compact.sum
+                  total_shipping_cost: line_items.map(&:first).map(&:order).uniq.map(&:ship_total).compact.sum
                 }
               end
             }
@@ -35,14 +34,16 @@ module Reporting
         end
 
         def line_item_includes
-          [{
-            order: [
-              :distributor,
-              :adjustments,
-              { shipments: { shipping_rates: :shipping_method } }
-            ],
-            variant: [:product, :supplier]
-          }]
+          [
+            {
+              order: [
+                :distributor,
+                :adjustments,
+                {shipments: {shipping_rates: :shipping_method}}
+              ],
+              variant: [:product, :supplier]
+            }
+          ]
         end
       end
     end

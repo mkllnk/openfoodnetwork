@@ -7,16 +7,16 @@ module Spree
       def index
         my_enterprises = Enterprise.managed_by(spree_current_user)
         @enterprises = my_enterprises
-          .order('is_primary_producer ASC, name')
+          .order("is_primary_producer ASC, name")
           .limit(25)
         @enterprises_count = my_enterprises.count if @enterprises.count >= 25
         @product_count = Spree::Product.active.managed_by(spree_current_user).count
         @order_cycle_count = OrderCycle.active.managed_by(spree_current_user).count
 
         if first_access
-          redirect_to enterprises_path
+          redirect_to(enterprises_path)
         else
-          render dashboard_view
+          render(dashboard_view)
         end
       end
 
@@ -44,7 +44,7 @@ module Spree
       def incomplete_enterprise_registration?
         @incomplete_enterprise_registration ||= spree_current_user
           .owned_enterprises
-          .where(sells: 'unspecified')
+          .where(sells: "unspecified")
           .exists?
       end
 

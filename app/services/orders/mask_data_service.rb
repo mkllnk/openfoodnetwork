@@ -24,10 +24,14 @@ module Orders
     end
 
     def mask_customer_names
-      order.bill_address&.assign_attributes(firstname: I18n.t('admin.reports.hidden_field'),
-                                            lastname: "")
-      order.ship_address&.assign_attributes(firstname: I18n.t('admin.reports.hidden_field'),
-                                            lastname: "")
+      order.bill_address&.assign_attributes(
+        firstname: I18n.t("admin.reports.hidden_field"),
+        lastname: ""
+      )
+      order.ship_address&.assign_attributes(
+        firstname: I18n.t("admin.reports.hidden_field"),
+        lastname: ""
+      )
     end
 
     def cutomer_contacts_allowed?
@@ -37,14 +41,24 @@ module Orders
     def mask_contact_data
       order.bill_address&.assign_attributes(phone: "")
       order.ship_address&.assign_attributes(phone: "")
-      order.assign_attributes(email: I18n.t('admin.reports.hidden_field'))
+      order.assign_attributes(email: I18n.t("admin.reports.hidden_field"))
     end
 
     def mask_address
-      order.bill_address&.assign_attributes(address1: "", address2: "",
-                                            city: "", zipcode: "", state: nil)
-      order.ship_address&.assign_attributes(address1: "", address2: "",
-                                            city: "", zipcode: "", state: nil)
+      order.bill_address&.assign_attributes(
+        address1: "",
+        address2: "",
+        city: "",
+        zipcode: "",
+        state: nil
+      )
+      order.ship_address&.assign_attributes(
+        address1: "",
+        address2: "",
+        city: "",
+        zipcode: "",
+        state: nil
+      )
     end
   end
 end

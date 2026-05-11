@@ -7,9 +7,8 @@ class ModalComponent < ViewComponent::Base
     @instant = instant
     @modal_class = modal_class
     @options = options
-    @data_controller = "modal #{@options.delete(:'data-controller')}".squish
-    @data_action =
-      "keyup@document->modal#closeIfEscapeKey #{@options.delete(:'data-action')}".squish
+    @data_controller = "modal #{@options.delete(:"data-controller")}".squish
+    @data_action = "keyup@document->modal#closeIfEscapeKey #{@options.delete(:"data-action")}".squish
   end
 
   private

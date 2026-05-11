@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 # These methods were available in Spree 1, but were removed in Spree 2.  We
 # would still like to use them so that we still give support to the consumers
@@ -94,10 +94,10 @@ module VariantStock
   #   This way, variant_overrides only need to override variant.total_on_hand and variant.on_demand.
   def fill_status(quantity)
     on_hand = if total_on_hand.to_i >= quantity || on_demand
-                quantity
-              else
-                [0, total_on_hand].max
-              end
+      quantity
+    else
+      [0, total_on_hand].max
+    end
 
     backordered = 0
 
@@ -135,7 +135,7 @@ module VariantStock
   end
 
   def raise_error_if_no_stock_item_available
-    message = 'You need to save the variant to create a stock item before you can set stock levels.'
+    message = "You need to save the variant to create a stock item before you can set stock levels."
     raise message if stock_items.empty?
   end
 

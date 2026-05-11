@@ -11,7 +11,8 @@ module Payments
     def to_hash
       {
         payment: @payment.slice(:updated_at, :amount, :state),
-        enterprise: @enterprise.slice(:abn, :acn, :name)
+        enterprise: @enterprise
+          .slice(:abn, :acn, :name)
           .merge(address: @enterprise.address.slice(:address1, :address2, :city, :zipcode)),
         order: @order.slice(:number, :total, :currency).merge(line_items: line_items)
       }.with_indifferent_access
@@ -33,19 +34,20 @@ module Payments
       order = Spree::Order.new(
         number: "R555555555",
         total: 0.00,
-        currency: "AUD",
+        currency: "AUD"
       )
 
       tax_category = Spree::TaxCategory.new(name: "VAT")
       product = Spree::Product.new(name: "Test product")
       Spree::Variant.new(product:, display_name: "")
-      order.line_items << Spree::LineItem.new(
-        quantity: 1,
-        price: 20.00,
-        tax_category:,
-        product:,
-        unit_presentation: "1kg"
-      )
+      order.line_items <<
+        Spree::LineItem.new(
+          quantity: 1,
+          price: 20.00,
+          tax_category:,
+          product:,
+          unit_presentation: "1kg"
+        )
 
       order
     end
@@ -54,7 +56,7 @@ module Payments
       enterprise = Enterprise.new(
         abn: "65797115831",
         acn: "",
-        name: "TEST Enterprise",
+        name: "TEST Enterprise"
       )
       enterprise.address = Spree::Address.new(
         address1: "1 testing street",
@@ -72,7 +74,8 @@ module Payments
 
     def line_items
       @order.line_items.map do |li|
-        li.slice(:quantity, :price)
+        li
+          .slice(:quantity, :price)
           .merge(
             tax_category_name: li.tax_category&.name,
             product_name: li.product.name,

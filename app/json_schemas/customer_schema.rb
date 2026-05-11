@@ -7,26 +7,30 @@ class CustomerSchema < JsonApiSchema
 
   def self.attributes
     {
-      id: { type: :integer, example: 1 },
-      enterprise_id: { type: :integer, example: 2 },
-      first_name: { type: :string, nullable: true, example: "Alice" },
-      last_name: { type: :string, nullable: true, example: "Springs" },
-      code: { type: :string, nullable: true, example: "BUYER1" },
-      email: { type: :string, example: "alice@example.com" },
-      allow_charges: { type: :boolean, example: false },
-      tags: { type: :array, items: { type: :string }, example: ["staff", "discount"] },
+      id: {type: :integer, example: 1},
+      enterprise_id: {type: :integer, example: 2},
+      first_name: {type: :string, nullable: true, example: "Alice"},
+      last_name: {type: :string, nullable: true, example: "Springs"},
+      code: {type: :string, nullable: true, example: "BUYER1"},
+      email: {type: :string, example: "alice@example.com"},
+      allow_charges: {type: :boolean, example: false},
+      tags: {type: :array, items: {type: :string}, example: ["staff", "discount"]},
       terms_and_conditions_accepted_at: {
-        type: :string, format: "date-time", nullable: true,
-        example: "2022-03-12T15:55:00.000+11:00",
+        type: :string,
+        format: "date-time",
+        nullable: true,
+        example: "2022-03-12T15:55:00.000+11:00"
       },
       billing_address: {
-        type: :object, nullable: true,
-        example: nil,
+        type: :object,
+        nullable: true,
+        example: nil
       },
       shipping_address: {
-        type: :object, nullable: true,
-        example: address_example,
-      },
+        type: :object,
+        nullable: true,
+        example: address_example
+      }
     }
   end
 
@@ -41,8 +45,8 @@ class CustomerSchema < JsonApiSchema
       street_address_2: "",
       postal_code: "1234",
       locality: "Melbourne",
-      region: { code: "Vic", name: "Victoria" },
-      country: { code: "AU", name: "Australia" },
+      region: {code: "Vic", name: "Victoria"},
+      country: {code: "AU", name: "Australia"}
     }
   end
 
@@ -54,7 +58,7 @@ class CustomerSchema < JsonApiSchema
     attributes.except(
       :id,
       :allow_charges,
-      :terms_and_conditions_accepted_at,
+      :terms_and_conditions_accepted_at
     )
   end
 
@@ -64,6 +68,6 @@ class CustomerSchema < JsonApiSchema
 
   # Optional attributes included with eg: CustomerSchema.schema(extra_fields: :balance)
   def self.balance
-    { balance: { type: :number, format: :double } }
+    {balance: {type: :number, format: :double}}
   end
 end

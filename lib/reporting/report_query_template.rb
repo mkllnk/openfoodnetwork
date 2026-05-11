@@ -15,7 +15,7 @@ module Reporting
     # Here the query_result is already the expected result, so we just create
     # a fake columns method to copy the sql result into the row result
     def columns
-      report_data.columns.to_h{ |field| [field.to_sym, proc { |data| data[field] }] }
+      report_data.columns.to_h { |field| [field.to_sym, proc { |data| data[field] }] }
     end
 
     def search
@@ -33,15 +33,21 @@ module Reporting
     end
 
     def visible_orders_relation
-      ::Permissions::Order.new(user).
-        visible_orders.complete.not_state(:canceled).
-        select(:id).distinct
+      ::Permissions::Order
+        .new(user)
+        .visible_orders
+        .complete
+        .not_state(:canceled)
+        .select(:id)
+        .distinct
     end
 
     def visible_line_items_relation
-      ::Permissions::Order.new(user).
-        visible_line_items.
-        select(:id).distinct
+      ::Permissions::Order
+        .new(user)
+        .visible_line_items
+        .select(:id)
+        .distinct
     end
 
     def managed_orders_relation

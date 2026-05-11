@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
-RSpec::Matchers.define :have_table_row do |row|
+RSpec::Matchers.define(:have_table_row) do |row|
   match do |node|
     @row = row
-    rows_under(node).include? row # Robust check of columns
+    # Robust check of columns
+    rows_under(node).include?(row)
   end
 
   match_when_negated do |node|
     @row = row
-    rows_under(node).exclude? row # Robust check of columns
+    # Robust check of columns
+    rows_under(node).exclude?(row)
   end
 
   failure_message do |text|
@@ -20,16 +22,16 @@ RSpec::Matchers.define :have_table_row do |row|
   end
 
   def rows_under(node)
-    node.all('tr').map { |tr| tr.all('th, td').map(&:text) }
+    node.all("tr").map { |tr| tr.all("th, td").map(&:text) }
   end
 end
 
 # find("#my-table").should match_table [[...]]
-RSpec::Matchers.define :match_table do |expected_table|
+RSpec::Matchers.define(:match_table) do |expected_table|
   match do |node|
-    rows = node.
-      all("tr").
-      map { |r| r.all("th,td").map { |c| c.text.strip } }
+    rows = node
+      .all("tr")
+      .map { |r| r.all("th,td").map { |c| c.text.strip } }
 
     if rows.count == expected_table.count
       rows.each_with_index do |row, i|
@@ -43,9 +45,10 @@ RSpec::Matchers.define :match_table do |expected_table|
             next unless cell != expected_row[j]
 
             @failure_message = "cell [#{i}, #{j}] has content '#{cell}', " \
-                               "expected '#{expected_row[j]}'"
+              "expected '#{expected_row[j]}'"
             break
           end
+
           break if @failure_message
         end
       end

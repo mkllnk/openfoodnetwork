@@ -6,7 +6,7 @@ class ScheduleForm
   attr_reader :errors, :flash_success
 
   def initialize(params, user, schedule = nil)
-    @errors = ActiveModel::Errors.new self
+    @errors = ActiveModel::Errors.new(self)
 
     # Not strong
     @params = params
@@ -64,7 +64,8 @@ class ScheduleForm
       .merge(OrderCycle.managed_by(@current_user))
       .pluck(:id)
     result = @existing_order_cycle_ids
-    result |= (requested & permitted) # add any requested & permitted ids
+    # add any requested & permitted ids
+    result |= (requested & permitted)
     # remove any existing and permitted ids that were not specifically requested
     result -= ((result & permitted) - requested)
     result

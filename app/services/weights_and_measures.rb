@@ -19,7 +19,7 @@ class WeightsAndMeasures
     variant_scale = @variant.variant_unit_scale&.to_f
     return "custom" unless variant_scale.present? && variant_scale.positive?
 
-    scales[variant_scale]['system']
+    scales[variant_scale]["system"]
   end
 
   # @returns enumerable with label and value for select
@@ -31,19 +31,24 @@ class WeightsAndMeasures
         # While in English, decimal separator is represented by a period.
         # e.g. en: 0.001, hu: 0,001
         # Hence the results become "weight_0,001" for hu while or code recognizes "weight_0.001"
-        scale_clean =
-          ActiveSupport::NumberHelper.number_to_rounded(scale, precision: nil, significant: false,
-                                                               strip_insignificant_zeros: true,
-                                                               locale: :en)
+        scale_clean = ActiveSupport::NumberHelper.number_to_rounded(
+          scale,
+          precision: nil,
+          significant: false,
+          strip_insignificant_zeros: true,
+          locale: :en
+        )
         [
-          "#{I18n.t(measurement)} (#{unit_info['name']})", # Label (eg "Weight (g)")
-          "#{measurement}_#{scale_clean}", # Scale ID (eg "weight_1")
+          # Label (eg "Weight (g)")
+          "#{I18n.t(measurement)} (#{unit_info["name"]})",
+          # Scale ID (eg "weight_1")
+          "#{measurement}_#{scale_clean}"
         ]
       end
     end <<
       [
-        I18n.t('items'),
-        'items'
+        I18n.t("items"),
+        "items"
       ]
   end
 
@@ -54,40 +59,42 @@ class WeightsAndMeasures
   def self.available_units_sorted
     self::UNITS.transform_values do |measurement_info|
       # Filter to only include available units
-      measurement_info.filter do |_scale, unit_info|
-        available_units.include?(unit_info['name'])
-      end.
+      measurement_info
+        .filter do |_scale, unit_info|
+          available_units.include?(unit_info["name"])
+        end
         # Remove duplicates by name
-        uniq do |_scale, unit_info|
-        unit_info['name']
-      end.
+        .uniq do |_scale, unit_info|
+          unit_info["name"]
+        end
         # Sort by unit number
-        sort.to_h
+        .sort
+        .to_h
     end
   end
 
   private
 
   UNITS = {
-    'weight' => {
-      0.001 => { 'name' => 'mg', 'system' => 'metric' },
-      1.0 => { 'name' => 'g', 'system' => 'metric' },
-      1000.0 => { 'name' => 'kg', 'system' => 'metric' },
-      1_000_000.0 => { 'name' => 'T', 'system' => 'metric' },
+    "weight" => {
+      0.001 => {"name" => "mg", "system" => "metric"},
+      1.0 => {"name" => "g", "system" => "metric"},
+      1000.0 => {"name" => "kg", "system" => "metric"},
+      1_000_000.0 => {"name" => "T", "system" => "metric"},
 
-      28.35 => { 'name' => 'oz', 'system' => 'imperial' },
-      28.349523125 => { 'name' => 'oz', 'system' => 'imperial' },
-      453.6 => { 'name' => 'lb', 'system' => 'imperial' },
-      453.59237 => { 'name' => 'lb', 'system' => 'imperial' },
+      28.35 => {"name" => "oz", "system" => "imperial"},
+      28.349523125 => {"name" => "oz", "system" => "imperial"},
+      453.6 => {"name" => "lb", "system" => "imperial"},
+      453.59237 => {"name" => "lb", "system" => "imperial"}
     },
-    'volume' => {
-      0.001 => { 'name' => 'mL', 'system' => 'metric' },
-      0.01 => { 'name' => 'cL', 'system' => 'metric' },
-      0.1 => { 'name' => 'dL', 'system' => 'metric' },
-      1.0 => { 'name' => 'L', 'system' => 'metric' },
-      1000.0 => { 'name' => 'kL', 'system' => 'metric' },
+    "volume" => {
+      0.001 => {"name" => "mL", "system" => "metric"},
+      0.01 => {"name" => "cL", "system" => "metric"},
+      0.1 => {"name" => "dL", "system" => "metric"},
+      1.0 => {"name" => "L", "system" => "metric"},
+      1000.0 => {"name" => "kL", "system" => "metric"},
 
-      4.54609 => { 'name' => 'gal', 'system' => 'imperial' },
+      4.54609 => {"name" => "gal", "system" => "imperial"}
     }
   }.freeze
 
@@ -95,7 +102,7 @@ class WeightsAndMeasures
     return @units[@variant.variant_unit] if ignore_available_units
 
     @units[@variant.variant_unit]&.reject { |_scale, unit_info|
-      self.class.available_units.exclude?(unit_info['name'])
+      self.class.available_units.exclude?(unit_info["name"])
     }
   end
 
@@ -105,10 +112,13 @@ class WeightsAndMeasures
   def find_largest_unit(scales, product_scale_system)
     return nil unless scales
 
-    largest_unit = scales.select { |scale, unit_info|
-      unit_info['system'] == product_scale_system &&
-        @variant.unit_value / scale >= 1
-    }.max
+    largest_unit = scales
+      .select { |scale, unit_info|
+        unit_info["system"] == product_scale_system &&
+          @variant.unit_value /
+          scale >= 1
+      }
+      .max
     return scales.first if largest_unit.nil?
 
     largest_unit

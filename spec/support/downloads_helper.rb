@@ -9,7 +9,8 @@ module DownloadsHelper
 
   def downloaded_filename
     wait_for_download
-    expect(downloaded_filenames.length).to eq(1) # downloads folder should contain 1 file
+    # downloads folder should contain 1 file
+    expect(downloaded_filenames.length).to(eq(1))
     downloaded_filenames.first
   end
 
@@ -26,7 +27,7 @@ module DownloadsHelper
 
   def wait_for_download
     Timeout.timeout(TIMEOUT) do
-      sleep 0.1 until downloaded?
+      sleep(0.1) until downloaded?
     end
   end
 

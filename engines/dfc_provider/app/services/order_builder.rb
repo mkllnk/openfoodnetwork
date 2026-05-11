@@ -5,7 +5,7 @@ class OrderBuilder < DfcBuilder
     DataFoodConsortium::ConnectorV1::Order.new(
       id,
       client: urls.enterprise_url(ofn_order.distributor_id),
-      orderStatus: "dfc-v:Held",
+      orderStatus: "dfc-v:Held"
     )
   end
 end

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'stripe/webhook_handler'
+require "stripe/webhook_handler"
 
 module Stripe
   RSpec.describe WebhookHandler do
-    let(:event) { double(:event, type: 'some.event') }
+    let(:event) { double(:event, type: "some.event") }
     let(:handler) { WebhookHandler.new(event) }
 
     describe "event_mappings" do
@@ -14,7 +14,7 @@ module Stripe
     describe "known_event?" do
       context "when event mappings know about the event type" do
         before do
-          allow(handler).to receive(:event_mappings) { { 'some.event' => :something } }
+          allow(handler).to receive(:event_mappings) { {"some.event" => :something} }
         end
 
         it { expect(handler.__send__(:known_event?)).to be true }
@@ -22,7 +22,7 @@ module Stripe
 
       context "when event mappings do not know about the event type" do
         before do
-          allow(handler).to receive(:event_mappings) { { 'some.other.event' => :something } }
+          allow(handler).to receive(:event_mappings) { {"some.other.event" => :something} }
         end
 
         it { expect(handler.__send__(:known_event?)).to be false }
@@ -32,7 +32,7 @@ module Stripe
     describe "handle" do
       context "when the event is known" do
         before do
-          allow(handler).to receive(:event_mappings) { { 'some.event' => :some_method } }
+          allow(handler).to receive(:event_mappings) { {"some.event" => :some_method} }
         end
 
         it "calls the handler method, and returns the result" do
@@ -43,7 +43,7 @@ module Stripe
 
       context "when the event is unknown" do
         before do
-          allow(handler).to receive(:event_mappings) { { 'some.other.event' => :some_method } }
+          allow(handler).to receive(:event_mappings) { {"some.other.event" => :some_method} }
         end
 
         it "does not call the handler method, and returns :unknown" do
@@ -63,14 +63,16 @@ module Stripe
 
       context "when the event has an 'account' attribute" do
         before do
-          allow(event).to receive(:account) { 'some.account' }
+          allow(event).to receive(:account) { "some.account" }
         end
 
         context "when some stripe accounts are destroyed" do
           before do
-            allow(handler).to receive(:destroy_stripe_accounts_linked_to).with('some.account') {
-                                [double(:destroyed_stripe_account)]
-                              }
+            allow(handler).to(
+              receive(:destroy_stripe_accounts_linked_to).with("some.account") {
+                [double(:destroyed_stripe_account)]
+              }
+            )
           end
 
           it { expect(handler.__send__(:deauthorize)).to be :success }
@@ -78,9 +80,11 @@ module Stripe
 
         context "when no stripe accounts are destroyed" do
           before do
-            allow(handler).to receive(:destroy_stripe_accounts_linked_to).with('some.account') {
-                                []
-                              }
+            allow(handler).to(
+              receive(:destroy_stripe_accounts_linked_to).with("some.account") {
+                []
+              }
+            )
           end
 
           it { expect(handler.__send__(:deauthorize)).to be :ignored }

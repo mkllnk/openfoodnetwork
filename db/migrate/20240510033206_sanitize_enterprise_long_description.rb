@@ -10,15 +10,38 @@ class SanitizeEnterpriseLongDescription < ActiveRecord::Migration[7.0]
   # If we need to change the sanitizer in the future we may need a new
   # migration (not change the old one) to sanitise the data properly.
   class HtmlSanitizer
-    ALLOWED_TAGS = %w[h1 h2 h3 h4 div p br b i u a strong em del pre blockquote ul ol li hr
-                      figure].freeze
+    ALLOWED_TAGS = %w[
+      h1
+      h2
+      h3
+      h4
+      div
+      p
+      br
+      b
+      i
+      u
+      a
+      strong
+      em
+      del
+      pre
+      blockquote
+      ul
+      ol
+      li
+      hr
+      figure
+    ].freeze
     ALLOWED_ATTRIBUTES = %w[href target].freeze
     ALLOWED_TRIX_DATA_ATTRIBUTES = %w[data-trix-attachment].freeze
 
     def self.sanitize(html)
       @sanitizer ||= Rails::HTML5::SafeListSanitizer.new
       @sanitizer.sanitize(
-        html, tags: ALLOWED_TAGS, attributes: (ALLOWED_ATTRIBUTES + ALLOWED_TRIX_DATA_ATTRIBUTES)
+        html,
+        tags: ALLOWED_TAGS,
+        attributes: (ALLOWED_ATTRIBUTES + ALLOWED_TRIX_DATA_ATTRIBUTES)
       )
     end
   end

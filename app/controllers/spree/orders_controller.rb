@@ -7,10 +7,10 @@ module Spree
     include CablecarResponses
     include WhiteLabel
 
-    layout 'darkswarm'
+    layout "darkswarm"
 
     rescue_from ActiveRecord::RecordNotFound, with: :render404
-    helper 'spree/orders'
+    helper "spree/orders"
 
     respond_to :html, :json
 
@@ -39,17 +39,18 @@ module Spree
         @order.empty!
       end
 
-      redirect_to main_app.cart_path
+      redirect_to(main_app.cart_path)
     end
 
     # Patching to redirect to shop if order is empty
     def edit
       @insufficient_stock_lines = @order.insufficient_stock_lines
-      @unavailable_order_variants = OrderCycles::DistributedVariantsService.
-        new(current_order_cycle, current_distributor).unavailable_order_variants(@order)
+      @unavailable_order_variants = OrderCycles::DistributedVariantsService
+        .new(current_order_cycle, current_distributor)
+        .unavailable_order_variants(@order)
 
       if @order.line_items.empty?
-        redirect_to main_app.shop_path
+        redirect_to(main_app.shop_path)
       else
         associate_user
 
@@ -70,7 +71,8 @@ module Spree
       # This action is called either from the cart page when the order is not yet complete, or from
       # the edit order page (frontoffice) if the hub allows users to update completed orders.
       if @order.contents.update_cart(order_params)
-        @order.recreate_all_fees! # Enterprise fees on line items and on the order itself
+        # Enterprise fees on line items and on the order itself
+        @order.recreate_all_fees!
 
         # Re apply the voucher
         OrderManagement::Order::Updater.new(@order).update_voucher
@@ -86,11 +88,11 @@ module Spree
           format.html do
             if params.key?(:checkout)
               @order.next_transition.run_callbacks if @order.cart?
-              redirect_to main_app.checkout_step_path("address")
+              redirect_to(main_app.checkout_step_path("address"))
             elsif @order.complete?
-              redirect_to main_app.order_path(@order)
+              redirect_to(main_app.order_path(@order))
             else
-              redirect_to main_app.cart_path
+              redirect_to(main_app.cart_path)
             end
           end
         end
@@ -104,15 +106,18 @@ module Spree
 
     def cancel
       @order = Spree::Order.find_by!(number: params[:id])
-      authorize! :cancel, @order, session[:access_token]
+      authorize!(:cancel, @order, session[:access_token])
 
       if Orders::CustomerCancellationService.new(@order).call
         flash[:success] = I18n.t(:orders_your_order_has_been_cancelled)
       else
         flash[:error] = I18n.t(:orders_could_not_cancel)
       end
-      render status: :found,
-             cable_ready: cable_car.redirect_to(url: request.referer || main_app.order_path(@order))
+
+      render(
+        status: :found,
+        cable_ready: cable_car.redirect_to(url: request.referer || main_app.order_path(@order))
+      )
     end
 
     private
@@ -130,17 +135,16 @@ module Spree
       order = Spree::Order.find_by(number: params[:id]) || current_order
 
       if order
-        authorize! :edit, order, session[:access_token]
+        authorize!(:edit, order, session[:access_token])
       else
-        authorize! :create, Spree::Order
+        authorize!(:create, Spree::Order)
       end
     end
 
     def filter_order_params
       return unless params[:order] && params[:order][:line_items_attributes]
 
-      params[:order][:line_items_attributes] =
-        remove_missing_line_items(params[:order][:line_items_attributes])
+      params[:order][:line_items_attributes] = remove_missing_line_items(params[:order][:line_items_attributes])
     end
 
     def remove_missing_line_items(attrs)
@@ -156,14 +160,14 @@ module Spree
     def require_order_authentication
       return if session[:access_token] || params[:order_token] || spree_current_user
 
-      store_location_for :spree_user, request.original_fullpath
+      store_location_for(:spree_user, request.original_fullpath)
 
       flash[:error] = I18n.t("spree.orders.edit.login_to_view_order")
-      redirect_to main_app.root_path(anchor: "/login", after_login: request.original_fullpath)
+      redirect_to(main_app.root_path(anchor: "/login", after_login: request.original_fullpath))
     end
 
     def order_to_update
-      return @order_to_update if defined? @order_to_update
+      return @order_to_update if defined?(@order_to_update)
       return @order_to_update = current_order unless params[:id]
 
       @order_to_update = changeable_order_from_number
@@ -182,17 +186,18 @@ module Spree
       return unless order_to_update&.complete?
 
       items = params[:order][:line_items_attributes]
-        &.select{ |_k, attrs| attrs["quantity"].to_i > 0 }
+        &.select { |_k, attrs| attrs["quantity"].to_i > 0 }
 
       return unless items.empty?
 
       flash[:error] = I18n.t(:orders_cannot_remove_the_final_item)
-      redirect_to main_app.order_path(order_to_update)
+      redirect_to(main_app.order_path(order_to_update))
     end
 
     def order_params
       params.require(:order).permit(
-        :distributor_id, :order_cycle_id,
+        :distributor_id,
+        :order_cycle_id,
         line_items_attributes: [:id, :quantity]
       )
     end

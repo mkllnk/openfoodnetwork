@@ -3,7 +3,7 @@
 module Spree
   module Admin
     class ProductPropertiesController < ::Admin::ResourceController
-      belongs_to 'spree/product'
+      belongs_to "spree/product"
       before_action :find_properties
       before_action :setup_property, only: [:index]
 
@@ -19,7 +19,7 @@ module Spree
           flash[:success] = Spree.t(:successfully_removed)
         end
         # if destroy fails it won't show any errors to the user
-        redirect_to spree.admin_product_product_properties_url(params[:product_id], @url_filters)
+        redirect_to(spree.admin_product_product_properties_url(params[:product_id], @url_filters))
       end
 
       private

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 module Api
   module V0
@@ -26,11 +26,11 @@ module Api
         @order.recreate_all_fees!
         AmendBackorderJob.perform_later(@order) if @order.completed?
 
-        render json: @shipment, serializer: Api::ShipmentSerializer, status: :ok
+        render(json: @shipment, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       def update
-        authorize! :read, Spree::Shipment
+        authorize!(:read, Spree::Shipment)
         @shipment = @order.shipments.find_by!(number: params[:id])
         params[:shipment] ||= []
 
@@ -42,30 +42,31 @@ module Api
 
         @shipment.fee_adjustment.close
 
-        render json: @shipment.reload, serializer: Api::ShipmentSerializer, status: :ok
+        render(json: @shipment.reload, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       def ready
-        authorize! :read, Spree::Shipment
+        authorize!(:read, Spree::Shipment)
 
         unless @shipment.ready? || @shipment.can_ready?
           return render(
-            json: { error: I18n.t(:cannot_ready, scope: "spree.api.shipment") },
+            json: {error: I18n.t(:cannot_ready, scope: "spree.api.shipment")},
             status: :unprocessable_entity
           )
         end
 
         @shipment.ready! unless @shipment.ready?
 
-        render json: @shipment, serializer: Api::ShipmentSerializer, status: :ok
+        render(json: @shipment, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       def ship
-        authorize! :read, Spree::Shipment
+        authorize!(:read, Spree::Shipment)
         unless @shipment.shipped?
           @shipment.ship!
         end
-        render json: @shipment, serializer: Api::ShipmentSerializer, status: :ok
+
+        render(json: @shipment, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       def add
@@ -76,7 +77,7 @@ module Api
         @order.recreate_all_fees!
         AmendBackorderJob.perform_later(@order) if @order.completed?
 
-        render json: @shipment, serializer: Api::ShipmentSerializer, status: :ok
+        render(json: @shipment, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       def remove
@@ -90,14 +91,14 @@ module Api
         @order.recreate_all_fees!
         AmendBackorderJob.perform_later(@order) if @order.completed?
 
-        render json: @shipment, serializer: Api::ShipmentSerializer, status: :ok
+        render(json: @shipment, serializer: Api::ShipmentSerializer, status: :ok)
       end
 
       private
 
       def find_order
         @order = Spree::Order.find_by!(number: params[:order_id])
-        authorize! :read, @order
+        authorize!(:read, @order)
       end
 
       def find_and_update_shipment
@@ -107,7 +108,7 @@ module Api
       end
 
       def refuse_changing_cancelled_orders
-        render status: :unprocessable_entity if @order.canceled?
+        render(status: :unprocessable_entity) if @order.canceled?
       end
 
       def scoped_variant(variant_id)
@@ -119,7 +120,7 @@ module Api
       end
 
       def shipment_params
-        return {} unless params.key? :shipment
+        return {} unless params.key?(:shipment)
 
         params.require(:shipment).permit(:tracking, :selected_shipping_rate_id)
       end

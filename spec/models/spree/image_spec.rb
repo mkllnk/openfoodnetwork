@@ -7,15 +7,17 @@ module Spree
     subject {
       Spree::Image.create!(
         attachment: black_logo_file,
-        viewable: product,
+        viewable: product
       )
     }
     let(:product) { create(:product) }
 
     describe "#url" do
       it "returns URLs for different sizes" do
-        expect(subject.url(:small)).to match(
-          %r|^http://test\.host/rails/active_storage/representations/redirect/.+/logo-black\.png$|
+        expect(subject.url(:small)).to(
+          match(
+            %r|^http://test\.host/rails/active_storage/representations/redirect/.+/logo-black\.png$|
+          )
         )
       end
 
@@ -24,8 +26,10 @@ module Spree
           content_type: "application/octet-stream"
         )
 
-        expect(subject.url(:small)).to match(
-          %r|^http://test\.host/rails/active_storage/blobs/redirect/.+/logo-black\.png$|
+        expect(subject.url(:small)).to(
+          match(
+            %r|^http://test\.host/rails/active_storage/blobs/redirect/.+/logo-black\.png$|
+          )
         )
       end
 
@@ -89,8 +93,7 @@ module Spree
 
     describe "using AWS S3" do
       before do
-        allow(Rails.application.config.active_storage).
-          to receive(:service).and_return(:test_amazon)
+        allow(Rails.application.config.active_storage).to receive(:service).and_return(:test_amazon)
       end
 
       it "saves a new image when none is present" do
@@ -100,8 +103,9 @@ module Spree
         stub_request(:put, as_upload_pattern).to_return(status: 200, body: "", headers: {})
 
         expect(subject.attachment).to be_attached
-        expect(Rails.application.routes.url_helpers.url_for(subject.attachment)).
-          to match %r"^http://test\.host/rails/active_storage/blobs/redirect/[[:alnum:]-]+/logo-black\.png"
+        expect(Rails.application.routes.url_helpers.url_for(subject.attachment)).to(
+          match %r"^http://test\.host/rails/active_storage/blobs/redirect/[[:alnum:]-]+/logo-black\.png"
+        )
       end
     end
   end

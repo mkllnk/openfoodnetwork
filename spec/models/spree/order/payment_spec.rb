@@ -6,8 +6,11 @@ module Spree
     let(:order) { build(:order) }
     let(:updater) { OrderManagement::Order::Updater.new(order) }
     let(:payment_method) {
-      create(:stripe_sca_payment_method, distributor_ids: [create(:distributor_enterprise).id],
-                                         preferred_enterprise_id: create(:enterprise).id)
+      create(
+        :stripe_sca_payment_method,
+        distributor_ids: [create(:distributor_enterprise).id],
+        preferred_enterprise_id: create(:enterprise).id
+      )
     }
     let(:source) {
       create(:credit_card)
@@ -22,8 +25,14 @@ module Spree
       create(:payment, order:, amount: 50, payment_method:, source:, response_code: "12345")
     }
     let(:failed_payment) {
-      create(:payment, amount: 50, state: 'failed', payment_method:, source:,
-                       response_code: "12345")
+      create(
+        :payment,
+        amount: 50,
+        state: "failed",
+        payment_method:,
+        source:,
+        response_code: "12345"
+      )
     }
     let(:payment_authorised) {
       payment_intent(50, "requires_capture")
@@ -36,34 +45,41 @@ module Spree
       # mock the call with "ofn.payment_transition" so we don't call the related listener
       # and services
       allow(ActiveSupport::Notifications).to receive(:instrument).and_call_original
-      allow(ActiveSupport::Notifications).to receive(:instrument)
-        .with("ofn.payment_transition", any_args).and_return(nil)
+      allow(ActiveSupport::Notifications).to(
+        receive(:instrument)
+          .with("ofn.payment_transition", any_args)
+          .and_return(nil)
+      )
 
       allow(order).to receive_message_chain(:line_items, :empty?).and_return(false)
       allow(order).to receive_messages total: 100
-      stub_request(:get, "https://api.stripe.com/v1/payment_intents/12345").
-        to_return(status: 200, body: payment_authorised)
-      stub_request(:post, "https://api.stripe.com/v1/payment_intents/12345/capture").
-        to_return(status: 200, body: capture_successful)
+      stub_request(:get, "https://api.stripe.com/v1/payment_intents/12345").to_return(
+        status: 200,
+        body: payment_authorised
+      )
+      stub_request(:post, "https://api.stripe.com/v1/payment_intents/12345/capture").to_return(
+        status: 200,
+        body: capture_successful
+      )
     end
 
-    it 'processes all payments' do
+    it "processes all payments" do
       allow(order).to receive(:pending_payments).and_return([payment1, payment2])
 
       order.process_payments!
       updater.update_payment_state
-      expect(order.payment_state).to eq 'paid'
+      expect(order.payment_state).to eq "paid"
 
       expect(payment1).to be_completed
       expect(payment2).to be_completed
     end
 
-    it 'does not go over total for order' do
+    it "does not go over total for order" do
       allow(order).to receive(:pending_payments).and_return([payment1, payment2, payment3])
 
       order.process_payments!
       updater.update_payment_state
-      expect(order.payment_state).to eq 'paid'
+      expect(order.payment_state).to eq "paid"
 
       expect(payment1).to be_completed
       expect(payment2).to be_completed
@@ -102,7 +118,7 @@ module Spree
         object: "payment_intent",
         amount:,
         status:,
-        charges: { data: [{ id: "ch_1234", amount: }] },
+        charges: {data: [{id: "ch_1234", amount:}]},
         id: "12345",
         livemode: false
       )

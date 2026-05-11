@@ -10,7 +10,7 @@ module Spree
 
         def show
           edit
-          render action: :edit
+          render(action: :edit)
         end
 
         def edit
@@ -26,10 +26,10 @@ module Spree
             refresh_shipment_rates
             ::Orders::WorkflowService.new(@order).advance_to_payment
 
-            flash[:success] = Spree.t('customer_details_updated')
-            redirect_to spree.admin_order_customer_path(@order)
+            flash[:success] = Spree.t("customer_details_updated")
+            redirect_to(spree.admin_order_customer_path(@order))
           else
-            render action: :edit
+            render(action: :edit)
           end
         end
 
@@ -62,14 +62,15 @@ module Spree
         end
 
         def load_order
-          @order = Order.find_by!({ number: params[:order_id] }, include: :adjustments)
+          @order = Order.find_by!({number: params[:order_id]}, include: :adjustments)
         end
 
         def check_authorization
           action = params[:action].to_sym
-          action = :edit if action == :show # show route renders :edit for this controller
+          # show route renders :edit for this controller
+          action = :edit if action == :show
 
-          authorize! action, @order
+          authorize!(action, @order)
         end
 
         def set_guest_checkout_status

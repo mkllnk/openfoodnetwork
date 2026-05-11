@@ -9,8 +9,9 @@ module DfcProvider
       enterprises = groups.map do |group|
         EnterpriseBuilder.enterprise_group(group)
       end
+
       person.affiliatedOrganizations = enterprises
-      render json: DfcIo.export(person, *enterprises)
+      render(json: DfcIo.export(person, *enterprises))
     end
 
     def show
@@ -18,7 +19,7 @@ module DfcProvider
       address = AddressBuilder.address(group.address)
       enterprise = EnterpriseBuilder.enterprise_group(group)
       enterprise.localizations = [address]
-      render json: DfcIo.export(enterprise, address)
+      render(json: DfcIo.export(enterprise, address))
     end
   end
 end

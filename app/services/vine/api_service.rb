@@ -26,7 +26,7 @@ module Vine
       call_with_logging do
         connection.post(
           voucher_validation_url,
-          { type: "voucher_code", value: voucher_short_code },
+          {type: "voucher_code", value: voucher_short_code},
           'Content-Type': "application/json"
         )
       end
@@ -38,7 +38,7 @@ module Vine
       call_with_logging do
         connection.post(
           voucher_redemptions_url,
-          { voucher_id:, voucher_set_id:, amount: amount.to_i },
+          {voucher_id:, voucher_set_id:, amount: amount.to_i},
           'Content-Type': "application/json"
         )
       end
@@ -49,16 +49,16 @@ module Vine
     def connection
       jwt = jwt_generator.generate_token
       Faraday.new(
-        request: { timeout: 30 },
+        request: {timeout: 30},
         headers: {
           'X-Authorization': "JWT #{jwt}",
           Accept: "application/json"
         }
       ) do |f|
-        f.request :json
-        f.response :json
-        f.request :authorization, 'Bearer', api_key
-        f.use Faraday::Response::RaiseError
+        f.request(:json)
+        f.response(:json)
+        f.request(:authorization, "Bearer", api_key)
+        f.use(Faraday::Response::RaiseError)
       end
     end
 
@@ -74,8 +74,8 @@ module Vine
     end
 
     def log_error(prefix, response)
-      Rails.logger.error "#{prefix} -- response_status: #{response[:status]}"
-      Rails.logger.error "#{prefix} -- response: #{response[:body]}"
+      Rails.logger.error("#{prefix} -- response_status: #{response[:status]}")
+      Rails.logger.error("#{prefix} -- response: #{response[:body]}")
     end
   end
 end

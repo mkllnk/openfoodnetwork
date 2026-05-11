@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/permissions'
+require "open_food_network/permissions"
 
 module Api
   module V1
@@ -8,9 +8,11 @@ module Api
       include AddressTransformation
       include ExtraFields
 
-      wrap_parameters :customer, include:
-        Customer.attribute_names +
-        [:billing_address, :shipping_address]
+      wrap_parameters(
+        :customer,
+        include: Customer.attribute_names +
+          [:billing_address, :shipping_address]
+      )
 
       skip_authorization_check only: :index
 
@@ -24,38 +26,38 @@ module Api
       def index
         @pagy, customers = pagy(search_customers, **pagy_options)
 
-        render json: Api::V1::CustomerSerializer.new(customers, pagination_options)
+        render(json: Api::V1::CustomerSerializer.new(customers, pagination_options))
       end
 
       def show
-        render json: Api::V1::CustomerSerializer.new(customer, include_options)
+        render(json: Api::V1::CustomerSerializer.new(customer, include_options))
       end
 
       def create
-        authorize! :update, Enterprise.find(customer_params[:enterprise_id])
+        authorize!(:update, Enterprise.find(customer_params[:enterprise_id]))
         customer = Customer.find_or_initialize_by(customer_params.slice(:email, :enterprise_id))
         customer.assign_attributes(customer_params)
 
         if customer.save
-          render json: Api::V1::CustomerSerializer.new(customer), status: :created
+          render(json: Api::V1::CustomerSerializer.new(customer), status: :created)
         else
-          invalid_resource! customer
+          invalid_resource!(customer)
         end
       end
 
       def update
         if customer.update(customer_params)
-          render json: Api::V1::CustomerSerializer.new(customer)
+          render(json: Api::V1::CustomerSerializer.new(customer))
         else
-          invalid_resource! customer
+          invalid_resource!(customer)
         end
       end
 
       def destroy
         if customer.destroy
-          render json: Api::V1::CustomerSerializer.new(customer)
+          render(json: Api::V1::CustomerSerializer.new(customer))
         else
-          invalid_resource! customer
+          invalid_resource!(customer)
         end
       end
 
@@ -63,14 +65,14 @@ module Api
 
       def customer
         @customer ||= if action_name == "show"
-                        CustomersWithBalanceQuery.new(Customer.where(id: params[:id])).call.first!
-                      else
-                        Customer.find(params[:id])
-                      end
+          CustomersWithBalanceQuery.new(Customer.where(id: params[:id])).call.first!
+        else
+          Customer.find(params[:id])
+        end
       end
 
       def authorize_action
-        authorize! action_name.to_sym, customer
+        authorize!(action_name.to_sym, customer)
       end
 
       def search_customers
@@ -89,18 +91,29 @@ module Api
       end
 
       def customer_params
-        attributes = params.require(:customer).permit(
-          :email, :enterprise_id,
-          :code, :first_name, :last_name,
-          :billing_address,
-          shipping_address: [
-            :phone, :latitude, :longitude,
-            :first_name, :last_name,
-            :street_address_1, :street_address_2,
-            :postal_code, :locality,
-            { region: [:name, :code], country: [:name, :code] },
-          ]
-        ).to_h
+        attributes = params
+          .require(:customer)
+          .permit(
+            :email,
+            :enterprise_id,
+            :code,
+            :first_name,
+            :last_name,
+            :billing_address,
+            shipping_address: [
+              :phone,
+              :latitude,
+              :longitude,
+              :first_name,
+              :last_name,
+              :street_address_1,
+              :street_address_2,
+              :postal_code,
+              :locality,
+              {region: [:name, :code], country: [:name, :code]}
+            ]
+          )
+          .to_h
 
         attributes.merge!(created_manually: true)
         attributes.merge!(tag_list: params[:tags]) if params.key?(:tags)
@@ -114,7 +127,7 @@ module Api
       def include_options
         fields = [params.fetch(:include, [])].flatten
 
-        { include: fields.map(&:to_s) }
+        {include: fields.map(&:to_s)}
       end
     end
   end

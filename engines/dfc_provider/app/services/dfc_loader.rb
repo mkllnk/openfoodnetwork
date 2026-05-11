@@ -19,7 +19,8 @@ class DfcLoader
     connector.loadMeasures(read_file("measures"))
     connector.loadFacets(read_file("facets"))
     connector.loadProductTypes(read_file("productTypes"))
-    vocabulary("vocabulary") # order states etc
+    # order states etc
+    vocabulary("vocabulary")
   end
 
   def self.read_file(name)

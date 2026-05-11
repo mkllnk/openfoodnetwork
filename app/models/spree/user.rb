@@ -9,15 +9,24 @@ module Spree
 
     searchable_attributes :email
 
-    devise :database_authenticatable, :registerable, :recoverable,
-           :rememberable, :trackable, :validatable, :omniauthable,
-           :encryptable, :confirmable,
-           encryptor: 'authlogic_sha512', reconfirmable: true,
-           omniauth_providers: [:openid_connect]
+    devise(
+      :database_authenticatable,
+      :registerable,
+      :recoverable,
+      :rememberable,
+      :trackable,
+      :validatable,
+      :omniauthable,
+      :encryptable,
+      :confirmable,
+      encryptor: "authlogic_sha512",
+      reconfirmable: true,
+      omniauth_providers: [:openid_connect]
+    )
 
     has_many :orders, dependent: nil
-    belongs_to :ship_address, class_name: 'Spree::Address'
-    belongs_to :bill_address, class_name: 'Spree::Address'
+    belongs_to :ship_address, class_name: "Spree::Address"
+    belongs_to :bill_address, class_name: "Spree::Address"
 
     before_validation :set_login
     after_create :associate_customers, :associate_orders
@@ -28,12 +37,20 @@ module Spree
 
     has_many :enterprise_roles, dependent: :destroy
     has_many :enterprises, through: :enterprise_roles
-    has_many :owned_enterprises, class_name: 'Enterprise',
-                                 foreign_key: :owner_id, inverse_of: :owner,
-                                 dependent: :restrict_with_exception
-    has_many :owned_groups, class_name: 'EnterpriseGroup',
-                            foreign_key: :owner_id, inverse_of: :owner,
-                            dependent: :restrict_with_exception
+    has_many(
+      :owned_enterprises,
+      class_name: "Enterprise",
+      foreign_key: :owner_id,
+      inverse_of: :owner,
+      dependent: :restrict_with_exception
+    )
+    has_many(
+      :owned_groups,
+      class_name: "EnterpriseGroup",
+      foreign_key: :owner_id,
+      inverse_of: :owner,
+      dependent: :restrict_with_exception
+    )
     has_many :customers, dependent: :destroy
     has_many :credit_cards, dependent: :destroy
     has_many :report_rendering_options, class_name: "::ReportRenderingOptions", dependent: :destroy
@@ -47,10 +64,11 @@ module Spree
     accepts_nested_attributes_for :bill_address
     accepts_nested_attributes_for :ship_address
 
-    validates :email, 'valid_email_2/email': { mx: true }, if: :email_changed?
+    validates :email, 'valid_email_2/email': {mx: true}, if: :email_changed?
     validate :limit_owned_enterprises
 
-    class DestroyWithOrdersError < StandardError; end
+    class DestroyWithOrdersError < StandardError
+    end
 
     def self.admin_created?
       User.admin.count > 0
@@ -77,14 +95,16 @@ module Spree
         Spree::User
           .includes(:enterprises)
           .references(:enterprises)
-          .where("enterprises.id IN (SELECT enterprise_id FROM enterprise_roles WHERE user_id = ?)",
-                 id)
+          .where(
+            "enterprises.id IN (SELECT enterprise_id FROM enterprise_roles WHERE user_id = ?)",
+            id
+          )
       end
     end
 
     def build_enterprise_roles
       Enterprise.find_each do |enterprise|
-        unless enterprise_roles.find_by enterprise_id: enterprise.id
+        unless enterprise_roles.find_by(enterprise_id: enterprise.id)
           enterprise_roles.build(enterprise:)
         end
       end
@@ -132,7 +152,7 @@ module Spree
     end
 
     def last_incomplete_spree_order
-      orders.incomplete.where(created_by_id: id).order('created_at DESC').first
+      orders.incomplete.where(created_by_id: id).order("created_at DESC").first
     end
 
     def disabled
@@ -140,7 +160,7 @@ module Spree
     end
 
     def disabled=(value)
-      self.disabled_at = value == '1' ? Time.zone.now : nil
+      self.disabled_at = value == "1" ? Time.zone.now : nil
     end
 
     def affiliate_enterprises
@@ -151,16 +171,15 @@ module Spree
 
     # Users can manage orders if they have a sells own/any enterprise. or is admin
     def can_manage_orders?
-      @can_manage_orders ||= (enterprises.pluck(:sells).intersect?(%w(own any)) or admin?)
+      @can_manage_orders ||= (enterprises.pluck(:sells).intersect?(%w[own any]) or admin?)
     end
 
     # Users can manage line items in orders if they have producer enterprise and
     # any of order distributors allow them to edit their orders.
     def can_manage_line_items_in_orders?
-      return @can_manage_line_items_in_orders if defined? @can_manage_line_items_in_orders
+      return @can_manage_line_items_in_orders if defined?(@can_manage_line_items_in_orders)
 
-      @can_manage_line_items_in_orders =
-        enterprises.any?(&:is_producer_only) &&
+      @can_manage_line_items_in_orders = enterprises.any?(&:is_producer_only) &&
         Spree::Order.editable_by_producers(enterprises).exists?
     end
 
@@ -188,9 +207,14 @@ module Spree
     def limit_owned_enterprises
       return unless owned_enterprises.size > enterprise_limit
 
-      errors.add(:owned_enterprises, I18n.t(:spree_user_enterprise_limit_error,
-                                            email:,
-                                            enterprise_limit:))
+      errors.add(
+        :owned_enterprises,
+        I18n.t(
+          :spree_user_enterprise_limit_error,
+          email:,
+          enterprise_limit:
+        )
+      )
     end
 
     def remove_payments_in_checkout(enterprises)

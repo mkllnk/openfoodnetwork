@@ -1,15 +1,29 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 module Api
   module Admin
     class IndexOrderCycleSerializer < ActiveModel::Serializer
       include OrderCyclesHelper
 
-      attributes :id, :name, :orders_open_at, :orders_close_at, :status, :variant_count, :deletable,
-                 :coordinator, :producers, :shops, :viewing_as_coordinator,
-                 :edit_path, :clone_path, :delete_path, :subscriptions_count
+      attributes(
+        :id,
+        :name,
+        :orders_open_at,
+        :orders_close_at,
+        :status,
+        :variant_count,
+        :deletable,
+        :coordinator,
+        :producers,
+        :shops,
+        :viewing_as_coordinator,
+        :edit_path,
+        :clone_path,
+        :delete_path,
+        :subscriptions_count
+      )
 
       has_many :schedules, serializer: Api::Admin::IdNameSerializer
 
@@ -22,7 +36,7 @@ module Api
       end
 
       def status
-        order_cycle_status_class object
+        order_cycle_status_class(object)
       end
 
       def orders_open_at
@@ -34,7 +48,7 @@ module Api
       end
 
       def viewing_as_coordinator
-        Enterprise.managed_by(options[:current_user]).include? object.coordinator
+        Enterprise.managed_by(options[:current_user]).include?(object.coordinator)
       end
 
       def coordinator
@@ -70,10 +84,9 @@ module Api
       private
 
       def visible_enterprises
-        @visible_enterprises ||=
-          OpenFoodNetwork::OrderCyclePermissions.
-            new(options[:current_user], object).
-            visible_enterprises
+        @visible_enterprises ||= OpenFoodNetwork::OrderCyclePermissions
+          .new(options[:current_user], object)
+          .visible_enterprises
       end
     end
   end

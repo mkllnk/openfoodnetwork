@@ -2,16 +2,16 @@
 
 # test a single endpoint to make sure the redirects are working as intended.
 
-RSpec.describe 'Orders Cycles endpoint' do
+RSpec.describe "Orders Cycles endpoint" do
   let(:distributor) { create(:distributor_enterprise) }
   let(:order_cycle) { create(:order_cycle, distributors: [distributor]) }
 
-  context "requesting a specific API version" do
+  context("requesting a specific API version") do
     let(:path) { "/api/v0/order_cycles/#{order_cycle.id}/products?distributor=#{distributor.id}" }
 
     it "does not redirect" do
-      get path
-      expect(response).to have_http_status(:ok)
+      get(path)
+      expect(response).to(have_http_status(:ok))
     end
   end
 end

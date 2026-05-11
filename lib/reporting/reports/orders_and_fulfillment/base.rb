@@ -23,9 +23,12 @@ module Reporting
         end
 
         def query_result
-          report_line_items.list(line_item_includes).group_by { |e|
-            [e.variant_id, e.price, e.order.distributor_id]
-          }.values
+          report_line_items
+            .list(line_item_includes)
+            .group_by { |e|
+              [e.variant_id, e.price, e.order.distributor_id]
+            }
+            .values
         end
 
         private
@@ -71,9 +74,11 @@ module Reporting
         def total_units(line_items)
           return " " if not_all_have_unit?(line_items)
 
-          total_units = line_items.map do |li|
-            li.quantity * li.unit_value / scale_factor(li.variant)
-          end.sum(&:to_f)
+          total_units = line_items
+            .map do |li|
+              li.quantity * li.unit_value / scale_factor(li.variant)
+            end
+            .sum(&:to_f)
 
           total_units.round(3)
         end
@@ -87,8 +92,10 @@ module Reporting
             variant_overrides = report_variant_overrides[distributor_id]
           end
 
-          @variant_scopers_by_distributor_id[distributor_id] ||=
-            OpenFoodNetwork::ScopeVariantToHub.new(distributor, variant_overrides)
+          @variant_scopers_by_distributor_id[distributor_id] ||= OpenFoodNetwork::ScopeVariantToHub.new(
+            distributor,
+            variant_overrides
+          )
         end
 
         def not_all_have_unit?(line_items)
@@ -96,15 +103,16 @@ module Reporting
         end
 
         def scale_factor(variant)
-          variant.variant_unit == 'weight' ? 1000 : 1
+          variant.variant_unit == "weight" ? 1000 : 1
         end
 
         def report_variant_overrides
-          @report_variant_overrides ||=
-            VariantOverridesIndexed.new(
-              order_permissions.visible_line_items.select('DISTINCT variant_id'),
-              report_line_items.orders.result.select('DISTINCT distributor_id'),
-            ).indexed
+          @report_variant_overrides ||= VariantOverridesIndexed
+            .new(
+              order_permissions.visible_line_items.select("DISTINCT variant_id"),
+              report_line_items.orders.result.select("DISTINCT distributor_id")
+            )
+            .indexed
         end
       end
     end

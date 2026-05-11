@@ -24,13 +24,14 @@ end
 Flipper.register(:admins) do |actor|
   actor.respond_to?(:admin?) && actor.admin?
 end
+
 Flipper.register(:new_2024_07_03) do |actor|
   actor.respond_to?(:created_at?) && actor.created_at >= Time.zone.parse("2024-07-03")
 end
 
 Flipper.register(:enterprise_with_no_inventory) do |actor|
   # This group applies to enterprises only, so we return false if the actor is not an Enterprise
-  next false unless actor.actor.instance_of? Enterprise
+  next false unless actor.actor.instance_of?(Enterprise)
 
   # Uses 2025-08-11 as filter because variant tag did not exist before that, enterprise created
   # after never had access to the inventory
@@ -39,14 +40,15 @@ Flipper.register(:enterprise_with_no_inventory) do |actor|
     .where(created_at: ..."2025-08-11")
     .distinct
   enterprise_with_no_variant_override = Enterprise
-    .where.not(id: enterprise_with_variant_override)
+    .where
+    .not(id: enterprise_with_variant_override)
 
   enterprise_with_no_variant_override.exists?(actor.id)
 end
 
 Flipper.register(:enterprise_with_inventory) do |actor|
   # This group applies to enterprises only, so we return false if the actor is not an Enterprise
-  next false unless actor.actor.instance_of? Enterprise
+  next false unless actor.actor.instance_of?(Enterprise)
 
   # Uses 2025-08-11 as filter because variant tag did not exist before that, enterprise created
   # after never had access to the inventory
@@ -60,7 +62,7 @@ Flipper.register(:enterprise_with_inventory) do |actor|
 end
 
 Flipper::UI.configure do |config|
-  config.descriptions_source = ->(_keys) do
+  config.descriptions_source = -> (_keys) do
     # return has to be hash of {String key => String description}
     OpenFoodNetwork::FeatureToggle::CURRENT_FEATURES
   end
@@ -75,7 +77,7 @@ Flipper::UI.configure do |config|
       application. Please read the how-to before:
       https://github.com/openfoodfoundation/openfoodnetwork/wiki/Feature-toggles
     TEXT
-    config.banner_class = 'danger'
+    config.banner_class = "danger"
   end
 end
 

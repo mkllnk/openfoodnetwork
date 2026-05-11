@@ -3,11 +3,31 @@
 module Api
   module Admin
     class VariantSerializer < ActiveModel::Serializer
-      attributes :id, :name, :producer_name, :image, :sku, :import_date, :tax_category_id,
-                 :options_text, :unit_value, :unit_description, :unit_to_display,
-                 :display_as, :display_name, :name_to_display, :variant_overrides_count,
-                 :price, :on_demand, :on_hand, :in_stock,
-                 :variant_unit, :variant_unit_scale, :variant_unit_name, :variant_unit_with_scale
+      attributes(
+        :id,
+        :name,
+        :producer_name,
+        :image,
+        :sku,
+        :import_date,
+        :tax_category_id,
+        :options_text,
+        :unit_value,
+        :unit_description,
+        :unit_to_display,
+        :display_as,
+        :display_name,
+        :name_to_display,
+        :variant_overrides_count,
+        :price,
+        :on_demand,
+        :on_hand,
+        :in_stock,
+        :variant_unit,
+        :variant_unit_scale,
+        :variant_unit_name,
+        :variant_unit_with_scale
+      )
 
       has_one :primary_taxon, key: :category_id, embed: :id
       has_one :supplier, key: :producer_id, embed: :id

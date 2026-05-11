@@ -3,7 +3,7 @@
 module Spree
   module Admin
     class AdjustmentsController < ::Admin::ResourceController
-      belongs_to 'spree/order', find_by: :number
+      belongs_to "spree/order", find_by: :number
 
       before_action :set_order_id, only: [:create, :update]
       before_action :skip_changing_canceled_orders, only: [:create, :update]
@@ -18,7 +18,7 @@ module Spree
       end
 
       def collection
-        order_adjustments = parent.adjustments.where.not(originator_type: 'EnterpriseFee')
+        order_adjustments = parent.adjustments.where.not(originator_type: "EnterpriseFee")
         admin_adjustments = parent.adjustments.admin
         payment_fees = parent.all_adjustments.payment_fee.eligible
         shipping_fees = parent.all_adjustments.shipping
@@ -38,7 +38,7 @@ module Spree
         return unless @order.canceled?
 
         flash[:error] = t("admin.adjustments.skipped_changing_canceled_order")
-        redirect_to admin_order_adjustments_path(@order) if @order.canceled?
+        redirect_to(admin_order_adjustments_path(@order)) if @order.canceled?
       end
 
       def apply_tax
@@ -47,7 +47,9 @@ module Spree
 
       def permitted_resource_params
         params.require(:adjustment).permit(
-          :label, :amount, :tax_category_id
+          :label,
+          :amount,
+          :tax_category_id
         )
       end
     end

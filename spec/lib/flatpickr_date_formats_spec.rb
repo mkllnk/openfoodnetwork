@@ -24,10 +24,10 @@ RSpec.describe "Flatpickr date format strings in locale files" do
   end
 
   it "locale files are present" do
-    expect(locale_files).not_to be_empty
+    expect(locale_files).not_to(be_empty)
   end
 
-  shared_examples "valid flatpickr format" do |format_key|
+  shared_examples("valid flatpickr format") do |format_key|
     it "#{format_key} is a valid flatpickr format string in all locales" do
       # Valid flatpickr format token characters (single-character tokens and common separators).
       # See: https://flatpickr.js.org/formatting/
@@ -45,7 +45,7 @@ RSpec.describe "Flatpickr date format strings in locale files" do
       locale_files.each do |file|
         locale_code = File.basename(file, ".yml")
         if known_broken_locales.include?(locale_code)
-          pending "locale is known to have a broken date/time format"
+          pending("locale is known to have a broken date/time format")
         end
 
         formats = date_picker_formats(file)
@@ -56,28 +56,30 @@ RSpec.describe "Flatpickr date format strings in locale files" do
       end
 
       expect(invalid)
-        .to be_empty,
-            "Invalid #{format_key} found in locale files:\n" \
+        .to(
+          be_empty,
+          "Invalid #{format_key} found in locale files:\n" \
             "#{invalid.join("\n")}\n\n" \
             "Flatpickr format strings use single-character tokens (e.g. Y=year, m=month).\n" \
             "They must not be translated. Valid tokens: ZDFGHJKMSUWYdhijlmnsuwy\n" \
             "Valid separators: . - / : space\n" \
             "See: https://flatpickr.js.org/formatting/"
+        )
     end
   end
 
-  include_examples "valid flatpickr format", :date
-  include_examples "valid flatpickr format", :datetime
+  include_examples("valid flatpickr format", :date)
+  include_examples("valid flatpickr format", :datetime)
 
   describe "Finnish locale specifically" do
     it "has valid flatpickr_date_format" do
       formats = date_picker_formats(Rails.root.join("config/locales/fi.yml"))
-      expect(formats[:date]).to eq("d.m.Y")
+      expect(formats[:date]).to(eq("d.m.Y"))
     end
 
     it "has valid flatpickr_datetime_format" do
       formats = date_picker_formats(Rails.root.join("config/locales/fi.yml"))
-      expect(formats[:datetime]).to eq("d.m.Y H:i")
+      expect(formats[:datetime]).to(eq("d.m.Y H:i"))
     end
   end
 end

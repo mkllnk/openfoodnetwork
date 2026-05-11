@@ -9,7 +9,7 @@ module FilePreferences
 
   class_methods do
     def file_preference(name, default_url: nil)
-      preference "#{name}_blob_id", :integer
+      preference("#{name}_blob_id", :integer)
       @default_urls[name] = default_url if default_url
     end
 

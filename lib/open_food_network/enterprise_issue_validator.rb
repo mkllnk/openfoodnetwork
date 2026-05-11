@@ -12,30 +12,36 @@ module OpenFoodNetwork
       issues = []
 
       unless shipping_methods_ok?
-        issues << {
-          description: I18n.t('admin.enterprise_issues.has_no_shipping_methods',
-                              enterprise: @enterprise.name),
-          link: "<a class='button fullwidth' " \
-                "href='#{spree_routes_helper.new_admin_shipping_method_path}'>" \
-                "#{I18n.t('admin.enterprise_issues.create_new')}</a>"
-        }
+        issues <<
+          {
+            description: I18n.t(
+              "admin.enterprise_issues.has_no_shipping_methods",
+              enterprise: @enterprise.name
+            ),
+            link: "<a class='button fullwidth' " \
+              "href='#{spree_routes_helper.new_admin_shipping_method_path}'>" \
+              "#{I18n.t("admin.enterprise_issues.create_new")}</a>"
+          }
       end
 
       unless payment_methods_ok?
-        issues << {
-          description: I18n.t('admin.enterprise_issues.has_no_payment_methods',
-                              enterprise: @enterprise.name),
-          link: "<a class='button fullwidth' " \
-                "href='#{spree_routes_helper.new_admin_payment_method_path}'>" \
-                "#{I18n.t('admin.enterprise_issues.create_new')}</a>"
-        }
+        issues <<
+          {
+            description: I18n.t(
+              "admin.enterprise_issues.has_no_payment_methods",
+              enterprise: @enterprise.name
+            ),
+            link: "<a class='button fullwidth' " \
+              "href='#{spree_routes_helper.new_admin_payment_method_path}'>" \
+              "#{I18n.t("admin.enterprise_issues.create_new")}</a>"
+          }
       end
 
       issues
     end
 
     def issues_summary(opts = {})
-      if    !opts[:confirmation_only] && !shipping_methods_ok? && !payment_methods_ok?
+      if !opts[:confirmation_only] && !shipping_methods_ok? && !payment_methods_ok?
         I18n.t(:no_shipping_or_payment)
       elsif !opts[:confirmation_only] && !shipping_methods_ok?
         I18n.t(:no_shipping)
@@ -48,11 +54,12 @@ module OpenFoodNetwork
       warnings = []
 
       unless @enterprise.public?
-        warnings << {
-          description: I18n.t('admin.enterprise_issues.not_visible', enterprise: @enterprise.name),
-          link: "<a class='button fullwidth' " \
-                "href='#{edit_admin_enterprise_path(@enterprise)}'>#{I18n.t(:edit)}</a>"
-        }
+        warnings <<
+          {
+            description: I18n.t("admin.enterprise_issues.not_visible", enterprise: @enterprise.name),
+            link: "<a class='button fullwidth' " \
+              "href='#{edit_admin_enterprise_path(@enterprise)}'>#{I18n.t(:edit)}</a>"
+          }
       end
 
       warnings

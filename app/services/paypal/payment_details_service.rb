@@ -7,7 +7,8 @@ module Paypal
       @address_required = address_required
     end
 
-    def call # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength
+    def call
       items = Paypal::ItemsBuilderService.new(order).call
 
       item_sum = items.sum { |i| i[:Quantity] * i[:Amount][:value] }
@@ -73,7 +74,8 @@ module Paypal
       Orders::FindPaymentService.new(order)
     end
 
-    def address_options # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/CyclomaticComplexity
+    def address_options
       return {} unless address_required
 
       {

@@ -7,7 +7,7 @@ class VoucherAdjustmentsController < BaseController
 
   def create
     if voucher_params[:voucher_code].blank?
-      @order.errors.add(:voucher_code, I18n.t('checkout.errors.voucher_code_blank'))
+      @order.errors.add(:voucher_code, I18n.t("checkout.errors.voucher_code_blank"))
       return render_error
     end
 
@@ -45,7 +45,7 @@ class VoucherAdjustmentsController < BaseController
     return false if @order.errors.present?
 
     if voucher.nil?
-      @order.errors.add(:voucher_code, I18n.t('checkout.errors.voucher_code_not_found'))
+      @order.errors.add(:voucher_code, I18n.t("checkout.errors.voucher_code_not_found"))
       return false
     end
 
@@ -53,7 +53,8 @@ class VoucherAdjustmentsController < BaseController
       @order.errors.add(
         :voucher_code,
         I18n.t(
-          'checkout.errors.create_voucher_error', error: voucher.errors.full_messages.to_sentence
+          "checkout.errors.create_voucher_error",
+          error: voucher.errors.full_messages.to_sentence
         )
       )
       return false
@@ -66,7 +67,7 @@ class VoucherAdjustmentsController < BaseController
     adjustment = voucher.create_adjustment(voucher.code, @order)
 
     unless adjustment.persisted?
-      @order.errors.add(:voucher_code, I18n.t('checkout.errors.add_voucher_error'))
+      @order.errors.add(:voucher_code, I18n.t("checkout.errors.add_voucher_error"))
       adjustment.errors.each { |error| @order.errors.import(error) }
       return false
     end
@@ -80,8 +81,10 @@ class VoucherAdjustmentsController < BaseController
   end
 
   def load_voucher
-    voucher = Voucher.find_by(code: voucher_params[:voucher_code],
-                              enterprise: @order.distributor)
+    voucher = Voucher.find_by(
+      code: voucher_params[:voucher_code],
+      enterprise: @order.distributor
+    )
     return voucher unless voucher.nil? || voucher.is_a?(Vouchers::Vine)
 
     vine_voucher
@@ -89,7 +92,8 @@ class VoucherAdjustmentsController < BaseController
 
   def vine_voucher
     vine_voucher_validator = Vine::VoucherValidatorService.new(
-      voucher_code: voucher_params[:voucher_code], enterprise: @order.distributor
+      voucher_code: voucher_params[:voucher_code],
+      enterprise: @order.distributor
     )
     voucher = vine_voucher_validator.validate
     errors = vine_voucher_validator.errors
@@ -97,7 +101,7 @@ class VoucherAdjustmentsController < BaseController
     return nil if errors[:not_found_voucher].present?
 
     if errors.present?
-      message = errors[:invalid_voucher] || I18n.t('checkout.errors.add_voucher_error')
+      message = errors[:invalid_voucher] || I18n.t("checkout.errors.add_voucher_error")
       @order.errors.add(:voucher_code, message)
       return nil
     end
@@ -108,24 +112,29 @@ class VoucherAdjustmentsController < BaseController
   def update_payment_section
     @paid_with_credit = calculate_credit(@order)
 
-    render cable_ready: cable_car.replace(
-      selector: "#checkout-payment-methods",
-      html: render_to_string(partial: "checkout/payment", locals: { step: "payment" })
+    render(
+      cable_ready: cable_car.replace(
+        selector: "#checkout-payment-methods",
+        html: render_to_string(partial: "checkout/payment", locals: {step: "payment"})
+      )
     )
   end
 
   def render_error
     flash.now[:error] = @order.errors.full_messages.to_sentence
 
-    render status: :unprocessable_entity, cable_ready: cable_car.
-      replace("#flashes", partial("shared/flashes", locals: { flashes: flash })).
-      replace(
-        "#voucher-section",
-        partial(
-          "checkout/voucher_section",
-          locals: { order: @order, voucher_adjustment: @order.voucher_adjustments.first }
+    render(
+      status: :unprocessable_entity,
+      cable_ready: cable_car
+        .replace("#flashes", partial("shared/flashes", locals: {flashes: flash}))
+        .replace(
+          "#voucher-section",
+          partial(
+            "checkout/voucher_section",
+            locals: {order: @order, voucher_adjustment: @order.voucher_adjustments.first}
+          )
         )
-      )
+    )
   end
 
   def voucher_params

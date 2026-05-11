@@ -13,10 +13,11 @@ class OidcAccount < ApplicationRecord
       provider: auth.provider,
       uid: auth.uid,
       token: auth.dig(:credentials, :token),
-      refresh_token: auth.dig(:credentials, :refresh_token),
+      refresh_token: auth.dig(:credentials, :refresh_token)
     }
     # This skips validations but we have database constraints in place.
     # We may replace this at some point.
-    upsert_all([attributes], unique_by: [:user_id]) # rubocop:disable Rails/SkipsModelValidations
+    # rubocop:disable Rails/SkipsModelValidations
+    upsert_all([attributes], unique_by: [:user_id])
   end
 end

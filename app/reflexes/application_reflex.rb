@@ -22,6 +22,6 @@ class ApplicationReflex < StimulusReflex::Reflex
   end
 
   def morph_admin_flashes
-    morph "#flashes", render(partial: "admin/shared/flashes", locals: { flashes: flash })
+    morph("#flashes", render(partial: "admin/shared/flashes", locals: {flashes: flash}))
   end
 end

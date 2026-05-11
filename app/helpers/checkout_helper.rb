@@ -12,20 +12,22 @@ module CheckoutHelper
     adjustments = order.all_adjustments.eligible.to_a
 
     # Remove tax adjustments and (optionally) shipping fees
-    adjustments.reject! { |a| a.originator_type == 'Spree::TaxRate' }
-    if exclude.include? :shipping
+    adjustments.reject! { |a| a.originator_type == "Spree::TaxRate" }
+    if exclude.include?(:shipping)
       adjustments.reject! { |a|
-        a.originator_type == 'Spree::ShippingMethod'
+        a.originator_type == "Spree::ShippingMethod"
       }
     end
-    if exclude.include? :payment
+
+    if exclude.include?(:payment)
       adjustments.reject! { |a|
-        a.originator_type == 'Spree::PaymentMethod'
+        a.originator_type == "Spree::PaymentMethod"
       }
     end
-    if exclude.include? :line_item
+
+    if exclude.include?(:line_item)
       adjustments.reject! { |a|
-        a.adjustable_type == 'Spree::LineItem'
+        a.adjustable_type == "Spree::LineItem"
       }
     end
 
@@ -45,7 +47,7 @@ module CheckoutHelper
   end
 
   def display_checkout_subtotal(order)
-    Spree::Money.new checkout_subtotal(order), currency: order.currency
+    Spree::Money.new(checkout_subtotal(order), currency: order.currency)
   end
 
   def display_checkout_tax_total(order)
@@ -57,13 +59,15 @@ module CheckoutHelper
   def display_checkout_taxes_hash(order)
     totals = Orders::FetchTaxAdjustmentsService.new(order).totals
 
-    totals.map do |tax_rate, tax_amount|
-      {
-        amount: Spree::Money.new(tax_amount, currency: order.currency),
-        percentage: number_to_percentage(tax_rate.amount * 100, precision: 1),
-        rate_amount: tax_rate.amount,
-      }
-    end.sort_by { |tax| tax[:rate_amount] }
+    totals
+      .map do |tax_rate, tax_amount|
+        {
+          amount: Spree::Money.new(tax_amount, currency: order.currency),
+          percentage: number_to_percentage(tax_rate.amount * 100, precision: 1),
+          rate_amount: tax_rate.amount
+        }
+      end
+      .sort_by { |tax| tax[:rate_amount] }
   end
 
   def display_line_item_tax_rates(line_item)
@@ -76,7 +80,7 @@ module CheckoutHelper
   end
 
   def display_checkout_total_less_tax(order)
-    Spree::Money.new order.total - order.total_tax, currency: order.currency
+    Spree::Money.new(order.total - order.total_tax, currency: order.currency)
   end
 
   def payment_or_shipping_price(method, order)
@@ -84,7 +88,7 @@ module CheckoutHelper
 
     price = method.compute_amount(order)
     if price.zero?
-      t('checkout_method_free')
+      t("checkout_method_free")
     else
       Spree::Money.new(price, currency: order.currency)
     end
@@ -102,7 +106,8 @@ module CheckoutHelper
     cards.map do |cc|
       [
         "#{cc.cc_type} #{cc.last_digits} #{I18n.t(:card_expiry_abbreviation)}:" \
-        "#{cc.month.to_s.rjust(2, '0')}/#{cc.year}", cc.id
+          "#{cc.month.to_s.rjust(2, "0")}/#{cc.year}",
+        cc.id
       ]
     end
   end

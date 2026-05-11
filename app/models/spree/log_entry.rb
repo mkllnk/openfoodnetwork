@@ -12,7 +12,7 @@ module Spree
 
     def save_anyway
       log = Spree::LogEntry.new
-      log.source  = source
+      log.source = source
       log.details = details
       log.save!
     end

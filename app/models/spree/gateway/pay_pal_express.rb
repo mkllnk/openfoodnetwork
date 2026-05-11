@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'paypal-sdk-merchant'
+require "paypal-sdk-merchant"
 
 module Spree
   class Gateway
@@ -8,18 +8,17 @@ module Spree
       preference :login, :string
       preference :password, :password
       preference :signature, :string
-      preference :server, :string, default: 'sandbox'
-      preference :solution, :string, default: 'Mark'
-      preference :landing_page, :string, default: 'Billing'
-      preference :logourl, :string, default: ''
+      preference :server, :string, default: "sandbox"
+      preference :solution, :string, default: "Mark"
+      preference :landing_page, :string, default: "Billing"
+      preference :logourl, :string, default: ""
 
       def external_gateway?
         true
       end
 
       def external_payment_url(_options)
-        Rails.application.routes.url_helpers.
-          payment_gateways_paypal_express_path(payment_method_id: id)
+        Rails.application.routes.url_helpers.payment_gateways_paypal_express_path(payment_method_id: id)
       end
 
       def supports?(_source)
@@ -41,7 +40,7 @@ module Spree
       end
 
       def method_type
-        'paypal'
+        "paypal"
       end
 
       def purchase(_amount, express_checkout, _gateway_options = {})
@@ -55,8 +54,9 @@ module Spree
             PaymentAction: "Sale",
             Token: express_checkout.token,
             PayerID: express_checkout.payer_id,
-            PaymentDetails: pp_details_response.
-              get_express_checkout_details_response_details.PaymentDetails
+            PaymentDetails: pp_details_response
+              .get_express_checkout_details_response_details
+              .PaymentDetails()
           }
         )
 
@@ -64,21 +64,31 @@ module Spree
         if pp_response.success?
           # We need to store the transaction id for the future.
           # This is mainly so we can use it later on to refund the payment if the user wishes.
-          transaction_id = pp_response.do_express_checkout_payment_response_details.
-            payment_info.first.transaction_id
+          transaction_id = pp_response
+            .do_express_checkout_payment_response_details
+            .payment_info
+            .first
+            .transaction_id
           express_checkout.update_column(:transaction_id, transaction_id)
           # This is rather hackish, required for payment/processing handle_response code.
-          Class.new do
-            def success?; true; end
+          Class
+            .new do
+              def success?
+                true
+              end
 
-            def authorization; nil; end
-          end.new
+              def authorization
+                nil
+              end
+            end
+            .new
         else
           class << pp_response
             def to_s
               errors.map(&:long_message).join(" ")
             end
           end
+
           pp_response
         end
       end
@@ -98,7 +108,7 @@ module Spree
         if refund_transaction_response.success?
           payment.source.update(
             refunded_at: Time.zone.now,
-            refund_transaction_id: refund_transaction_response.RefundTransactionID,
+            refund_transaction_id: refund_transaction_response.RefundTransactionID(),
             state: "refunded",
             refund_type:
           )
@@ -108,10 +118,11 @@ module Spree
             source: payment,
             payment_method: payment.payment_method,
             amount: amount.to_f.abs * -1,
-            response_code: refund_transaction_response.RefundTransactionID,
-            state: 'completed'
+            response_code: refund_transaction_response.RefundTransactionID(),
+            state: "completed"
           )
         end
+
         refund_transaction_response
       end
     end

@@ -7,13 +7,14 @@ class CreateVariantLinks < ActiveRecord::Migration[7.1]
     # likely subject and so is first in the index.
     # An additional index for source_variant is also included because it may be helpful
     # (https://stackoverflow.com/questions/10790518/best-sql-indexes-for-join-table).
-    create_table :variant_links, primary_key: [:target_variant_id, :source_variant_id] do |t|
-      t.integer :source_variant_id, null: false, index: true
-      t.integer :target_variant_id, null: false
+    create_table(:variant_links, primary_key: [:target_variant_id, :source_variant_id]) do |t|
+      t.integer(:source_variant_id, null: false, index: true)
+      t.integer(:target_variant_id, null: false)
 
-      t.datetime :created_at, null: false
+      t.datetime(:created_at, null: false)
     end
-    add_foreign_key :variant_links, :spree_variants, column: :source_variant_id
-    add_foreign_key :variant_links, :spree_variants, column: :target_variant_id
+
+    add_foreign_key(:variant_links, :spree_variants, column: :source_variant_id)
+    add_foreign_key(:variant_links, :spree_variants, column: :target_variant_id)
   end
 end

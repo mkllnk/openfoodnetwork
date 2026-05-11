@@ -20,9 +20,12 @@ class DeleteDuplicateCustomers < ActiveRecord::Migration[6.1]
     end
 
     def in_use?(model, record)
-      model.where(bill_address_id: record).or(
-        model.where(ship_address_id: record)
-      ).present?
+      model
+        .where(bill_address_id: record)
+        .or(
+          model.where(ship_address_id: record)
+        )
+        .present?
     end
   end
 
@@ -42,13 +45,13 @@ class DeleteDuplicateCustomers < ActiveRecord::Migration[6.1]
   end
 
   def up
-    say "#{grouped_duplicates.keys.count} customers with duplicates."
+    say("#{grouped_duplicates.keys.count} customers with duplicates.")
 
     grouped_duplicates.map do |key, customers|
       chosen = customers.first
       others = customers - [chosen]
 
-      say "- #{key}"
+      say("- #{key}")
 
       # We can't tell which attributes or associations are the correct ones.
       # Selection has been random so far and it's no regression to randomly
@@ -79,10 +82,8 @@ class DeleteDuplicateCustomers < ActiveRecord::Migration[6.1]
   end
 
   def update_references(source_customers, destination_customer)
-    SpreeOrder.where(customer_id: source_customers.map(&:id)).
-      update_all(customer_id: destination_customer.id)
+    SpreeOrder.where(customer_id: source_customers.map(&:id)).update_all(customer_id: destination_customer.id)
 
-    Subscription.where(customer_id: source_customers.map(&:id)).
-      update_all(customer_id: destination_customer.id)
+    Subscription.where(customer_id: source_customers.map(&:id)).update_all(customer_id: destination_customer.id)
   end
 end

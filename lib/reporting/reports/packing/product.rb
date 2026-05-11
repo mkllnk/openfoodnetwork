@@ -6,9 +6,21 @@ module Reporting
       class Product < Base
         def table_columns
           Struct.new(:keys).new(
-            [:hub, :supplier, :product, :variant, :customer_code, :first_name,
-             :last_name, :phone, :quantity, :price, :temp_controlled, :shipment_state,
-             :shipping_method]
+            [
+              :hub,
+              :supplier,
+              :product,
+              :variant,
+              :customer_code,
+              :first_name,
+              :last_name,
+              :phone,
+              :quantity,
+              :price,
+              :temp_controlled,
+              :shipment_state,
+              :shipping_method
+            ]
           )
         end
 
@@ -22,19 +34,19 @@ module Reporting
             {
               group_by: :hub,
               header: true,
-              header_class: "h1 with-background text-center",
+              header_class: "h1 with-background text-center"
             },
             {
               group_by: :supplier,
               header: true,
-              header_class: "h1",
+              header_class: "h1"
             },
             {
               group_by: proc { |_item, row| "#{row.product} - #{row.variant}" },
               header: true,
               fields_used_in_header: [:product, :variant],
               summary_row:,
-              header_class: "h3",
+              header_class: "h3"
             }
           ]
         end
@@ -47,7 +59,7 @@ module Reporting
               Arel.sql("product"),
               Arel.sql("variant"),
               bill_address_alias[:lastname],
-              order_table[:id],
+              order_table[:id]
             ]
           end
         end

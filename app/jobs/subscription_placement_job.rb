@@ -17,9 +17,13 @@ class SubscriptionPlacementJob < ApplicationJob
 
   def proxy_orders
     # Loads proxy orders for open order cycles that have not been placed yet
-    ProxyOrder.not_canceled.where(placed_at: nil)
-      .joins(:order_cycle).merge(OrderCycle.active)
-      .joins(:subscription).merge(Subscription.not_canceled.not_paused)
+    ProxyOrder
+      .not_canceled
+      .where(placed_at: nil)
+      .joins(:order_cycle)
+      .merge(OrderCycle.active)
+      .joins(:subscription)
+      .merge(Subscription.not_canceled.not_paused)
       .order(:id)
   end
 

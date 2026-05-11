@@ -39,13 +39,15 @@ class DfcCatalogImporter
     catalog_url = FdcUrlBuilder.new(present_ids.first).catalog_url
 
     existing_variants
-      .includes(:semantic_links).references(:semantic_links)
-      .where.not(semantic_links: { semantic_id: present_ids })
+      .includes(:semantic_links)
+      .references(:semantic_links)
+      .where
+      .not(semantic_links: {semantic_id: present_ids})
       .select do |variant|
         # Variants that were in the same catalog before:
         variant.semantic_links.map(&:semantic_id).any? do |semantic_id|
           FdcUrlBuilder.new(semantic_id).catalog_url == catalog_url
         end
-    end
+      end
   end
 end

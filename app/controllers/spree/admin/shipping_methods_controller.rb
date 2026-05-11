@@ -14,8 +14,8 @@ module Spree
         collection = super
         collection = collection.managed_by(spree_current_user).by_name
 
-        if params.key? :enterprise_id
-          distributor = Enterprise.find params[:enterprise_id]
+        if params.key?(:enterprise_id)
+          distributor = Enterprise.find(params[:enterprise_id])
           collection = collection.for_distributor(distributor)
         end
 
@@ -35,26 +35,27 @@ module Spree
           redirect_to(collection_url) && return
         end
 
-        @object.touch :deleted_at
+        @object.touch(:deleted_at)
         flash[:success] = Spree.t(:successfully_removed)
 
         respond_with(@object) do |format|
-          format.html { redirect_to collection_url }
+          format.html { redirect_to(collection_url) }
         end
       end
 
       private
 
       def order_referenced_by_shipping_method
-        Order.joins(shipments: :shipping_rates)
-          .where( spree_shipping_rates: { shipping_method_id: @object } )
+        Order
+          .joins(shipments: :shipping_rates)
+          .where(spree_shipping_rates: {shipping_method_id: @object})
           .first
       end
 
       def load_hubs
         # rubocop:disable Style/TernaryParentheses
         @hubs = Enterprise.managed_by(spree_current_user).is_distributor.to_a.sort_by! do |d|
-          [(@shipping_method.has_distributor? d) ? 0 : 1, d.name]
+          [(@shipping_method.has_distributor?(d)) ? 0 : 1, d.name]
         end
         # rubocop:enable Style/TernaryParentheses
       end
@@ -62,8 +63,9 @@ module Spree
       def set_shipping_category
         return true if params["shipping_method"][:shipping_categories] == ""
 
-        @shipping_method.shipping_categories =
-          Spree::ShippingCategory.where(id: params["shipping_method"][:shipping_categories])
+        @shipping_method.shipping_categories = Spree::ShippingCategory.where(
+          id: params["shipping_method"][:shipping_categories]
+        )
         @shipping_method.save
         params[:shipping_method].delete(:shipping_categories)
       end
@@ -88,18 +90,28 @@ module Spree
 
       def permitted_resource_params
         params.require(:shipping_method).permit(
-          :name, :description, :display_on, :require_ship_address, :tag_list, :calculator_type,
-          :tax_category_id, distributor_ids: [],
-                            calculator_attributes: PermittedAttributes::Calculator.attributes
+          :name,
+          :description,
+          :display_on,
+          :require_ship_address,
+          :tag_list,
+          :calculator_type,
+          :tax_category_id,
+          distributor_ids: [],
+          calculator_attributes: PermittedAttributes::Calculator.attributes
         )
       end
 
       def check_shipping_fee_input
-        shipping_fees = permitted_resource_params['calculator_attributes']&.slice(
-          :preferred_flat_percent, :preferred_amount,
-          :preferred_first_item, :preferred_additional_item,
-          :preferred_minimal_amount, :preferred_normal_amount,
-          :preferred_discount_amount, :preferred_per_unit
+        shipping_fees = permitted_resource_params["calculator_attributes"]&.slice(
+          :preferred_flat_percent,
+          :preferred_amount,
+          :preferred_first_item,
+          :preferred_additional_item,
+          :preferred_minimal_amount,
+          :preferred_normal_amount,
+          :preferred_discount_amount,
+          :preferred_per_unit
         )
 
         return unless shipping_fees
@@ -107,7 +119,7 @@ module Spree
         shipping_fees.each_value do |shipping_amount|
           unless shipping_amount.nil? || Float(shipping_amount, exception: false)
             flash[:error] = I18n.t(:calculator_preferred_value_error)
-            return redirect_to location_after_save
+            return redirect_to(location_after_save)
           end
         end
       end

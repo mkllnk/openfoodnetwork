@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/property_merge'
+require "open_food_network/property_merge"
 
 module Api
   class CachedEnterpriseSerializer < ActiveModel::Serializer
@@ -12,11 +12,36 @@ module Api
       enterprise&.cache_key
     end
 
-    attributes :name, :id, :description, :latitude, :longitude,
-               :long_description, :website, :instagram, :linkedin, :twitter,
-               :facebook, :is_primary_producer, :is_distributor, :phone, :whatsapp_phone,
-               :whatsapp_url, :visible, :email_address, :hash, :logo, :promo_image, :path, :pickup,
-               :delivery, :icon, :icon_font, :producer_icon_font, :category
+    attributes(
+      :name,
+      :id,
+      :description,
+      :latitude,
+      :longitude,
+      :long_description,
+      :website,
+      :instagram,
+      :linkedin,
+      :twitter,
+      :facebook,
+      :is_primary_producer,
+      :is_distributor,
+      :phone,
+      :whatsapp_phone,
+      :whatsapp_url,
+      :visible,
+      :email_address,
+      :hash,
+      :logo,
+      :promo_image,
+      :path,
+      :pickup,
+      :delivery,
+      :icon,
+      :icon_font,
+      :producer_icon_font,
+      :category
+    )
 
     attributes :taxons, :supplied_taxons
 
@@ -57,16 +82,16 @@ module Api
 
     def taxons
       if active
-        ids_to_objs data.current_distributed_taxons[enterprise.id]
+        ids_to_objs(data.current_distributed_taxons[enterprise.id])
       else
-        ids_to_objs data.all_distributed_taxons[enterprise.id]
+        ids_to_objs(data.all_distributed_taxons[enterprise.id])
       end
     end
 
     def supplied_taxons
       return [] unless enterprise.is_primary_producer
 
-      ids_to_objs data.supplied_taxons[enterprise.id]
+      ids_to_objs(data.supplied_taxons[enterprise.id])
     end
 
     def supplied_properties
@@ -90,10 +115,10 @@ module Api
       return [] unless active
 
       properties = Spree::Property
-        .joins(products: { variants: { exchanges: :order_cycle } })
+        .joins(products: {variants: {exchanges: :order_cycle}})
         .merge(Exchange.outgoing)
         .merge(Exchange.to_enterprise(enterprise))
-        .select('DISTINCT spree_properties.*')
+        .select("DISTINCT spree_properties.*")
 
       properties.merge(OrderCycle.active)
     end
@@ -104,18 +129,18 @@ module Api
       properties = Spree::Property
         .joins(
           producer_properties: {
-            producer: { supplied_variants: { exchanges: :order_cycle } }
+            producer: {supplied_variants: {exchanges: :order_cycle}}
           }
         )
         .merge(Exchange.outgoing)
         .merge(Exchange.to_enterprise(enterprise))
-        .select('DISTINCT spree_properties.*')
+        .select("DISTINCT spree_properties.*")
 
       properties.merge(OrderCycle.active)
     end
 
     def active
-      @active ||= data.active_distributor_ids&.include? enterprise.id
+      @active ||= data.active_distributor_ids&.include?(enterprise.id)
     end
 
     # Map svg icons.
@@ -125,9 +150,9 @@ module Api
         hub_profile: "map_006-hub-profile.svg",
         producer_hub: "map_005-hub.svg",
         producer_shop: "map_003-producer-shop.svg",
-        producer: "map_001-producer-only.svg",
+        producer: "map_001-producer-only.svg"
       }
-      "/map_icons/#{icons[enterprise.category] || 'map_001-producer-only.svg'}"
+      "/map_icons/#{icons[enterprise.category] || "map_001-producer-only.svg"}"
     end
 
     # Choose regular icon font for enterprises.
@@ -137,7 +162,7 @@ module Api
         hub_profile: "ofn-i_064-hub-reversed",
         producer_hub: "ofn-i_063-hub",
         producer_shop: "ofn-i_059-producer",
-        producer: "ofn-i_059-producer",
+        producer: "ofn-i_059-producer"
       }
       icon_fonts[enterprise.category]
     end
@@ -151,7 +176,7 @@ module Api
         hub_profile: "",
         producer_hub: "ofn-i_059-producer",
         producer_shop: "ofn-i_059-producer",
-        producer: "ofn-i_059-producer",
+        producer: "ofn-i_059-producer"
       }
       icon_fonts[enterprise.category]
     end
@@ -159,11 +184,14 @@ module Api
     private
 
     def product_properties
-      Spree::Property.joins(:product_properties).where(
-        spree_product_properties: {
-          product_id: enterprise.supplied_product_ids
-        }
-      ).select('DISTINCT spree_properties.*')
+      Spree::Property
+        .joins(:product_properties)
+        .where(
+          spree_product_properties: {
+            product_id: enterprise.supplied_product_ids
+          }
+        )
+        .select("DISTINCT spree_properties.*")
     end
 
     def producer_properties

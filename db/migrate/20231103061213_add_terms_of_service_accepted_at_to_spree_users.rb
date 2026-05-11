@@ -1,6 +1,6 @@
 class AddTermsOfServiceAcceptedAtToSpreeUsers < ActiveRecord::Migration[7.0]
   def up
-    add_column :spree_users, :terms_of_service_accepted_at, :datetime
+    add_column(:spree_users, :terms_of_service_accepted_at, :datetime)
 
     if Spree::Config.enterprises_require_tos == true
       # There isn't really a way to know which user have access to admin pages, so we update
@@ -11,6 +11,6 @@ class AddTermsOfServiceAcceptedAtToSpreeUsers < ActiveRecord::Migration[7.0]
   end
 
   def down
-   remove_column :spree_users, :terms_of_service_accepted_at
+    remove_column(:spree_users, :terms_of_service_accepted_at)
   end
 end

@@ -1,14 +1,16 @@
 # frozen_string_literal: true
 
-require 'open_food_network/tag_rule_applicator'
+require "open_food_network/tag_rule_applicator"
 
 module Orders
   class AvailablePaymentMethodsService
     attr_reader :order, :customer
 
-    delegate :distributor,
-             :order_cycle,
-             to: :order
+    delegate(
+      :distributor,
+      :order_cycle,
+      to: :order
+    )
 
     def initialize(order, customer = nil)
       @order, @customer = order, customer
@@ -33,11 +35,15 @@ module Orders
         distributor.payment_methods.where(
           id: available_distributor_payment_methods_ids
         )
-      end.available.select(&:configured?).uniq
+      end
+        .available
+        .select(&:configured?)
+        .uniq
     end
 
     def available_distributor_payment_methods_ids
-      order_cycle.distributor_payment_methods
+      order_cycle
+        .distributor_payment_methods
         .where(distributor_id: distributor.id)
         .select(:payment_method_id)
     end

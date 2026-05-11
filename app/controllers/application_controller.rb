@@ -2,11 +2,11 @@
 
 require "spree/authentication_helpers"
 require "application_responder"
-require 'cancan'
-require 'spree/core/controller_helpers/auth'
-require 'spree/core/controller_helpers/respond_with'
-require 'spree/core/controller_helpers/common'
-require 'open_food_network/referer_parser'
+require "cancan"
+require "spree/core/controller_helpers/auth"
+require "spree/core/controller_helpers/respond_with"
+require "spree/core/controller_helpers/common"
+require "open_food_network/referer_parser"
 
 class ApplicationController < ActionController::Base
   include CablecarResponses
@@ -17,21 +17,21 @@ class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html
 
-  helper 'spree/base'
-  helper 'spree/orders'
-  helper 'spree/payment_methods'
-  helper 'shared'
-  helper 'tax'
-  helper 'enterprises'
-  helper 'order_cycles'
-  helper 'order'
-  helper 'shop'
-  helper 'injection'
-  helper 'markdown'
-  helper 'footer_links'
-  helper 'checkout'
-  helper 'link'
-  helper 'terms_and_conditions'
+  helper "spree/base"
+  helper "spree/orders"
+  helper "spree/payment_methods"
+  helper "shared"
+  helper "tax"
+  helper "enterprises"
+  helper "order_cycles"
+  helper "order"
+  helper "shop"
+  helper "injection"
+  helper "markdown"
+  helper "footer_links"
+  helper "checkout"
+  helper "link"
+  helper "terms_and_conditions"
 
   protect_from_forgery
 
@@ -39,7 +39,8 @@ class ApplicationController < ActionController::Base
   include Spree::Core::ControllerHelpers::RespondWith
   include Spree::Core::ControllerHelpers::Common
 
-  before_action :set_cache_headers # prevent cart emptying via cache when using back button #1213
+  # prevent cart emptying via cache when using back button #1213
+  before_action :set_cache_headers
   before_action :check_disabled_user, if: :spree_user_signed_in?
   before_action :set_after_login_url
 
@@ -56,36 +57,40 @@ class ApplicationController < ActionController::Base
   respond_to :html
 
   def redirect_to(options = {}, response_status = {})
-    ::Rails.logger.error("Redirected by #{begin
-      caller(1).first
-    rescue StandardError
-      'unknown'
-    end}")
+    ::Rails.logger.error(
+      "Redirected by #{begin
+        caller(1).first
+      rescue StandardError
+        "unknown"
+      end}"
+    )
     super
   end
 
   def set_checkout_redirect
     referer_path = URI(request.referer.to_s).path
-    return unless referer_path == main_app.checkout_path ||
-                  referer_path == main_app.checkout_step_path(:details)
+    unless referer_path == main_app.checkout_path ||
+        referer_path == main_app.checkout_step_path(:details)
+      return
+    end
 
     session["spree_user_return_to"] = main_app.checkout_path
   end
 
   def shopfront_session
     session[:safari_fix] = true
-    render 'shop/shopfront_session', layout: false
+    render("shop/shopfront_session", layout: false)
   end
 
   def enable_embedded_styles
     session[:embedded_shopfront] = true
-    render json: {}, status: :ok
+    render(json: {}, status: :ok)
   end
 
   def disable_embedded_styles
-    session.delete :embedded_shopfront
-    session.delete :shopfront_redirect
-    render json: {}, status: :ok
+    session.delete(:embedded_shopfront)
+    session.delete(:shopfront_redirect)
+    render(json: {}, status: :ok)
   end
 
   protected
@@ -117,23 +122,23 @@ class ApplicationController < ActionController::Base
   def require_distributor_chosen
     return if (@distributor = current_distributor)
 
-    redirect_to main_app.root_path
+    redirect_to(main_app.root_path)
     false
   end
 
   def require_order_cycle
     return if current_order_cycle
 
-    redirect_to main_app.shop_path
+    redirect_to(main_app.shop_path)
   end
 
   def check_hub_ready_for_checkout
     return unless current_distributor_closed?
 
     current_order.empty!
-    current_order.set_distribution! nil, nil
-    flash[:info] = I18n.t('order_cycles_closed_for_hub')
-    redirect_to main_app.root_url
+    current_order.set_distribution!(nil, nil)
+    flash[:info] = I18n.t("order_cycles_closed_for_hub")
+    redirect_to(main_app.root_url)
   end
 
   def current_distributor_closed?
@@ -167,9 +172,9 @@ class ApplicationController < ActionController::Base
 
     flash[:success] = nil
     flash[:error] = I18n.t("devise.failure.disabled")
-    sign_out current_spree_user
-    redirect_to main_app.root_path
+    sign_out(current_spree_user)
+    redirect_to(main_app.root_path)
   end
 end
 
-require 'spree/i18n/initializer'
+require "spree/i18n/initializer"

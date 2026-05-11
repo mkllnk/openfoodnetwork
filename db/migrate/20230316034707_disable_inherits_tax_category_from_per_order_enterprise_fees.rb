@@ -7,23 +7,27 @@ class DisableInheritsTaxCategoryFromPerOrderEnterpriseFees < ActiveRecord::Migra
 
   module Spree
     class Calculator < ApplicationRecord
-      self.table_name = 'spree_calculators'
+      self.table_name = "spree_calculators"
     end
   end
 
   def change
-    EnterpriseFee.joins(:calculator).merge(calculators)
+    EnterpriseFee
+      .joins(:calculator)
+      .merge(calculators)
       .where(inherits_tax_category: true)
       .update_all(inherits_tax_category: false)
   end
 
   def calculators
-    Spree::Calculator.where(type: per_order_calculators, calculable_type: 'EnterpriseFee')
+    Spree::Calculator.where(type: per_order_calculators, calculable_type: "EnterpriseFee")
   end
 
   def per_order_calculators
-    ['Calculator::FlatRate',
-     'Calculator::FlexiRate',
-     'Calculator::PriceSack']
+    [
+      "Calculator::FlatRate",
+      "Calculator::FlexiRate",
+      "Calculator::PriceSack"
+    ]
   end
 end

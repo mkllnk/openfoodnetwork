@@ -29,6 +29,7 @@ class ExchangeVariantBulkUpdater
     new_exchange_variants = variant_ids.map do |variant_id|
       ExchangeVariant.new(exchange_id: @exchange.id, variant_id:)
     end
+
     ExchangeVariant.import!(new_exchange_variants)
   end
 

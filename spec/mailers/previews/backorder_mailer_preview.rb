@@ -6,7 +6,7 @@ class BackorderMailerPreview < ActionMailer::Preview
 
     BackorderMailer.backorder_failed(
       order,
-      order.line_items.map(&:variant),
+      order.line_items.map(&:variant)
     )
   end
 
@@ -18,7 +18,10 @@ class BackorderMailerPreview < ActionMailer::Preview
     order_id = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/Orders/1177603473714"
 
     BackorderMailer.backorder_incomplete(
-      user, distributor, order_cycle, order_id
+      user,
+      distributor,
+      order_cycle,
+      order_id
     )
   end
 end

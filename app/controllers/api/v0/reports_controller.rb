@@ -10,7 +10,7 @@ module Api
       before_action :validate_report, :authorize_report, :validate_query
 
       def show
-        params[:report_format] = 'json'
+        params[:report_format] = "json"
         @report = report_class.new(current_api_user, params)
 
         render_report
@@ -19,11 +19,11 @@ module Api
       private
 
       def render_report
-        render json: { data: @report.as_json }
+        render(json: {data: @report.as_json})
       end
 
       def render_error(error)
-        render json: { error: error.message }, status: :unprocessable_entity
+        render(json: {error: error.message}, status: :unprocessable_entity)
       end
 
       def validate_report

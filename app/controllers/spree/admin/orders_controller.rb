@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/spree_api_key_loader'
+require "open_food_network/spree_api_key_loader"
 
 module Spree
   module Admin
@@ -36,9 +36,9 @@ module Spree
         @order = Spree::Order.new(order_params.merge(created_by: spree_current_user))
 
         if @order.save(context: :require_distribution)
-          redirect_to spree.admin_order_customer_path(@order)
+          redirect_to(spree.admin_order_customer_path(@order))
         else
-          render :new
+          render(:new)
         end
       end
 
@@ -48,17 +48,17 @@ module Spree
         order_updated = order_params.present? && @order.update(order_params)
 
         unless order_updated && line_items_present?
-          flash[:error] = @order.errors.full_messages.join(', ') if @order.errors.present?
-          return redirect_to spree.edit_admin_order_path(@order)
+          flash[:error] = @order.errors.full_messages.join(", ") if @order.errors.present?
+          return redirect_to(spree.edit_admin_order_path(@order))
         end
 
         ::Orders::WorkflowService.new(@order).advance_to_payment
 
         if @order.complete?
-          redirect_to spree.edit_admin_order_path(@order)
+          redirect_to(spree.edit_admin_order_path(@order))
         else
           # Jump to next step if order is not complete
-          redirect_to spree.admin_order_payments_path(@order)
+          redirect_to(spree.admin_order_payments_path(@order))
         end
       end
 
@@ -77,6 +77,7 @@ module Spree
         else
           flash[:error] = Spree.t(:cannot_perform_operation)
         end
+
       rescue Spree::Core::GatewayError => e
         flash[:error] = e.message.to_s
       ensure
@@ -85,7 +86,7 @@ module Spree
 
       def resend
         Spree::OrderMailer.confirm_email_for_customer(@order.id, true).deliver_later
-        flash[:success] = t('admin.orders.order_email_resent')
+        flash[:success] = t("admin.orders.order_email_resent")
 
         respond_with(@order) do |format|
           format.html { redirect_back_or_to(spree.admin_dashboard_path) }
@@ -93,26 +94,30 @@ module Spree
       end
 
       def invoice
-        Spree::OrderMailer.invoice_email(@order.id,
-                                         current_user_id: spree_current_user.id ).deliver_later
-        flash[:success] = t('admin.orders.invoice_email_sent')
+        Spree::OrderMailer
+          .invoice_email(
+            @order.id,
+            current_user_id: spree_current_user.id
+          )
+          .deliver_later
+        flash[:success] = t("admin.orders.invoice_email_sent")
 
         respond_with(@order) { |format|
-          format.html { redirect_back_or_to spree.edit_admin_order_path(@order) }
+          format.html { redirect_back_or_to(spree.edit_admin_order_path(@order)) }
         }
       end
 
       def print
         if OpenFoodNetwork::FeatureToggle.enabled?(:invoices, spree_current_user)
           @order = if params[:invoice_id].present?
-                     @order.invoices.find(params[:invoice_id]).presenter
-                   else
-                     ::Orders::GenerateInvoiceService.new(@order).generate_or_update_latest_invoice
-                     @order.invoices.first.presenter
-                   end
+            @order.invoices.find(params[:invoice_id]).presenter
+          else
+            ::Orders::GenerateInvoiceService.new(@order).generate_or_update_latest_invoice
+            @order.invoices.first.presenter
+          end
         end
 
-        render_with_wicked_pdf InvoiceRenderer.new.args(@order, spree_current_user)
+        render_with_wicked_pdf(InvoiceRenderer.new.args(@order, spree_current_user))
       end
 
       def bulk_credit
@@ -129,19 +134,24 @@ module Spree
           )
 
           if credit_response.failure?
-            flash[:error] =
-              t(".could_not_credit", order_number: order.number, message: credit_response.message)
-            streams << turbo_stream.append(
-              "flashes", partial: "admin/shared/flashes", locals: { flashes: flash }
-            )
+            flash[:error] = t(".could_not_credit", order_number: order.number, message: credit_response.message)
+            streams <<
+              turbo_stream.append(
+                "flashes",
+                partial: "admin/shared/flashes",
+                locals: {flashes: flash}
+              )
           else
-            streams << turbo_stream.replace(
-              "order_#{order.id}", partial: "spree/admin/orders/table_row", locals: { order: }
-            )
+            streams <<
+              turbo_stream.replace(
+                "order_#{order.id}",
+                partial: "spree/admin/orders/table_row",
+                locals: {order:}
+              )
           end
         end
 
-        render turbo_stream: streams
+        render(turbo_stream: streams)
       end
 
       private
@@ -149,16 +159,18 @@ module Spree
       def line_items_present?
         return true if @order.line_items.any?
 
-        @order.errors.add(:line_items, Spree.t('errors.messages.blank'))
+        @order.errors.add(:line_items, Spree.t("errors.messages.blank"))
         false
       end
 
       def update_search_results
         session[:admin_orders_search] = search_params
 
-        render cable_ready: cable_car.inner_html(
-          "#orders-index",
-          partial("spree/admin/orders/table", locals: { pagy: @pagy, orders: @orders })
+        render(
+          cable_ready: cable_car.inner_html(
+            "#orders-index",
+            partial("spree/admin/orders/table", locals: {pagy: @pagy, orders: @orders})
+          )
         )
       end
 
@@ -167,13 +179,16 @@ module Spree
       end
 
       def search_params
-        default_filters.deep_merge(
-          params.permit(:page, :per_page, :shipping_method_id, q: {})
-        ).to_h.with_indifferent_access
+        default_filters
+          .deep_merge(
+            params.permit(:page, :per_page, :shipping_method_id, q: {})
+          )
+          .to_h
+          .with_indifferent_access
       end
 
       def default_filters
-        { q: { completed_at_not_null: 1, s: "completed_at desc" } }
+        {q: {completed_at_not_null: 1, s: "completed_at desc"}}
       end
 
       def restore_saved_query!
@@ -196,7 +211,7 @@ module Spree
         return unless @order.shipped?
 
         flash[:error] = I18n.t("spree.admin.orders.add_product.cannot_add_item_to_shipped_order")
-        redirect_to spree.edit_admin_order_path(@order)
+        redirect_to(spree.edit_admin_order_path(@order))
       end
 
       def order_params
@@ -207,10 +222,10 @@ module Spree
 
       def load_order
         if params[:id]
-          @order = Order.includes(:adjustments, :shipments, line_items: :adjustments).
-            find_by!(number: params[:id])
+          @order = Order.includes(:adjustments, :shipments, line_items: :adjustments).find_by!(number: params[:id])
         end
-        authorize! action, @order
+
+        authorize!(action, @order)
       end
 
       def model_class
@@ -220,10 +235,12 @@ module Spree
       def require_distributor_abn
         return if @order.distributor.can_invoice?
 
-        flash[:error] = t(:must_have_valid_business_number,
-                          enterprise_name: @order.distributor.name)
+        flash[:error] = t(
+          :must_have_valid_business_number,
+          enterprise_name: @order.distributor.name
+        )
         respond_with(@order) { |format|
-          format.html { redirect_to spree.edit_admin_order_path(@order) }
+          format.html { redirect_to(spree.edit_admin_order_path(@order)) }
         }
       end
 
@@ -232,13 +249,13 @@ module Spree
 
         ocs = OrderCycle.includes(:suppliers, :distributors).managed_by(spree_current_user)
         @order_cycles = ocs.soonest_closing +
-                        ocs.soonest_opening +
-                        ocs.closed +
-                        ocs.undated
+          ocs.soonest_opening +
+          ocs.closed +
+          ocs.undated
       end
 
       def allowed_events
-        %w{cancel resume}
+        %w[cancel resume]
       end
     end
   end

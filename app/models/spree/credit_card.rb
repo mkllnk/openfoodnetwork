@@ -13,9 +13,10 @@ module Spree
 
     attr_accessor :verification_value
     attr_reader :number
-    attr_writer :save_requested_by_customer # For holding customer preference in memory
+    # For holding customer preference in memory
+    attr_writer :save_requested_by_customer
 
-    validates :month, :year, numericality: { only_integer: true }
+    validates :month, :year, numericality: {only_integer: true}
     validates :number, presence: true, unless: :has_payment_profile?, on: :create
     validates :verification_value, presence: true, unless: :has_payment_profile?, on: :create
     validate :expiry_not_in_the_past
@@ -32,7 +33,7 @@ module Spree
 
     def number=(num)
       @number = begin
-        num.gsub(/[^0-9]/, '')
+        num.gsub(/[^0-9]/, "")
       rescue StandardError
         nil
       end
@@ -131,7 +132,7 @@ module Spree
       return unless user
       return unless is_default? || (reusable? && default_missing?)
 
-      user.credit_cards.update_all(['is_default=(id=?)', id])
+      user.credit_cards.update_all(["is_default=(id=?)", id])
       self.is_default = true
     end
   end

@@ -12,32 +12,32 @@ RSpec.describe Spree::Variant do
   describe "#fill_status" do
     subject(:variant) { create(:variant, on_hand: 15) }
 
-    it 'is all on_hand if variant is on_demand' do
+    it "is all on_hand if variant is on_demand" do
       variant.on_demand = true
 
       on_hand, backordered = subject.fill_status(25)
-      expect(on_hand).to eq 25
-      expect(backordered).to eq 0
+      expect(on_hand).to(eq(25))
+      expect(backordered).to(eq(0))
     end
 
-    it 'is all on_hand if on_hand is enough' do
+    it "is all on_hand if on_hand is enough" do
       on_hand, backordered = subject.fill_status(5)
-      expect(on_hand).to eq 5
-      expect(backordered).to eq 0
+      expect(on_hand).to(eq(5))
+      expect(backordered).to(eq(0))
     end
 
-    it 'is some on_hand if not all available' do
+    it "is some on_hand if not all available" do
       on_hand, backordered = subject.fill_status(20)
-      expect(on_hand).to eq 15
-      expect(backordered).to eq 0
+      expect(on_hand).to(eq(15))
+      expect(backordered).to(eq(0))
     end
 
-    it 'is zero on_hand if none available' do
+    it "is zero on_hand if none available" do
       variant.on_hand = 0
 
       on_hand, backordered = subject.fill_status(20)
-      expect(on_hand).to eq 0
-      expect(backordered).to eq 0
+      expect(on_hand).to(eq(0))
+      expect(backordered).to(eq(0))
     end
   end
 
@@ -45,19 +45,21 @@ RSpec.describe Spree::Variant do
     subject(:variant) { create(:variant, on_hand: 5) }
 
     it "changes stock" do
-      expect { variant.move(-2) }.to change { variant.on_hand }.from(5).to(3)
+      expect { variant.move(-2) }.to(change { variant.on_hand }.from(5).to(3))
     end
 
     it "reduces stock even when on demand" do
       variant.on_demand = true
 
-      expect { variant.move(-2) }.to change { variant.on_hand }.from(5).to(3)
+      expect { variant.move(-2) }.to(change { variant.on_hand }.from(5).to(3))
     end
 
     it "rejects negative stock" do
-      expect { variant.move(-7) }.to raise_error(
-        ActiveRecord::RecordInvalid,
-        "Validation failed: Count on hand must be greater than or equal to 0"
+      expect { variant.move(-7) }.to(
+        raise_error(
+          ActiveRecord::RecordInvalid,
+          "Validation failed: Count on hand must be greater than or equal to 0"
+        )
       )
     end
 
@@ -70,7 +72,7 @@ RSpec.describe Spree::Variant do
           variant:,
           hub: create(:distributor_enterprise),
           count_on_hand: 7,
-          on_demand: false,
+          on_demand: false
         )
       }
       let(:scoper) { OpenFoodNetwork::ScopeVariantToHub.new(override.hub) }
@@ -80,9 +82,17 @@ RSpec.describe Spree::Variant do
           hub_variant.move(-3)
           override.reload
         }
-          .to change { override.count_on_hand }.from(7).to(4)
-          .and change { hub_variant.on_hand }.from(7).to(4)
-          .and change { variant.on_hand }.by(0)
+          .to(
+            change { override.count_on_hand }
+              .from(7)
+              .to(4)
+              .and(
+                change { hub_variant.on_hand }
+                  .from(7)
+                  .to(4)
+                  .and(change { variant.on_hand }.by(0))
+              )
+          )
       end
 
       it "reduces stock when on demand" do
@@ -92,9 +102,17 @@ RSpec.describe Spree::Variant do
           hub_variant.move(-3)
           override.reload
         }
-          .to change { override.count_on_hand }.from(7).to(4)
-          .and change { hub_variant.on_hand }.from(7).to(4)
-          .and change { variant.on_hand }.by(0)
+          .to(
+            change { override.count_on_hand }
+              .from(7)
+              .to(4)
+              .and(
+                change { hub_variant.on_hand }
+                  .from(7)
+                  .to(4)
+                  .and(change { variant.on_hand }.by(0))
+              )
+          )
       end
 
       it "doesn't prevent negative stock" do
@@ -103,12 +121,20 @@ RSpec.describe Spree::Variant do
           hub_variant.move(-8)
           override.reload
         }
-          .to change { override.count_on_hand }.from(7).to(-1)
-          .and change { hub_variant.on_hand }.from(7).to(-1)
-          .and change { variant.on_hand }.by(0)
+          .to(
+            change { override.count_on_hand }
+              .from(7)
+              .to(-1)
+              .and(
+                change { hub_variant.on_hand }
+                  .from(7)
+                  .to(-1)
+                  .and(change { variant.on_hand }.by(0))
+              )
+          )
 
         # The update didn't run validations and now it's invalid:
-        expect(override).not_to be_valid
+        expect(override).not_to(be_valid)
       end
 
       it "doesn't fail on negative stock when on demand" do
@@ -118,9 +144,17 @@ RSpec.describe Spree::Variant do
           hub_variant.move(-8)
           override.reload
         }
-          .to change { override.count_on_hand }.from(nil).to(-8)
-          .and change { hub_variant.on_hand }.from(nil).to(-8)
-          .and change { variant.on_hand }.by(0)
+          .to(
+            change { override.count_on_hand }
+              .from(nil)
+              .to(-8)
+              .and(
+                change { hub_variant.on_hand }
+                  .from(nil)
+                  .to(-8)
+                  .and(change { variant.on_hand }.by(0))
+              )
+          )
       end
     end
   end

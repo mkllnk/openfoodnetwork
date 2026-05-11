@@ -38,6 +38,7 @@ module Spree
         line_item.price = variant.price
         order.line_items << line_item
       end
+
       update_shipment
 
       order.reload
@@ -58,7 +59,7 @@ module Spree
     def update_item(line_item, params)
       if line_item.update(params)
         discard_empty_line_items
-        order.update_line_item_fees! line_item
+        order.update_line_item_fees!(line_item)
         order.update_order_fees! if order.completed?
         update_shipment
         update_order

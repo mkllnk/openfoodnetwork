@@ -6,7 +6,7 @@ module Api
     include FileHelper
 
     let(:enterprise_owner) { create(:user) }
-    let(:enterprise) { create(:enterprise, owner: enterprise_owner ) }
+    let(:enterprise) { create(:enterprise, owner: enterprise_owner) }
     let(:enterprise_manager) { create(:user, enterprises: [enterprise]) }
 
     describe "removing terms and conditions file" do
@@ -41,7 +41,7 @@ module Api
             spree_delete :destroy, enterprise_id: enterprise
 
             expect(response).to have_http_status(:conflict)
-            expect(json_response['error']).to eq 'Terms and Conditions file does not exist'
+            expect(json_response["error"]).to eq "Terms and Conditions file does not exist"
           end
         end
       end

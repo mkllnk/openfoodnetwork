@@ -1,13 +1,28 @@
 # frozen_string_literal: true
 
 class Api::VariantSerializer < ActiveModel::Serializer
-  attributes :id, :product_name, :sku,
-             :options_text, :unit_value, :unit_description, :unit_to_display,
-             :display_as, :display_name, :name_to_display,
-             :price, :on_demand, :on_hand,
-             :fees, :fees_name, :price_with_fees,
-             :tag_list, :thumb_url,
-             :unit_price_price, :unit_price_unit
+  attributes(
+    :id,
+    :product_name,
+    :sku,
+    :options_text,
+    :unit_value,
+    :unit_description,
+    :unit_to_display,
+    :display_as,
+    :display_name,
+    :name_to_display,
+    :price,
+    :on_demand,
+    :on_hand,
+    :fees,
+    :fees_name,
+    :price_with_fees,
+    :tag_list,
+    :thumb_url,
+    :unit_price_price,
+    :unit_price_unit
+  )
 
   has_one :supplier, serializer: Api::IdSerializer
 

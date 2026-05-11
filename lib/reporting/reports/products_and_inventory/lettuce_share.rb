@@ -25,11 +25,11 @@ module Reporting
           {
             product: proc { |variant| variant.product.name },
             description: proc { |variant| variant.full_name },
-            quantity: proc { |_variant| '' },
+            quantity: proc { |_variant| "" },
             pack_size: proc { |variant| VariantUnits::OptionValueNamer.new(variant).value },
             unit: proc { |variant| VariantUnits::OptionValueNamer.new(variant).unit },
             unit_price: proc { |variant| variant.price },
-            total: proc { |_variant| '' },
+            total: proc { |_variant| "" },
             gst: proc { |variant| gst(variant) },
             grower: proc { |variant| grower_and_method(variant) },
             taxon: proc { |variant| variant.primary_taxon.name }
@@ -43,14 +43,14 @@ module Reporting
           if tax_category && tax_category.tax_rates.present?
             tax_rate = tax_category.tax_rates.first
             line_item = mock_line_item(variant)
-            tax_rate.calculator.compute line_item
+            tax_rate.calculator.compute(line_item)
           else
             0
           end
         end
 
         def mock_line_item(variant)
-          line_item = Spree::LineItem.new quantity: 1
+          line_item = Spree::LineItem.new(quantity: 1)
           line_item.define_singleton_method(:product) { variant.product }
           line_item.define_singleton_method(:price) { variant.price }
           line_item
@@ -59,7 +59,7 @@ module Reporting
         def grower_and_method(variant)
           cert = certification(variant)
 
-          result  = producer_name(variant)
+          result = producer_name(variant)
           result += " (#{cert})" if cert.present?
           result
         end
@@ -69,9 +69,13 @@ module Reporting
         end
 
         def certification(variant)
-          variant.product.properties_including_inherited.map do |p|
-            "#{p[:name]} - #{p[:value]}"
-          end.join(', ')
+          variant
+            .product
+            .properties_including_inherited
+            .map do |p|
+              "#{p[:name]} - #{p[:value]}"
+            end
+            .join(", ")
         end
       end
     end

@@ -10,6 +10,6 @@ module CablecarResponses
   private
 
   def partial(path, options = {})
-    { html: render_to_string(partial: path, **options) }
+    {html: render_to_string(partial: path, **options)}
   end
 end

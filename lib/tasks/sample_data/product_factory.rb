@@ -7,7 +7,7 @@ module SampleData
     include Logging
 
     def create_samples(enterprises)
-      log "Creating products:"
+      log("Creating products:")
       product_data(enterprises).map do |hash|
         create_product(hash)
       end
@@ -16,52 +16,52 @@ module SampleData
     private
 
     def product_data(enterprises)
-      vegetables = Spree::Taxon.find_by(name: 'Vegetables')
-      fruit = Spree::Taxon.find_by(name: 'Fruit')
-      fungi = Spree::Taxon.find_by(name: 'Fungi')
+      vegetables = Spree::Taxon.find_by(name: "Vegetables")
+      fruit = Spree::Taxon.find_by(name: "Fruit")
+      fungi = Spree::Taxon.find_by(name: "Fungi")
       producers = enterprises.select(&:is_primary_producer)
       [
         {
-          name: 'Garlic',
+          name: "Garlic",
           price: 20.00,
           supplier: producers[0],
-          taxons: [vegetables],
+          taxons: [vegetables]
         },
         {
-          name: 'Fuji Apple',
+          name: "Fuji Apple",
           price: 5.00,
           supplier: producers[1],
-          taxons: [fruit],
+          taxons: [fruit]
         },
         {
-          name: 'Mushrooms',
+          name: "Mushrooms",
           price: 50.00,
           supplier: producers[1],
-          taxons: [fungi],
+          taxons: [fungi]
         },
         {
-          name: 'Carrots',
+          name: "Carrots",
           price: 3.00,
           supplier: producers[2],
-          taxons: [vegetables],
+          taxons: [vegetables]
         },
         {
-          name: 'Potatoes',
+          name: "Potatoes",
           price: 2.00,
           supplier: producers[2],
-          taxons: [vegetables],
+          taxons: [vegetables]
         },
         {
-          name: 'Tomatoes',
+          name: "Tomatoes",
           price: 2.00,
           supplier: producers[2],
-          taxons: [vegetables],
+          taxons: [vegetables]
         }
       ]
     end
 
     def create_product(hash)
-      log "- #{hash[:name]}"
+      log("- #{hash[:name]}")
       params = hash.slice(:name, :price).merge(
         supplier_id: hash[:supplier].id,
         primary_taxon_id: hash[:taxons].first.id,
@@ -71,7 +71,7 @@ module SampleData
         tax_category_id: find_or_create_tax_category.id
       )
       product = Spree::Product.create_with(params).find_or_create_by!(name: params[:name])
-      product.variants.first.update_attribute :on_demand, true
+      product.variants.first.update_attribute(:on_demand, true)
       product
     end
 

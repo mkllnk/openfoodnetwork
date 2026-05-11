@@ -6,12 +6,26 @@
 
 module ProductImport
   class EntryProcessor
-    attr_reader :inventory_created, :inventory_updated, :products_created,
-                :variants_created, :variants_updated, :enterprise_products,
-                :total_enterprise_products, :products_reset_count
+    attr_reader(
+      :inventory_created,
+      :inventory_updated,
+      :products_created,
+      :variants_created,
+      :variants_updated,
+      :enterprise_products,
+      :total_enterprise_products,
+      :products_reset_count
+    )
 
-    def initialize(importer, validator, import_settings, spreadsheet_data,
-                   editable_enterprises, import_time, updated_ids)
+    def initialize(
+      importer,
+      validator,
+      import_settings,
+      spreadsheet_data,
+      editable_enterprises,
+      import_time,
+      updated_ids
+    )
       @importer = importer
       @validator = validator
       @settings = Settings.new(import_settings)
@@ -41,8 +55,10 @@ module ProductImport
 
       return unless total_saved_count.zero?
 
-      @importer.errors.add(:importer,
-                           I18n.t(:product_importer_products_save_error))
+      @importer.errors.add(
+        :importer,
+        I18n.t(:product_importer_products_save_error)
+      )
     end
 
     def count_existing_items
@@ -50,12 +66,11 @@ module ProductImport
         enterprise_id = attrs[:id]
         next unless enterprise_id && permission_by_id?(enterprise_id)
 
-        products_count =
-          if settings.importing_into_inventory?
-            VariantOverride.for_hubs([enterprise_id]).count
-          else
-            Spree::Variant.where(supplier_id: enterprise_id).count
-          end
+        products_count = if settings.importing_into_inventory?
+          VariantOverride.for_hubs([enterprise_id]).count
+        else
+          Spree::Variant.where(supplier_id: enterprise_id).count
+        end
 
         @enterprise_products[enterprise_id] = products_count
         @total_enterprise_products += products_count
@@ -86,8 +101,13 @@ module ProductImport
     end
 
     def total_saved_count
-      [@products_created, @variants_created, @variants_updated,
-       @inventory_created, @inventory_updated].sum
+      [
+        @products_created,
+        @variants_created,
+        @variants_updated,
+        @inventory_created,
+        @inventory_updated
+      ].sum
     end
 
     def permission_by_id?(enterprise_id)
@@ -99,25 +119,25 @@ module ProductImport
     attr_reader :settings
 
     def save_to_inventory(entry)
-      save_new_inventory_item entry if entry.validates_as? 'new_inventory_item'
-      save_existing_inventory_item entry if entry.validates_as? 'existing_inventory_item'
+      save_new_inventory_item(entry) if entry.validates_as?("new_inventory_item")
+      save_existing_inventory_item(entry) if entry.validates_as?("existing_inventory_item")
     end
 
     def save_to_product_list(entry)
-      save_new_product entry if entry.validates_as? 'new_product'
+      save_new_product(entry) if entry.validates_as?("new_product")
 
-      if entry.validates_as? 'new_variant'
-        save_variant entry
+      if entry.validates_as?("new_variant")
+        save_variant(entry)
         @variants_created += 1
       end
 
-      return unless entry.validates_as? 'existing_variant'
+      return unless entry.validates_as?("existing_variant")
 
       begin
-        save_variant entry
+        save_variant(entry)
       rescue ActiveRecord::StaleObjectError
         entry.product_object.reload
-        save_variant entry
+        save_variant(entry)
       end
 
       @variants_updated += 1
@@ -130,9 +150,9 @@ module ProductImport
       if new_item.valid? && new_item.save
         display_in_inventory(new_item, true)
         @inventory_created += 1
-        @updated_ids.push new_item.id
+        @updated_ids.push(new_item.id)
       else
-        assign_errors new_item.errors.full_messages, entry.line_number
+        assign_errors(new_item.errors.full_messages, entry.line_number)
       end
     end
 
@@ -143,9 +163,9 @@ module ProductImport
       if existing_item.valid? && existing_item.save
         display_in_inventory(existing_item)
         @inventory_updated += 1
-        @updated_ids.push existing_item.id
+        @updated_ids.push(existing_item.id)
       else
-        assign_errors existing_item.errors.full_messages, entry.line_number
+        assign_errors(existing_item.errors.full_messages, entry.line_number)
       end
     end
 
@@ -155,7 +175,7 @@ module ProductImport
       # from this spreadsheet, mark this entry as a new variant with
       # the new product id, as this is a now variant of that product...
       if @already_created[entry.enterprise_id] &&
-         @already_created[entry.enterprise_id][entry.name]
+          @already_created[entry.enterprise_id][entry.name]
 
         product_id = @already_created[entry.enterprise_id][entry.name]
         @validator.mark_as_new_variant(entry, product_id)
@@ -164,18 +184,18 @@ module ProductImport
 
       product = Spree::Product.new(supplier_id: entry.enterprise_id)
       product.assign_attributes(
-        entry.assignable_attributes.except('id', 'on_hand', 'on_demand', 'display_name')
+        entry.assignable_attributes.except("id", "on_hand", "on_demand", "display_name")
       )
 
       if product.save
         ensure_variant_updated(product, entry)
         @products_created += 1
-        @updated_ids.push product.variants.first.id
+        @updated_ids.push(product.variants.first.id)
       else
-        assign_errors product.errors.full_messages, entry.line_number
+        assign_errors(product.errors.full_messages, entry.line_number)
       end
 
-      @already_created.deep_merge! entry.enterprise_id => { entry.name => product.id }
+      @already_created.deep_merge!(entry.enterprise_id => {entry.name => product.id})
     end
 
     def save_variant(entry)
@@ -183,28 +203,32 @@ module ProductImport
       variant.import_date = @import_time
 
       if variant.valid? && variant.save
-        @updated_ids.push variant.id
+        @updated_ids.push(variant.id)
         true
       else
-        assign_errors variant.errors.full_messages, entry.line_number
+        assign_errors(variant.errors.full_messages, entry.line_number)
         false
       end
     end
 
     def assign_errors(errors, line_number)
       @importer.errors.add(
-        I18n.t('admin.product_import.model.line_number',
-               number: line_number),
+        I18n.t(
+          "admin.product_import.model.line_number",
+          number: line_number
+        ),
         errors
       )
     end
 
     def display_in_inventory(variant_override, is_new = false)
       unless is_new
-        existing_item = InventoryItem.where(
-          variant_id: variant_override.variant_id,
-          enterprise_id: variant_override.hub_id
-        ).first
+        existing_item = InventoryItem
+          .where(
+            variant_id: variant_override.variant_id,
+            enterprise_id: variant_override.hub_id
+          )
+          .first
 
         if existing_item
           existing_item.assign_attributes(visible: true)
@@ -213,11 +237,13 @@ module ProductImport
         end
       end
 
-      InventoryItem.new(
-        variant_id: variant_override.variant_id,
-        enterprise_id: variant_override.hub_id,
-        visible: true
-      ).save
+      InventoryItem
+        .new(
+          variant_id: variant_override.variant_id,
+          enterprise_id: variant_override.hub_id,
+          visible: true
+        )
+        .save
     end
 
     def ensure_variant_updated(product, entry)

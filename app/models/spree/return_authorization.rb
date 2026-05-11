@@ -5,7 +5,7 @@ module Spree
     self.ignored_columns += [:stock_location_id]
     acts_as_paranoid
 
-    belongs_to :order, class_name: 'Spree::Order', inverse_of: :return_authorizations
+    belongs_to :order, class_name: "Spree::Order", inverse_of: :return_authorizations
 
     has_many :inventory_units, inverse_of: :return_authorization, dependent: :nullify
     before_save :force_positive_amount
@@ -20,6 +20,7 @@ module Spree
       event :receive do
         transition to: :received, from: :authorized, if: :allow_receive?
       end
+
       event :cancel do
         transition to: :canceled, from: :authorized
       end
@@ -62,7 +63,7 @@ module Spree
     end
 
     def returnable_inventory
-      order.shipments.shipped.collect{ |s| s.inventory_units.to_a }.flatten
+      order.shipments.shipped.collect { |s| s.inventory_units.to_a }.flatten
     end
 
     # Used when Adjustment#update_adjustment! wants to update the related adjustment
@@ -83,9 +84,10 @@ module Spree
 
       record = true
       while record
-        random = "RMA#{Array.new(9){ rand(9) }.join}"
+        random = "RMA#{Array.new(9) { rand(9) }.join}"
         record = self.class.find_by(number: random)
       end
+
       self.number = random
     end
 
@@ -97,7 +99,7 @@ module Spree
 
       Adjustment.create(
         amount: -amount.abs,
-        label: I18n.t('spree.rma_credit'),
+        label: I18n.t("spree.rma_credit"),
         order:,
         adjustable: order,
         originator: self

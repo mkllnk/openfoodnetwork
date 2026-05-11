@@ -10,6 +10,7 @@ class Invoice
       def initialize(data)
         @data = data
       end
+
       extend Invoice::DataPresenterAttributes
     end
   end

@@ -9,7 +9,7 @@ module Spree
     # It also adds a validation on the input format.
     # It accepts as arguments a variable number of attribute as symbols
     def localize_number(*attributes)
-      validate :validate_localizable_number
+      validate(:validate_localizable_number)
 
       attributes.each do |attribute|
         setter = "#{attribute}="
@@ -17,13 +17,14 @@ module Spree
 
         define_method(setter) do |number|
           if Spree::Config.enable_localized_number? &&
-             Spree::LocalizedNumber.valid_localizable_number?(number)
+              Spree::LocalizedNumber.valid_localizable_number?(number)
             number = Spree::LocalizedNumber.parse(number)
           elsif Spree::Config.enable_localized_number?
             @invalid_localized_number ||= []
             @invalid_localized_number << attribute
             number = nil unless is_a?(Spree::Calculator)
           end
+
           if has_attribute?(attribute)
             # In this case it's a regular AR attribute with standard setters
             self[attribute] = number
@@ -38,7 +39,7 @@ module Spree
         return unless Spree::Config.enable_localized_number?
 
         @invalid_localized_number&.each do |error_attribute|
-          errors.add(error_attribute, I18n.t('spree.localized_number.invalid_format'))
+          errors.add(error_attribute, I18n.t("spree.localized_number.invalid_format"))
         end
       end
     end
@@ -56,13 +57,14 @@ module Spree
       return number.to_d unless number.is_a?(String)
 
       # Replace all Currency Symbols, Letters and -- from the string
-      number = number.gsub(/[^\d.,-]/, '')
+      number = number.gsub(/[^\d.,-]/, "")
 
       add_trailing_zeros(number)
 
       # Replace all (.) and (,) so the string result becomes in "cents"
-      number = number.gsub(/[.,]/, '')
-      number.to_d / 100 # Let to_decimal do the rest
+      number = number.gsub(/[.,]/, "")
+      # Let to_decimal do the rest
+      number.to_d / 100
     end
 
     def self.add_trailing_zeros(number)

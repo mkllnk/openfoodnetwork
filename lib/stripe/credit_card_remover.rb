@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'stripe/credit_card_clone_destroyer'
+require "stripe/credit_card_clone_destroyer"
 
 module Stripe
   class CreditCardRemover

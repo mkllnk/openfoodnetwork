@@ -3,7 +3,7 @@
 module PreferenceSections
   class ProducerSignupPageSection
     def name
-      I18n.t('admin.contents.edit.producer_signup_page')
+      I18n.t("admin.contents.edit.producer_signup_page")
     end
 
     def preferences

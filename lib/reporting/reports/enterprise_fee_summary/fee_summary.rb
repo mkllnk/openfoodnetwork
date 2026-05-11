@@ -58,6 +58,7 @@ module Reporting
             # Always restrict to permitted order cycles
             parameters.order_cycle_ids = permissions.allowed_order_cycles.map(&:id)
           end
+
           Scope.new.apply_filters(parameters).result
         end
 

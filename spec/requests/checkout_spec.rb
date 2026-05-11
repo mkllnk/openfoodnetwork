@@ -5,7 +5,7 @@
 # Use this file instead of updating spec/controllers/checkout_controller_spec.rb when possible.
 #
 RSpec.describe CheckoutController do
-  include_context "session helper"
+  include_context("session helper")
 
   let(:user) { order.user }
   let(:address) { create(:address) }
@@ -21,50 +21,50 @@ RSpec.describe CheckoutController do
   before do
     exchange.variants << order.line_items.first.variant
     session_hash[:order_id] = order.id
-    sign_in user
+    sign_in(user)
   end
 
   describe "PUT /checkout/:step" do
-    context "with payment step" do
+    context("with payment step") do
       let(:checkout_params) { {} }
-      let(:params) { { step: }.merge(checkout_params) }
+      let(:params) { {step:}.merge(checkout_params) }
       let(:step) { "payment" }
 
       before do
         order.bill_address = address
         order.ship_address = address
-        order.select_shipping_method shipping_method.id
+        order.select_shipping_method(shipping_method.id)
         Orders::WorkflowService.new(order).advance_to_payment
       end
 
-      context "with incomplete data" do
-        let(:checkout_params) { { order: { email: user.email } } }
+      context("with incomplete data") do
+        let(:checkout_params) { {order: {email: user.email}} }
 
         it "returns 422 and some feedback" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to have_http_status :unprocessable_entity
-          expect(flash[:error]).to match "Saving failed, please update the highlighted fields."
-          expect(order.reload.state).to eq "payment"
+          expect(response).to(have_http_status(:unprocessable_entity))
+          expect(flash[:error]).to(match("Saving failed, please update the highlighted fields."))
+          expect(order.reload.state).to(eq("payment"))
         end
       end
 
-      context "with complete data" do
+      context("with complete data") do
         let(:checkout_params) do
           {
             order: {
               payments_attributes: [
-                { payment_method_id: payment_method.id }
+                {payment_method_id: payment_method.id}
               ]
             }
           }
         end
 
         it "updates and redirects to summary step" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to redirect_to checkout_step_path(:summary)
-          expect(order.reload.state).to eq "confirmation"
+          expect(response).to(redirect_to(checkout_step_path(:summary)))
+          expect(order.reload.state).to(eq("confirmation"))
         end
 
         describe "with a voucher" do
@@ -77,34 +77,36 @@ RSpec.describe CheckoutController do
           # so we need to recalculate voucher to account for payment fees
           it "recalculates the voucher adjustment" do
             service = mock_voucher_adjustment_service
-            expect(service).to receive(:update)
+            expect(service).to(receive(:update))
 
-            put checkout_update_path(params)
+            put(checkout_update_path(params))
 
-            expect(response).to redirect_to checkout_step_path(:summary)
+            expect(response).to(redirect_to(checkout_step_path(:summary)))
           end
         end
 
-        context "with insufficient stock" do
+        context("with insufficient stock") do
           it "redirects to details page" do
             check_stock_service_mock = instance_double(Orders::CheckStockService)
-            allow(Orders::CheckStockService).to receive(:new).with(order: order).and_return(
-              check_stock_service_mock
+            allow(Orders::CheckStockService).to(
+              receive(:new).with(order: order).and_return(
+                check_stock_service_mock
+              )
             )
 
-            expect(check_stock_service_mock).to receive(:sufficient_stock?).and_return(false)
+            expect(check_stock_service_mock).to(receive(:sufficient_stock?).and_return(false))
 
-            put checkout_update_path(params)
+            put(checkout_update_path(params))
 
             expect_cable_ready_redirect(response)
           end
         end
 
-        context "with existing invalid payments" do
+        context("with existing invalid payments") do
           let(:invalid_payments) {
             [
               create(:payment, state: :invalid),
-              create(:payment, state: :invalid),
+              create(:payment, state: :invalid)
             ]
           }
 
@@ -114,13 +116,14 @@ RSpec.describe CheckoutController do
 
           it "deletes invalid payments" do
             # Delete the 2 invalid payment and create a new one
-            expect{
-              put checkout_update_path(params)
-            }.to change { order.reload.payments.count }.from(2).to(1)
+            expect {
+              put(checkout_update_path(params))
+            }
+              .to(change { order.reload.payments.count }.from(2).to(1))
           end
         end
 
-        context "with different payment method previously chosen" do
+        context("with different payment method previously chosen") do
           let(:other_payment_method) { build(:payment_method, distributors: [distributor]) }
           let(:other_payment) {
             build(:payment, amount: order.total, payment_method: other_payment_method)
@@ -130,7 +133,7 @@ RSpec.describe CheckoutController do
             order.payments = [other_payment]
           end
 
-          context "and order is in an earlier state" do
+          context("and order is in an earlier state") do
             # This revealed obscure bug #12693. If you progress to order summary, go back to payment
             # method, then open delivery details in a new tab (or hover over the link with Turbo
             # enabled), then submit new payment details, this happens.
@@ -140,16 +143,16 @@ RSpec.describe CheckoutController do
             end
 
             it "deletes invalid (old) payments" do
-              put checkout_update_path(params)
+              put(checkout_update_path(params))
 
               order.payments.reload
-              expect(order.payments).not_to include other_payment
+              expect(order.payments).not_to(include(other_payment))
             end
           end
         end
       end
 
-      context "with no payment source" do
+      context("with no payment source") do
         let(:checkout_params) do
           {
             order: {
@@ -172,67 +175,71 @@ RSpec.describe CheckoutController do
           }
         end
 
-        context "with a cash/check payment method" do
+        context("with a cash/check payment method") do
           let!(:payment_method_id) { payment_method.id }
 
           it "updates and redirects to summary step" do
-            put checkout_update_path(params)
+            put(checkout_update_path(params))
 
-            expect(response).to have_http_status :found
-            expect(response).to redirect_to checkout_step_path(:summary)
-            expect(order.reload.state).to eq "confirmation"
+            expect(response).to(have_http_status(:found))
+            expect(response).to(redirect_to(checkout_step_path(:summary)))
+            expect(order.reload.state).to(eq("confirmation"))
           end
         end
 
-        context "with a StripeSCA payment method" do
+        context("with a StripeSCA payment method") do
           let(:stripe_payment_method) {
-            create(:stripe_sca_payment_method, distributor_ids: [distributor.id],
-                                               environment: Rails.env)
+            create(
+              :stripe_sca_payment_method,
+              distributor_ids: [distributor.id],
+              environment: Rails.env
+            )
           }
           let!(:payment_method_id) { stripe_payment_method.id }
 
           it "updates and redirects to summary step" do
-            put checkout_update_path(params)
+            put(checkout_update_path(params))
 
-            expect(response).to have_http_status :unprocessable_entity
-            expect(flash[:error]).to match "Saving failed, please update the highlighted fields."
-            expect(order.reload.state).to eq "payment"
+            expect(response).to(have_http_status(:unprocessable_entity))
+            expect(flash[:error]).to(match("Saving failed, please update the highlighted fields."))
+            expect(order.reload.state).to(eq("payment"))
           end
         end
       end
 
-      context "with payment fees" do
+      context("with payment fees") do
         let(:payment_method_with_fee) do
           create(:payment_method, :flat_rate, amount: "1.23", distributors: [distributor])
         end
+
         let(:checkout_params) do
           {
             order: {
               payments_attributes: [
-                { payment_method_id: payment_method_with_fee.id }
+                {payment_method_id: payment_method_with_fee.id}
               ]
             }
           }
         end
 
         it "applies the fee and updates the order total" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to redirect_to checkout_step_path(:summary)
+          expect(response).to(redirect_to(checkout_step_path(:summary)))
 
           order.reload
 
-          expect(order.state).to eq "confirmation"
-          expect(order.payments.first.adjustment.amount).to eq 1.23
-          expect(order.payments.first.amount).to eq order.item_total + order.adjustment_total
-          expect(order.adjustment_total).to eq 1.23
-          expect(order.total).to eq order.item_total + order.adjustment_total
+          expect(order.state).to(eq("confirmation"))
+          expect(order.payments.first.adjustment.amount).to(eq(1.23))
+          expect(order.payments.first.amount).to(eq(order.item_total + order.adjustment_total))
+          expect(order.adjustment_total).to(eq(1.23))
+          expect(order.total).to(eq(order.item_total + order.adjustment_total))
         end
       end
 
-      context "with a zero-priced order" do
+      context("with a zero-priced order") do
         let(:params) do
-          { step: "payment", order: { payments_attributes: [{ amount: 0 }] } }
+          {step: "payment", order: {payments_attributes: [{amount: 0}]}}
         end
 
         before do
@@ -241,22 +248,22 @@ RSpec.describe CheckoutController do
         end
 
         it "allows proceeding to confirmation" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to redirect_to checkout_step_path(:summary)
-          expect(order.reload.state).to eq "confirmation"
-          expect(order.payments.count).to eq 1
-          expect(order.payments.first.amount).to eq 0
+          expect(response).to(redirect_to(checkout_step_path(:summary)))
+          expect(order.reload.state).to(eq("confirmation"))
+          expect(order.payments.count).to(eq(1))
+          expect(order.payments.first.amount).to(eq(0))
         end
       end
 
-      context "with a saved credit card" do
+      context("with a saved credit card") do
         let!(:saved_card) { create(:stored_credit_card, user:) }
         let(:checkout_params) do
           {
             order: {
               payments_attributes: [
-                { payment_method_id: payment_method.id }
+                {payment_method_id: payment_method.id}
               ]
             },
             existing_card_id: saved_card.id
@@ -264,15 +271,15 @@ RSpec.describe CheckoutController do
         end
 
         it "updates and redirects to summary step" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to redirect_to checkout_step_path(:summary)
-          expect(order.reload.state).to eq "confirmation"
-          expect(order.payments.first.source.id).to eq saved_card.id
+          expect(response).to(redirect_to(checkout_step_path(:summary)))
+          expect(order.reload.state).to(eq("confirmation"))
+          expect(order.payments.first.source.id).to(eq(saved_card.id))
         end
       end
 
-      context "with an order paid with customer credit" do
+      context("with an order paid with customer credit") do
         before do
           ## Add payment with credit
           payment = order.payments.create!(
@@ -283,10 +290,10 @@ RSpec.describe CheckoutController do
         end
 
         it "allows proceeding to confirmation" do
-          put checkout_update_path(params)
+          put(checkout_update_path(params))
 
-          expect(response).to redirect_to checkout_step_path(:summary)
-          expect(order.reload.state).to eq "confirmation"
+          expect(response).to(redirect_to(checkout_step_path(:summary)))
+          expect(order.reload.state).to(eq("confirmation"))
         end
       end
     end
@@ -294,14 +301,16 @@ RSpec.describe CheckoutController do
 
   def mock_voucher_adjustment_service
     voucher_adjustment_service = instance_double(VoucherAdjustmentsService)
-    allow(VoucherAdjustmentsService).to receive(:new).and_return(voucher_adjustment_service)
+    allow(VoucherAdjustmentsService).to(receive(:new).and_return(voucher_adjustment_service))
 
     voucher_adjustment_service
   end
 
   def expect_cable_ready_redirect(response)
-    expect(response.parsed_body).to eq(
-      [{ "url" => "/checkout/details", "operation" => "redirectTo" }].to_json
+    expect(response.parsed_body).to(
+      eq(
+        [{"url" => "/checkout/details", "operation" => "redirectTo"}].to_json
+      )
     )
   end
 end

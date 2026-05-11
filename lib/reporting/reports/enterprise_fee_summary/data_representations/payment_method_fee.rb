@@ -28,11 +28,14 @@ module Reporting
             data["payment_method_name"]
           end
 
-          def fee_placement; end
+          def fee_placement
+          end
 
-          def fee_calculated_on_transfer_through_name; end
+          def fee_calculated_on_transfer_through_name
+          end
 
-          def tax_category_name; end
+          def tax_category_name
+          end
         end
       end
     end

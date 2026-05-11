@@ -11,15 +11,17 @@ def create_admin_user
   ValidEmail2::Address.define_method(:valid_mx?) { true }
 
   if admin.save
-    printf <<~TEXT
-      New admin user persisted!
-      Username: #{admin.email}
-      Password: #{admin.password}
-    TEXT
+    printf(
+      <<~TEXT
+        New admin user persisted!
+        Username: #{admin.email}
+        Password: #{admin.password}
+      TEXT
+    )
   else
-    printf "There was some problems with persisting new admin user:\n"
+    printf("There was some problems with persisting new admin user:\n")
     admin.errors.full_messages.each do |error|
-      printf "#{error}\n"
+      printf("#{error}\n")
     end
   end
 end

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Spree
-  class PaymentMethod < ApplicationRecord # rubocop:disable Metrics/ClassLength
+  # rubocop:disable Metrics/ClassLength
+  class PaymentMethod < ApplicationRecord
     include CalculatedAdjustments
     include PaymentMethodDistributors
 
@@ -25,40 +26,55 @@ module Spree
 
     scope :inactive_or_backend, -> { where("active = false OR display_on = 'back_end'") }
 
-    scope :production, -> { where(environment: 'production') }
+    scope :production, -> { where(environment: "production") }
 
-    scope :managed_by, lambda { |user|
-      return where(nil) if user.admin?
+    scope(
+      :managed_by,
+      lambda { |user|
+        return where(nil) if user.admin?
 
-      joins(:distributors).
-        where(distributors_payment_methods: { distributor_id: user.enterprises.select(&:id) }).
-        select('DISTINCT spree_payment_methods.*')
-    }
+        joins(:distributors)
+          .where(distributors_payment_methods: {distributor_id: user.enterprises.select(&:id)})
+          .select("DISTINCT spree_payment_methods.*")
+      }
+    )
 
-    scope :for_distributors, ->(distributors) {
-      non_unique_matches = unscoped.joins(:distributors).where(enterprises: { id: distributors })
-      where(id: non_unique_matches.map(&:id))
-    }
+    scope(
+      :for_distributors,
+      -> (distributors) {
+        non_unique_matches = unscoped.joins(:distributors).where(enterprises: {id: distributors})
+        where(id: non_unique_matches.map(&:id))
+      }
+    )
 
-    scope :for_distributor, ->(distributor) {
-      joins(:distributors).where(enterprises: { id: distributor })
-    }
+    scope(
+      :for_distributor,
+      -> (distributor) {
+        joins(:distributors).where(enterprises: {id: distributor})
+      }
+    )
 
     scope :for_subscriptions, -> { where(type: Subscription::ALLOWED_PAYMENT_METHOD_TYPES) }
 
-    scope :by_name, -> { order('spree_payment_methods.name ASC') }
+    scope :by_name, -> { order("spree_payment_methods.name ASC") }
 
-    scope :available, lambda { |display_on = 'both'|
-      where(active: true)
-        .where(display_on: [display_on, "", nil])
-        .where(environment: [Rails.env, "", nil])
-    }
+    scope(
+      :available,
+      lambda { |display_on = "both"|
+        where(active: true)
+          .where(display_on: [display_on, "", nil])
+          .where(environment: [Rails.env, "", nil])
+      }
+    )
 
     # These method is used to get the internal payment method. It is accessible to all
     # enterprise, but the accessibility is managed by the code, as opposed to using the database.
     def self.customer_credit
-      unscoped.find_or_create_by(type: "Spree::PaymentMethod::CustomerCredit", deleted_at: nil,
-                                 environment: Rails.env)
+      unscoped.find_or_create_by(
+        type: "Spree::PaymentMethod::CustomerCredit",
+        deleted_at: nil,
+        environment: Rails.env
+      )
     end
 
     def configured?
@@ -66,7 +82,7 @@ module Spree
     end
 
     def provider_class
-      raise 'You must implement provider_class method for this gateway.'
+      raise "You must implement provider_class method for this gateway."
     end
 
     # Does the PaymentMethod require redirecting to an external gateway?
@@ -87,7 +103,7 @@ module Spree
     # e.g. CreditCard in the case of a the Gateway payment type
     # nil means the payment method doesn't require a source e.g. check
     def payment_source_class
-      raise 'You must implement payment_source_class method for this gateway.'
+      raise "You must implement payment_source_class method for this gateway."
     end
 
     def self.active?
@@ -135,7 +151,7 @@ module Spree
     def distributor_validation
       return true if internal?
 
-      validates_with DistributorsValidator
+      validates_with(DistributorsValidator)
     end
 
     def stripe?

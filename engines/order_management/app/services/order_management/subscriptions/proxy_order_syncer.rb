@@ -14,8 +14,10 @@ module OrderManagement
         when ActiveRecord::Relation
           @subscriptions = subscriptions.not_ended.not_canceled
         else
-          raise "ProxyOrders::SyncService must be initialized with " \
-                "an instance of Subscription or ActiveRecord::Relation"
+          raise(
+            "ProxyOrders::SyncService must be initialized with " \
+              "an instance of Subscription or ActiveRecord::Relation"
+          )
         end
       end
 
@@ -38,14 +40,16 @@ module OrderManagement
 
       def initialise_proxy_orders!
         uninitialised_order_cycle_ids.each do |order_cycle_id|
-          Rails.logger.info "Initializing Proxy Order " \
-                            "of subscription #{@subscription.id} in order cycle #{order_cycle_id}"
+          Rails.logger.info(
+            "Initializing Proxy Order " \
+              "of subscription #{@subscription.id} in order cycle #{order_cycle_id}"
+          )
           proxy_orders << ProxyOrder.new(subscription:, order_cycle_id:)
         end
       end
 
       def sync_subscription!
-        Rails.logger.info "Syncing Proxy Orders of subscription #{@subscription.id}"
+        Rails.logger.info("Syncing Proxy Orders of subscription #{@subscription.id}")
         create_proxy_orders!
         remove_orphaned_proxy_orders!
       end
@@ -81,7 +85,7 @@ module OrderManagement
       def insert_values
         now = Time.now.utc.iso8601
         not_closed_in_range_order_cycles
-          .map{ |oc| "(#{subscription.id},#{oc.id},'#{now}','#{now}')" }
+          .map { |oc| "(#{subscription.id},#{oc.id},'#{now}','#{now}')" }
           .join(",")
       end
 

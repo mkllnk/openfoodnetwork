@@ -25,15 +25,15 @@ module Reporting
             line_item.order_cycle
           end
 
-          def suppliers_adjustments(line_item, adjustment_type = 'EnterpriseFee')
+          def suppliers_adjustments(line_item, adjustment_type = "EnterpriseFee")
             adjustments = line_item.adjustments
-            return adjustments.tax if adjustment_type == 'Spree::TaxRate'
+            return adjustments.tax if adjustment_type == "Spree::TaxRate"
 
             supplier_id = line_item.supplier_id
             adjustments.enterprise_fee.select do |adjustment|
               label = adjustment.label
               adjustment_enterprise_id = adjustment.originator.enterprise_id
-              label.include?('supplier') && adjustment_enterprise_id == supplier_id
+              label.include?("supplier") && adjustment_enterprise_id == supplier_id
             end
           end
 
@@ -42,7 +42,7 @@ module Reporting
             return 0.0 if is_tax && !supplier(line_item).charges_sales_tax
 
             total_amount = 0.0
-            adjustment_type = is_tax ? 'Spree::TaxRate' : 'EnterpriseFee'
+            adjustment_type = is_tax ? "Spree::TaxRate" : "EnterpriseFee"
             suppliers_adjustments(line_item, adjustment_type).each do |adjustment|
               amount = included == adjustment.included ? adjustment.amount : 0.0
               total_amount += amount

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 RSpec.configure do |config|
-  config.include Devise::Test::IntegrationHelpers, type: :request
-  config.include OpenFoodNetwork::ApiHelper, type: :request
+  config.include(Devise::Test::IntegrationHelpers, type: :request)
+  config.include(OpenFoodNetwork::ApiHelper, type: :request)
 
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need
   # to ensure that it's configured to serve Swagger from the same folder
-  config.openapi_root = Rails.root.join('swagger').to_s
+  config.openapi_root = Rails.root.join("swagger").to_s
 
   # Define one or more Swagger documents and provide global metadata for each one
   # When you run the 'rswag:specs:swaggerize' rake task, the complete Swagger will
@@ -16,52 +16,54 @@ RSpec.configure do |config|
   # document below. You can override this behavior by adding a swagger_doc tag to the
   # the root example_group in your specs, e.g. describe '...', swagger_doc: 'v2/swagger.json'
   config.openapi_specs = {
-    'v1.yaml' => {
-      openapi: '3.0.1',
+    "v1.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'API V1',
-        version: 'v1'
+        title: "API V1",
+        version: "v1"
       },
       components: {
         schemas: {
           error_response: ErrorsSchema.schema,
           # only customer#show is with extra_fields: {name: :balance, required: true}
           customer: CustomerSchema.schema(require_all: true),
-          customers_collection: CustomerSchema.collection(require_all: true,
-                                                          extra_fields: :balance),
+          customers_collection: CustomerSchema.collection(
+            require_all: true,
+            extra_fields: :balance
+          ),
           customer_account_transaction: CustomerAccountTransactionSchema.schema(require_all: true)
         },
         securitySchemes: {
           api_key_header: {
             type: :apiKey,
-            name: 'X-Api-Token',
+            name: "X-Api-Token",
             in: :header,
             description: "Authenticates via API key passed in specified header"
           },
           api_key_param: {
             type: :apiKey,
-            name: 'token',
+            name: "token",
             in: :query,
             description: "Authenticates via API key passed in specified query param"
           },
           session: {
             type: :apiKey,
-            name: '_ofn_session_id',
+            name: "_ofn_session_id",
             in: :cookie,
             description: "Authenticates using the current user's session if logged in"
-          },
+          }
         }
       },
       paths: {},
       servers: [
-        { url: "/" }
+        {url: "/"}
       ]
     },
-    'v0.yaml' => {
-      openapi: '3.0.1',
+    "v0.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'API V0',
-        version: 'v0'
+        title: "API V0",
+        version: "v0"
       }
     }
   }
@@ -83,7 +85,7 @@ RSpec.configure do |config|
     # Replace random values from generated strings for a deterministic documentation.
     response.body.gsub!(
       %r{/rails/active_storage/[0-9A-Za-z/=-]*/([^/.]+).png},
-      '/rails/active_storage/url/\1.png',
+      "/rails/active_storage/url/\\1.png"
     )
 
     # Include response as example in the documentation.

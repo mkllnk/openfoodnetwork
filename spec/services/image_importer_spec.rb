@@ -8,12 +8,16 @@ RSpec.describe ImageImporter do
     it "downloads from the Internet", :vcr, :aggregate_failures do
       expect {
         subject.import(ofn_url, product)
-      }.to change {
-        Spree::Image.count
-      }.by(1)
+      }
+        .to(
+          change {
+            Spree::Image.count
+          }
+            .by(1)
+        )
 
-      expect(product.image).not_to be_nil
-      expect(product.reload.image.attachment_blob.byte_size).to eq 12_926
+      expect(product.image).not_to(be_nil)
+      expect(product.reload.image.attachment_blob.byte_size).to(eq(12_926))
     end
   end
 end

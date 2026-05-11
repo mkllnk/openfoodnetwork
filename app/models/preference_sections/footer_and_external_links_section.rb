@@ -3,7 +3,7 @@
 module PreferenceSections
   class FooterAndExternalLinksSection
     def name
-      I18n.t('admin.contents.edit.footer_and_external_links')
+      I18n.t("admin.contents.edit.footer_and_external_links")
     end
 
     def preferences

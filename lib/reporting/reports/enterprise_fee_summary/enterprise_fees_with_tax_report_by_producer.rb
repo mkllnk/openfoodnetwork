@@ -38,11 +38,13 @@ module Reporting
               id: enterprise_fee_ids_filter
             )
           end
+
           unless enterprise_fee_owner_ids_filter.empty?
             @enterprise_fee_filtered_ids = @enterprise_fee_filtered_ids.where(
               enterprise_id: enterprise_fee_owner_ids_filter
             )
           end
+
           @enterprise_fee_filtered_ids = @enterprise_fee_filtered_ids.pluck(:id)
         end
 
@@ -73,7 +75,8 @@ module Reporting
           #   2. order.all_adjustemnt.tax.where(adjustment_id: id,"Spree::Adjustment")
           #     - this will return the tax applied on the enterprise fees
           orders = report_line_items.list.map(&:order).uniq
-          orders.flat_map(&join_enterprise_fee)
+          orders
+            .flat_map(&join_enterprise_fee)
             .flat_map(&join_tax_rate)
             .flat_map(&join_supplier)
             .group_by(&group_keys)
@@ -86,13 +89,15 @@ module Reporting
               .all_adjustments
               .enterprise_fee
               .joins(:metadata)
-              .where(adjustment_metadata: { enterprise_role: 'supplier' })
+              .where(adjustment_metadata: {enterprise_role: "supplier"})
 
             if enterprise_fee_filters?
               query = query.where(originator_id: enterprise_fee_filtered_ids)
             end
-            query.group('spree_adjustments.id', 'originator_id')
-              .pluck("originator_id", 'array_agg(spree_adjustments.id)')
+
+            query
+              .group("spree_adjustments.id", "originator_id")
+              .pluck("originator_id", "array_agg(spree_adjustments.id)")
               .map do |enterprise_fee_id, enterprise_fee_adjustment_ids|
                 {
                   enterprise_fee_id:,
@@ -114,17 +119,21 @@ module Reporting
 
         def join_tax_rate
           proc do |item|
-            tax_rate_ids = item[:order].all_adjustments.tax.where(
-              adjustable_id: item[:enterprise_fee_adjustment_ids],
-              adjustable_type: "Spree::Adjustment"
-            ).pluck(:originator_id)
+            tax_rate_ids = item[:order]
+              .all_adjustments
+              .tax
+              .where(
+                adjustable_id: item[:enterprise_fee_adjustment_ids],
+                adjustable_type: "Spree::Adjustment"
+              )
+              .pluck(:originator_id)
 
             tax_rate_ids << nil if tax_rate_ids.empty?
             tax_rate_ids.map do |tax_rate_id|
               {
                 tax_rate_id:,
                 enterprise_fee_id: item[:enterprise_fee_id],
-                order: item[:order],
+                order: item[:order]
               }
             end
           end
@@ -166,6 +175,7 @@ module Reporting
             hash[li.variant] ||= order.order_cycle.coordinator_fee_ids
             hash[li.variant] += li.adjustments.enterprise_fee.map(&:originator_id)
           end
+
           hash
         end
 
@@ -183,7 +193,7 @@ module Reporting
 
         def change_root_to_order
           proc do |_, v|
-            v.map!{ |item| item[:order] }
+            v.map! { |item| item[:order] }
           end
         end
 
@@ -207,27 +217,32 @@ module Reporting
 
         def rules
           [
-            { group_by: :distributor },
-            { group_by: :producer },
+            {group_by: :distributor},
+            {group_by: :producer},
             {
               # TOTAL (appear second)
               group_by: :order_cycle,
-              summary_row: order_cycle_totals_row,
+              summary_row: order_cycle_totals_row
             },
             {
               # Cost of produce (appear first)
               group_by: :order_cycle,
               summary_row_class: nil,
               summary_row_label: nil,
-              summary_row: order_cycle_line_items_row,
-            },
+              summary_row: order_cycle_line_items_row
+            }
           ]
         end
 
         def order_cycle_totals_row
           proc do |_key, items, rows|
-            supplier_id = items.first.first[2] # supplier id used in the grouped line items
-            line_items = items.flat_map(&:second).uniq.map(&:line_items).flatten
+            # supplier id used in the grouped line items
+            supplier_id = items.first.first[2]
+            line_items = items
+              .flat_map(&:second)
+              .uniq
+              .map(&:line_items)
+              .flatten
               .filter do |line_item|
                 line_item.supplier_id == supplier_id
               end
@@ -245,11 +260,17 @@ module Reporting
 
         def order_cycle_line_items_row
           proc do |key, items, _rows|
-            supplier_id = items.first.first[2] # supplier id used in the grouped line items
-            line_items = items.flat_map(&:last).uniq.map(&:line_items).flatten
+            # supplier id used in the grouped line items
+            supplier_id = items.first.first[2]
+            line_items = items
+              .flat_map(&:last)
+              .uniq
+              .map(&:line_items)
+              .flatten
               .filter do |line_item|
                 line_item.supplier_id == supplier_id
               end
+
             producer = producer(items.first)
 
             total_excl_tax = line_items_excl_tax(line_items)
@@ -259,12 +280,12 @@ module Reporting
               producer:,
               producer_tax_status: producer_tax_status(items.first),
               order_cycle: key,
-              enterprise_fee_name: I18n.t('report_line_cost_of_produce'),
-              enterprise_fee_type: I18n.t('report_line_line_items'),
+              enterprise_fee_name: I18n.t("report_line_cost_of_produce"),
+              enterprise_fee_type: I18n.t("report_line_line_items"),
               enterprise_fee_owner: producer,
               total_excl_tax:,
               tax:,
-              total_incl_tax: total_excl_tax + tax,
+              total_incl_tax: total_excl_tax + tax
             }
           end
         end
@@ -273,10 +294,13 @@ module Reporting
           order_ids = items.flat_map(&:second).map(&:id).uniq
           enterprise_fee_ids = items.map(&:first).map(&:second)
           enterprise_fees_amount_for_orders(
-            order_ids, enterprise_fee_ids
-          ) - included_tax_for_order_ids(
-            order_ids, enterprise_fee_ids
-          )
+            order_ids,
+            enterprise_fee_ids
+          ) -
+            included_tax_for_order_ids(
+              order_ids,
+              enterprise_fee_ids
+            )
         end
 
         def line_items_excl_tax(line_items)
@@ -289,19 +313,28 @@ module Reporting
 
         # This query gets called twice for each set of line_items, ideally it would be cached.
         def tax_for_line_items(line_items)
-          line_items.map do |line_item|
-            line_item.adjustments.eligible.tax.map(&:amount).sum(&:to_f)
-          end.compact.sum
+          line_items
+            .map do |line_item|
+              line_item.adjustments.eligible.tax.map(&:amount).sum(&:to_f)
+            end
+            .compact
+            .sum
         end
 
         def included_tax_for_order_ids(order_ids, enterprise_fee_ids)
-          Spree::Adjustment.tax
+          Spree::Adjustment
+            .tax
             .where(order: order_ids)
             .where(included: true)
-            .where(adjustable_type: 'Spree::Adjustment')
-            .where(adjustable_id: enterprise_fee_adjustment_ids_for_orders(order_ids,
-                                                                           enterprise_fee_ids))
-            .pick("sum(amount)") || 0
+            .where(adjustable_type: "Spree::Adjustment")
+            .where(
+              adjustable_id: enterprise_fee_adjustment_ids_for_orders(
+                order_ids,
+                enterprise_fee_ids
+              )
+            )
+            .pick("sum(amount)") ||
+            0
         end
 
         def enterprise_fee_adjustment_ids_for_orders(order_ids, enterprise_fee_ids)
@@ -310,12 +343,16 @@ module Reporting
 
         def enterprise_fees_amount_for_orders(order_ids, enterprise_fee_ids)
           enterprise_fee_adjustments_for_orders(
-            order_ids, enterprise_fee_ids
-          ).pick("sum(amount)") || 0
+            order_ids,
+            enterprise_fee_ids
+          )
+            .pick("sum(amount)") ||
+            0
         end
 
         def enterprise_fee_adjustments_for_orders(order_ids, enterprise_fee_ids)
-          enterprise_fees = Spree::Adjustment.enterprise_fee
+          enterprise_fees = Spree::Adjustment
+            .enterprise_fee
             .where(order_id: order_ids)
             .where(originator_id: enterprise_fee_ids)
           return enterprise_fees unless enterprise_fee_filters?
@@ -368,7 +405,8 @@ module Reporting
         def total_excl_tax(query_result_row)
           order_ids = orders(query_result_row).map(&:id)
           enterprise_fee_id = enterprise_fee_id(query_result_row)
-          amount = Spree::Adjustment.enterprise_fee
+          amount = Spree::Adjustment
+            .enterprise_fee
             .where(order_id: order_ids)
             .where(originator_id: enterprise_fee_id)
             .pick("sum(amount)")
@@ -381,8 +419,9 @@ module Reporting
           query = Spree::Adjustment.tax
           query = query.where(included: true) unless included.nil?
           query = query.where(originator_id: tax_rate_id(query_result_row)) unless all == true
-          query = query.where(order_id: order_ids)
-            .where(adjustable_type: 'Spree::Adjustment')
+          query = query
+            .where(order_id: order_ids)
+            .where(adjustable_type: "Spree::Adjustment")
             .where(adjustable_id: adjustment_ids)
             .pluck("sum(amount)")
 
@@ -396,14 +435,16 @@ module Reporting
         def enterprise_fee_adjustemnt_ids(query_result_row)
           order_ids = orders(query_result_row).map(&:id)
           enterprise_fee_id = enterprise_fee_id(query_result_row)
-          Spree::Adjustment.enterprise_fee
+          Spree::Adjustment
+            .enterprise_fee
             .where(order_id: order_ids)
             .where(originator_id: enterprise_fee_id)
             .pluck(:id)
         end
 
         def enterprise_fee(query_result_row)
-          first_order(query_result_row).all_adjustments
+          first_order(query_result_row)
+            .all_adjustments
             .enterprise_fee
             .find_by(originator_id: enterprise_fee_id(query_result_row))
             .originator

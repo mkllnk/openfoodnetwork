@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/enterprise_issue_validator'
+require "open_food_network/enterprise_issue_validator"
 
 module OpenFoodNetwork
   RSpec.describe EnterpriseIssueValidator do

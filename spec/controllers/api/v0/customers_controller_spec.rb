@@ -27,7 +27,7 @@ module Api
 
     describe "#update" do
       let(:customer) { create(:customer, user:) }
-      let(:params) { { format: :json, id: customer.id, customer: { code: '123' } } }
+      let(:params) { {format: :json, id: customer.id, customer: {code: "123"}} }
 
       context "as a user who is not associated with the customer" do
         before do
@@ -54,7 +54,7 @@ module Api
         end
 
         context "when the update request fails" do
-          before { params[:customer][:email] = '' }
+          before { params[:customer][:email] = "" }
 
           it "returns a 422, with an error message" do
             spree_post :update, params

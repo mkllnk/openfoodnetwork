@@ -8,12 +8,12 @@ class CustomersWithBalanceQuery
   end
 
   def call
-    @customers.
-      joins(left_join_complete_orders).
-      group("customers.id").
-      select("customers.*").
-      select("#{outstanding_balance_sum} AS balance_value").
-      select("#{available_credit} AS credit_value")
+    @customers
+      .joins(left_join_complete_orders)
+      .group("customers.id")
+      .select("customers.*")
+      .select("#{outstanding_balance_sum} AS balance_value")
+      .select("#{available_credit} AS credit_value")
   end
 
   private
@@ -21,10 +21,11 @@ class CustomersWithBalanceQuery
   # The resulting orders are in states that belong after the checkout. Only these can be considered
   # for a customer's balance.
   def left_join_complete_orders
-    <<~SQL.squish
+    <<~SQL
       LEFT JOIN spree_orders ON spree_orders.customer_id = customers.id
         AND #{finalized_states.to_sql}
     SQL
+      .squish
   end
 
   def finalized_states
@@ -37,19 +38,21 @@ class CustomersWithBalanceQuery
   end
 
   def available_credit
-    <<~SQL.squish
+    <<~SQL
       CASE WHEN EXISTS (#{available_credit_subquery}) THEN (#{available_credit_subquery})
       ELSE 0.00 END
     SQL
+      .squish
   end
 
   def available_credit_subquery
-    <<~SQL.squish
+    <<~SQL
       SELECT balance
       FROM customer_account_transactions
       WHERE customer_account_transactions.customer_id = customers.id
       ORDER BY id desc
       LIMIT 1
     SQL
+      .squish
   end
 end

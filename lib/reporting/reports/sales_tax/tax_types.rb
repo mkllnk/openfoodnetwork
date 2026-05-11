@@ -19,7 +19,7 @@ module Reporting
             tax_on_fees: proc { |order| order.enterprise_fee_tax },
             total_tax: proc { |order| order.total_tax },
             customer: proc { |order| order.bill_address.full_name },
-            distributor: proc { |order| order.distributor&.name },
+            distributor: proc { |order| order.distributor&.name }
           }
         end
         # rubocop:enable Metrics/AbcSize
@@ -31,13 +31,13 @@ module Reporting
           @totals ||= {}
           return @totals[order.id] if @totals[order.id].present?
 
-          totals = { items: 0, items_total: 0.0, taxable_total: 0.0, sales_tax: 0.0 }
+          totals = {items: 0, items_total: 0.0, taxable_total: 0.0, sales_tax: 0.0}
 
           order.line_items.each do |line_item|
             totals[:items] += line_item.quantity
             totals[:items_total] += line_item.amount
 
-            sales_tax = tax_included_in line_item
+            sales_tax = tax_included_in(line_item)
 
             if sales_tax > 0
               totals[:taxable_total] += line_item.amount

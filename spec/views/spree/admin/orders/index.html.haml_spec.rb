@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe "spree/admin/orders/index.html.haml" do
-  helper Spree::Admin::NavigationHelper
-  helper EnterprisesHelper
+  helper(Spree::Admin::NavigationHelper)
+  helper(EnterprisesHelper)
 
   around do |example|
     original_config = Spree::Config[:enable_invoices?]
@@ -17,7 +17,7 @@ RSpec.describe "spree/admin/orders/index.html.haml" do
       end
     end
 
-    allow(view).to receive_messages spree_current_user: create(:user)
+    allow(view).to(receive_messages(spree_current_user: create(:user)))
   end
 
   describe "Bulk order actions" do
@@ -26,9 +26,9 @@ RSpec.describe "spree/admin/orders/index.html.haml" do
 
       render
 
-      expect(rendered).to have_content("Print Invoices")
-      expect(rendered).to have_content("Resend Confirmation")
-      expect(rendered).to have_content("Cancel Orders")
+      expect(rendered).to(have_content("Print Invoices"))
+      expect(rendered).to(have_content("Resend Confirmation"))
+      expect(rendered).to(have_content("Cancel Orders"))
     end
 
     it "does not display print button when invoices are disabled but others remain" do
@@ -36,9 +36,9 @@ RSpec.describe "spree/admin/orders/index.html.haml" do
 
       render
 
-      expect(rendered).not_to have_content("Print Invoices")
-      expect(rendered).to have_content("Resend Confirmation")
-      expect(rendered).to have_content("Cancel Orders")
+      expect(rendered).not_to(have_content("Print Invoices"))
+      expect(rendered).to(have_content("Resend Confirmation"))
+      expect(rendered).to(have_content("Cancel Orders"))
     end
   end
 end

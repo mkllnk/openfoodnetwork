@@ -3,9 +3,9 @@
 class ShopsListService
   # shops that are ready for checkout, and have an order cycle that is currently open
   def open_shops
-    shops_list.
-      ready_for_checkout.
-      distributors_with_active_order_cycles
+    shops_list
+      .ready_for_checkout
+      .distributors_with_active_order_cycles
   end
 
   # shops that are either not ready for checkout, or don't have an open order cycle; the inverse of

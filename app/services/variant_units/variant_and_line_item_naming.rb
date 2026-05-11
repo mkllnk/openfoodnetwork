@@ -15,8 +15,10 @@ module VariantUnits
     end
 
     def variant_display_as?
-      respond_to?(:variant) && variant.present? &&
-        variant.respond_to?(:display_as) && variant.display_as.present?
+      respond_to?(:variant) &&
+        variant.present? &&
+        variant.respond_to?(:display_as) &&
+        variant.display_as.present?
     end
 
     def product_and_full_name
@@ -35,8 +37,8 @@ module VariantUnits
     #     Bread - Spelt Sourdough (1kg)
     def full_name
       return unit_to_display if display_name.blank?
-      return display_name    if display_name.downcase.include? unit_to_display.downcase
-      return unit_to_display if unit_to_display.downcase.include? display_name.downcase
+      return display_name if display_name.downcase.include?(unit_to_display.downcase)
+      return unit_to_display if unit_to_display.downcase.include?(display_name.downcase)
 
       "#{display_name} (#{unit_to_display})"
     end
@@ -63,14 +65,14 @@ module VariantUnits
     end
 
     def unit_value_attributes
-      units = { unit_presentation: option_value_name }
+      units = {unit_presentation: option_value_name}
       units.merge!(variant_unit:) if has_attribute?(:variant_unit)
-      units.merge!(variant_unit_name: '') if reset_variant_unit_name?
+      units.merge!(variant_unit_name: "") if reset_variant_unit_name?
       units
     end
 
     def weight_from_unit_value
-      (unit_value || 0) / 1000 if variant_unit == 'weight'
+      (unit_value || 0) / 1000 if variant_unit == "weight"
     end
 
     private
@@ -82,7 +84,7 @@ module VariantUnits
     end
 
     def reset_variant_unit_name?
-      has_attribute?(:variant_unit_name) && has_attribute?(:variant_unit) && variant_unit != 'items'
+      has_attribute?(:variant_unit_name) && has_attribute?(:variant_unit) && variant_unit != "items"
     end
   end
 end

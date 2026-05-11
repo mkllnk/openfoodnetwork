@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe BaseController do
-  let(:oc)    { instance_double(OrderCycle, id: 1) }
+  let(:oc) { instance_double(OrderCycle, id: 1) }
   let(:order) { instance_double(Spree::Order) }
   controller(BaseController) do
     def index
-      render plain: ""
+      render(plain: "")
     end
   end
 
@@ -14,29 +14,32 @@ RSpec.describe BaseController do
 
     it "doesn't change anything without a user" do
       expect {
-        get :index
-      }.not_to change { Spree::Order.count }
+        get(:index)
+      }
+        .not_to(change { Spree::Order.count })
     end
 
     it "creates a new order" do
-      allow(controller).to receive(:spree_current_user).and_return(user)
+      allow(controller).to(receive(:spree_current_user).and_return(user))
 
       expect {
-        get :index
-      }.to change { Spree::Order.count }.by(1)
+        get(:index)
+      }
+        .to(change { Spree::Order.count }.by(1))
 
-      expect(user.orders.count).to eq 1
+      expect(user.orders.count).to(eq(1))
     end
 
     it "uses the last incomplete order" do
       last_cart = create(:order, user:, created_by: user, state: "cart", completed_at: nil)
-      allow(controller).to receive(:spree_current_user).and_return(user)
+      allow(controller).to(receive(:spree_current_user).and_return(user))
 
       expect {
-        get :index
-      }.not_to change { Spree::Order.count }
+        get(:index)
+      }
+        .not_to(change { Spree::Order.count })
 
-      expect(session[:order_id]).to eq last_cart.id
+      expect(session[:order_id]).to(eq(last_cart.id))
     end
 
     it "ignores the last incomplete order" do
@@ -57,13 +60,14 @@ RSpec.describe BaseController do
       )
       session[:order_id] = current_cart.id
 
-      allow(controller).to receive(:spree_current_user).and_return(user)
+      allow(controller).to(receive(:spree_current_user).and_return(user))
 
       expect {
-        get :index
-      }.not_to change { Spree::Order.count }
+        get(:index)
+      }
+        .not_to(change { Spree::Order.count })
 
-      expect(current_cart.line_items.count).to eq 0
+      expect(current_cart.line_items.count).to(eq(0))
     end
 
     it "doesn't recover old orders after checkout, a new empty one is created" do
@@ -78,22 +82,23 @@ RSpec.describe BaseController do
         completed_at: Time.zone.now,
         created_at: 1.week.ago
       )
-      expect(just_completed_order.completed_at).to be_present
+      expect(just_completed_order.completed_at).to(be_present)
       session[:order_id] = just_completed_order.id
 
-      allow(controller).to receive(:spree_current_user).and_return(user)
+      allow(controller).to(receive(:spree_current_user).and_return(user))
 
       expect {
-        get :index
-      }.to change { Spree::Order.count }.by(1)
+        get(:index)
+      }
+        .to(change { Spree::Order.count }.by(1))
 
-      expect(session[:order_id]).not_to eq just_completed_order.id
-      expect(session[:order_id]).not_to eq last_cart.id
-      expect(controller.current_order.line_items.count).to eq 0
+      expect(session[:order_id]).not_to(eq(just_completed_order.id))
+      expect(session[:order_id]).not_to(eq(last_cart.id))
+      expect(controller.current_order.line_items.count).to(eq(0))
     end
 
     it "doesn't load variant overrides without line items" do
-      expect(VariantOverride).not_to receive(:indexed)
+      expect(VariantOverride).not_to(receive(:indexed))
       controller.current_order(true)
     end
   end

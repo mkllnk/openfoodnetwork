@@ -3,13 +3,13 @@
 require "system_helper"
 
 RSpec.describe "As a consumer, I want to checkout my order" do
-  include ShopWorkflow
-  include CheckoutHelper
-  include FileHelper
-  include StripeHelper
-  include StripeStubs
-  include PaypalHelper
-  include AuthenticationHelper
+  include(ShopWorkflow)
+  include(CheckoutHelper)
+  include(FileHelper)
+  include(StripeHelper)
+  include(StripeStubs)
+  include(PaypalHelper)
+  include(AuthenticationHelper)
 
   let!(:zone) { create(:zone_with_member) }
   let(:supplier) { create(:supplier_enterprise) }
@@ -19,271 +19,302 @@ RSpec.describe "As a consumer, I want to checkout my order" do
   }
   let(:variant) { product.variants.first }
   let!(:order_cycle) {
-    create(:simple_order_cycle, suppliers: [supplier], distributors: [distributor],
-                                coordinator: create(:distributor_enterprise), variants: [variant])
+    create(
+      :simple_order_cycle,
+      suppliers: [supplier],
+      distributors: [distributor],
+      coordinator: create(:distributor_enterprise),
+      variants: [variant]
+    )
   }
   let(:fee_tax_rate) { create(:tax_rate, amount: 0.10, zone:, included_in_price: true) }
   let(:fee_tax_category) { create(:tax_category, tax_rates: [fee_tax_rate]) }
   let(:enterprise_fee) { create(:enterprise_fee, amount: 1.23, tax_category: fee_tax_category) }
 
   let(:free_shipping_with_required_address) {
-    create(:shipping_method, require_ship_address: true,
-                             name: "A Free Shipping with required address")
+    create(
+      :shipping_method,
+      require_ship_address: true,
+      name: "A Free Shipping with required address"
+    )
   }
 
   let!(:payment_with_fee) {
-    create(:payment_method, distributors: [distributor],
-                            name: "Payment with Fee", description: "Payment with fee",
-                            calculator: Calculator::FlatRate.new(preferred_amount: 1.23))
+    create(
+      :payment_method,
+      distributors: [distributor],
+      name: "Payment with Fee",
+      description: "Payment with fee",
+      calculator: Calculator::FlatRate.new(preferred_amount: 1.23)
+    )
   }
 
   before do
-    add_enterprise_fee enterprise_fee
-    pick_order order
+    add_enterprise_fee(enterprise_fee)
+    pick_order(order)
 
     distributor.shipping_methods.push(free_shipping_with_required_address)
   end
 
-  context "as a logged in user" do
+  context("as a logged in user") do
     let(:user) { create(:user) }
 
     before do
       login_as(user)
     end
 
-    context "payment step" do
+    context("payment step") do
       let(:order) { create(:order_ready_for_payment, distributor:) }
 
-      context "with one payment method, with a fee" do
+      context("with one payment method, with a fee") do
         it "preselect the payment method if only one is available" do
-          visit checkout_step_path(:payment)
+          visit(checkout_step_path(:payment))
 
-          expect(page).to have_title "Checkout Payment - Open Food Network"
-          expect(page).to have_checked_field "Payment with Fee"
-          expect(page).to have_content "Payment with Fee $1.23"
+          expect(page).to(have_title("Checkout Payment - Open Food Network"))
+          expect(page).to(have_checked_field("Payment with Fee"))
+          expect(page).to(have_content("Payment with Fee $1.23"))
         end
       end
 
-      context "with a transaction fee" do
+      context("with a transaction fee") do
         before do
-          visit checkout_path
-          click_button "Next - Order summary"
+          visit(checkout_path)
+          click_button("Next - Order summary")
         end
 
-        shared_examples "displays the transaction fee" do |checkout_page|
+        shared_examples("displays the transaction fee") do |checkout_page|
           it "on the #{checkout_page} page" do
-            expect(page).to have_content("Transaction fee #{with_currency(1.23)}")
+            expect(page).to(have_content("Transaction fee #{with_currency(1.23)}"))
 
             if checkout_page.eql?("order confirmation")
-              expect(page).to have_content "Your order has been processed successfully"
+              expect(page).to(have_content("Your order has been processed successfully"))
             end
           end
         end
 
-        it_behaves_like "displays the transaction fee", "order summary"
+        it_behaves_like("displays the transaction fee", "order summary")
 
-        context "after completing the order" do
+        context("after completing the order") do
           before do
-            visit checkout_path
-            click_on "Complete order"
+            visit(checkout_path)
+            click_on("Complete order")
           end
-          it_behaves_like "displays the transaction fee", "order confirmation"
+
+          it_behaves_like("displays the transaction fee", "order confirmation")
         end
       end
 
-      context "with more than one payment method" do
+      context("with more than one payment method") do
         let!(:payment_method) { create(:payment_method, distributors: [distributor]) }
 
         before do
-          visit checkout_step_path(:payment)
+          visit(checkout_step_path(:payment))
         end
 
         it "don't preselect the payment method if more than one is available" do
-          expect(page).to have_field "payment_method_#{payment_with_fee.id}", checked: false
-          expect(page).to have_field "payment_method_#{payment_method.id}", checked: false
+          expect(page).to(have_field("payment_method_#{payment_with_fee.id}", checked: false))
+          expect(page).to(have_field("payment_method_#{payment_method.id}", checked: false))
         end
 
         it "requires choosing a payment method" do
-          click_on "Next - Order summary"
-          expect(page).to have_content "Select a payment method"
+          click_on("Next - Order summary")
+          expect(page).to(have_content("Select a payment method"))
         end
       end
 
-      context "with credit available" do
+      context("with credit available") do
         let!(:payment_method) { create(:payment_method, distributors: [distributor]) }
         let(:payment_amount) { 10.00 }
         # Add a voucher so we can test the voucher input as well
         let!(:voucher) do
-          create(:voucher_flat_rate, code: 'some_code', enterprise: distributor, amount: 15)
+          create(:voucher_flat_rate, code: "some_code", enterprise: distributor, amount: 15)
         end
 
         before do
           create(
             :customer_account_transaction,
-            amount: 100, customer: order.customer,
+            amount: 100,
+            customer: order.customer
           )
           # Add credit payment
-          payment = order.payments.create!(payment_method: Spree::PaymentMethod.customer_credit,
-                                           amount: payment_amount, state: "checkout")
+          payment = order.payments.create!(
+            payment_method: Spree::PaymentMethod.customer_credit,
+            amount: payment_amount,
+            state: "checkout"
+          )
 
-          visit checkout_step_path(:payment)
+          visit(checkout_step_path(:payment))
         end
 
         it "displays no payment required and hide voucher" do
-          expect(page).to have_content "No payment required"
-          expect(page).to have_content "Credit used: $10.00"
+          expect(page).to(have_content("No payment required"))
+          expect(page).to(have_content("Credit used: $10.00"))
 
-          expect(page).not_to have_content "Apply voucher"
+          expect(page).not_to(have_content("Apply voucher"))
         end
 
-        context "when credit does not cover the whole order" do
+        context("when credit does not cover the whole order") do
           let(:credit_amount) { 5.00 }
           let(:payment_amount) { 5.00 }
 
           it "shows credit used, available payment method and voucher" do
-            expect(page).to have_content "Credit used: $5.00"
-            expect(page).to have_content "Payment with Fee $1.23"
-            expect(page).to have_content "Check Free"
-            expect(page).to have_content "Apply voucher"
+            expect(page).to(have_content("Credit used: $5.00"))
+            expect(page).to(have_content("Payment with Fee $1.23"))
+            expect(page).to(have_content("Check Free"))
+            expect(page).to(have_content("Apply voucher"))
           end
 
           it "requires choosing a payment method" do
-            click_on "Next - Order summary"
+            click_on("Next - Order summary")
 
-            expect(page).to have_content "Credit used: $5.00"
-            expect(page).to have_content "Select a payment method"
+            expect(page).to(have_content("Credit used: $5.00"))
+            expect(page).to(have_content("Select a payment method"))
           end
         end
 
-        context "when updating the order after reaching payment step" do
+        context("when updating the order after reaching payment step") do
           it "updates the credit amount used" do
-            expect(page).to have_content "No payment required"
-            expect(page).to have_content "Credit used: $10.00"
+            expect(page).to(have_content("No payment required"))
+            expect(page).to(have_content("Credit used: $10.00"))
 
             # Update line item quantity to change the order total
             line_item = order.line_items.first
-            order.contents.update_item(line_item, { quantity: 2 })
+            order.contents.update_item(line_item, {quantity: 2})
 
-            click_link "Your details"
-            choose free_shipping_with_required_address.name
+            click_link("Your details")
+            choose(free_shipping_with_required_address.name)
 
             proceed_to_payment
 
-            expect(page).to have_content "No payment required"
-            expect(page).to have_content "Credit used: $20.00"
+            expect(page).to(have_content("No payment required"))
+            expect(page).to(have_content("Credit used: $20.00"))
           end
         end
       end
 
       describe "vouchers" do
-        context "with no voucher available" do
+        context("with no voucher available") do
           it "doesn't show voucher input" do
-            visit checkout_step_path(:payment)
+            visit(checkout_step_path(:payment))
 
-            expect(page).not_to have_content "Apply voucher"
+            expect(page).not_to(have_content("Apply voucher"))
           end
         end
 
-        context "with voucher available" do
+        context("with voucher available") do
           let!(:voucher) do
-            create(:voucher_flat_rate, code: 'some_code', enterprise: distributor, amount: 15)
+            create(:voucher_flat_rate, code: "some_code", enterprise: distributor, amount: 15)
           end
 
           describe "adding voucher to the order" do
             it "adds a voucher to the order" do
-              visit checkout_step_path(:payment)
-              apply_voucher "some_code"
+              visit(checkout_step_path(:payment))
+              apply_voucher("some_code")
 
-              expect(page).to have_content "$15.00 Voucher"
-              expect(order.reload.voucher_adjustments.length).to eq(1)
+              expect(page).to(have_content("$15.00 Voucher"))
+              expect(order.reload.voucher_adjustments.length).to(eq(1))
             end
 
-            context "when voucher covers more then the order total" do
+            context("when voucher covers more then the order total") do
               before do
                 order.total = 6
                 order.save!
               end
 
               it "shows a warning message and doesn't require payment" do
-                visit checkout_step_path(:payment)
-                apply_voucher "some_code"
+                visit(checkout_step_path(:payment))
+                apply_voucher("some_code")
 
-                expect(page).to have_content "$15.00 Voucher"
-                expect(page).to have_content(
-                  "Note: if your order total is less than your voucher " \
-                  "you may not be able to spend the remaining value."
+                expect(page).to(have_content("$15.00 Voucher"))
+                expect(page).to(
+                  have_content(
+                    "Note: if your order total is less than your voucher " \
+                      "you may not be able to spend the remaining value."
+                  )
                 )
 
-                expect(page).to have_content "No payment required"
-                click_button "Next - Order summary"
+                expect(page).to(have_content("No payment required"))
+                click_button("Next - Order summary")
                 # Expect to be on the Order Summary page
-                expect(page).to have_content "Delivery details"
+                expect(page).to(have_content("Delivery details"))
               end
             end
 
-            context "when order partially paid with credit" do
+            context("when order partially paid with credit") do
               it "shows paid with credit amount" do
                 create(
                   :customer_account_transaction,
-                  amount: 100, customer: order.customer,
+                  amount: 100,
+                  customer: order.customer
                 )
                 # Add credit payment
-                payment = order.payments.create!(payment_method: Spree::PaymentMethod.customer_credit,
-                                                 amount: 5.00, state: "checkout")
+                payment = order.payments.create!(
+                  payment_method: Spree::PaymentMethod.customer_credit,
+                  amount: 5.00,
+                  state: "checkout"
+                )
 
-                visit checkout_step_path(:payment)
-                expect(page).to have_content "Credit used: $5.00"
+                visit(checkout_step_path(:payment))
+                expect(page).to(have_content("Credit used: $5.00"))
 
-                apply_voucher "some_code"
+                apply_voucher("some_code")
 
-                expect(page).to have_content "$15.00 Voucher"
-                expect(page).to have_content "Credit used: $5.00"
-                expect(page).to have_content "No payment required"
+                expect(page).to(have_content("$15.00 Voucher"))
+                expect(page).to(have_content("Credit used: $5.00"))
+                expect(page).to(have_content("No payment required"))
               end
             end
 
-            context "voucher doesn't exist" do
+            context("voucher doesn't exist") do
               it "show an error" do
-                visit checkout_step_path(:payment)
+                visit(checkout_step_path(:payment))
 
-                fill_in "Enter voucher code", with: "non_code"
+                fill_in("Enter voucher code", with: "non_code")
                 click_button("Apply")
 
-                expect(page).to have_content("Voucher code invalid")
+                expect(page).to(have_content("Voucher code invalid"))
               end
             end
 
-            context "with a VINE voucher", :vcr, feature: :connected_apps do
+            context("with a VINE voucher", :vcr, feature: :connected_apps) do
               let!(:vine_connected_app) {
                 ConnectedApps::Vine.create(
-                  enterprise: distributor, data: { api_key: "1234568", secret: "my_secret" }
+                  enterprise: distributor,
+                  data: {api_key: "1234568", secret: "my_secret"}
                 )
               }
               before do
-                allow(ENV).to receive(:fetch).and_call_original
-                allow(ENV).to receive(:fetch).with("VINE_API_URL").and_return("https://vine-staging.openfoodnetwork.org.au/api/v1")
+                allow(ENV).to(receive(:fetch).and_call_original)
+                allow(ENV).to(
+                  receive(:fetch).with("VINE_API_URL").and_return("https://vine-staging.openfoodnetwork.org.au/api/v1")
+                )
               end
 
               it "adds a voucher to the order" do
-                visit checkout_step_path(:payment)
+                visit(checkout_step_path(:payment))
 
-                apply_voucher "CI3922"
+                apply_voucher("CI3922")
 
-                expect(page).to have_content "$5.00 Voucher"
-                expect(order.reload.voucher_adjustments.length).to eq(1)
-                expect(Vouchers::Vine.find_by(code: "CI3922",
-                                              enterprise: distributor)).not_to be_nil
+                expect(page).to(have_content("$5.00 Voucher"))
+                expect(order.reload.voucher_adjustments.length).to(eq(1))
+                expect(
+                  Vouchers::Vine.find_by(
+                    code: "CI3922",
+                    enterprise: distributor
+                  )
+                )
+                  .not_to(be_nil)
               end
 
-              context "with an invalid voucher" do
+              context("with an invalid voucher") do
                 it "show an error" do
-                  visit checkout_step_path(:payment)
+                  visit(checkout_step_path(:payment))
 
-                  fill_in "Enter voucher code", with: "KM1891"
+                  fill_in("Enter voucher code", with: "KM1891")
                   click_button("Apply")
 
-                  expect(page).to have_content("The voucher is not valid")
-                  expect(Vouchers::Vine.find_by(code: "KM1891", enterprise: distributor)).to be_nil
+                  expect(page).to(have_content("The voucher is not valid"))
+                  expect(Vouchers::Vine.find_by(code: "KM1891", enterprise: distributor)).to(be_nil)
                 end
               end
             end
@@ -293,59 +324,60 @@ RSpec.describe "As a consumer, I want to checkout my order" do
             before do
               add_voucher_to_order(voucher, order)
 
-              visit checkout_step_path(:payment)
+              visit(checkout_step_path(:payment))
 
-              accept_confirm "Are you sure you want to remove the voucher?" do
-                click_on "Remove code"
+              accept_confirm("Are you sure you want to remove the voucher?") do
+                click_on("Remove code")
               end
 
-              within '#voucher-section' do
-                expect(page).to have_button("Apply", disabled: true)
-                expect(page).to have_field "Enter voucher code" # Currently no confirmation msg
+              within("#voucher-section") do
+                expect(page).to(have_button("Apply", disabled: true))
+                # Currently no confirmation msg
+                expect(page).to(have_field("Enter voucher code"))
               end
             end
 
             it "removes voucher" do
-              expect(page).not_to have_content "No payment required"
-              expect(order.voucher_adjustments.length).to eq(0)
+              expect(page).not_to(have_content("No payment required"))
+              expect(order.voucher_adjustments.length).to(eq(0))
             end
 
             it "can re-enter a voucher" do
-              apply_voucher "some_code"
+              apply_voucher("some_code")
 
-              expect(page).to have_content("$15.00 Voucher")
-              expect(order.reload.voucher_adjustments.length).to eq(1)
+              expect(page).to(have_content("$15.00 Voucher"))
+              expect(order.reload.voucher_adjustments.length).to(eq(1))
 
-              expect(page).to have_content "No payment required"
+              expect(page).to(have_content("No payment required"))
 
-              click_button "Next - Order summary"
+              click_button("Next - Order summary")
               # Expect to be on the Order Summary page
-              expect(page).to have_content "Delivery details"
+              expect(page).to(have_content("Delivery details"))
             end
 
             it "can proceed with payment" do
-              click_button "Next - Order summary"
+              click_button("Next - Order summary")
               # Expect to be on the Order Summary page
-              expect(page).to have_content "Delivery details"
+              expect(page).to(have_content("Delivery details"))
             end
           end
         end
       end
 
       describe "choosing" do
-        shared_examples "different payment methods" do |pay_method|
-          context "checking out with #{pay_method}" do
+        shared_examples("different payment methods") do |pay_method|
+          context("checking out with #{pay_method}") do
             before do
-              visit checkout_step_path(:payment)
+              visit(checkout_step_path(:payment))
             end
 
             it "proceeds to the summary step and completes the order" do
-              choose pay_method.to_s
+              choose(pay_method.to_s)
               proceed_to_summary
 
               place_order
-              expect(page).to have_content "Paying via: #{pay_method}"
-              expect(order.reload.state).to eq "complete"
+              expect(page).to(have_content("Paying via: #{pay_method}"))
+              expect(order.reload.state).to(eq("complete"))
             end
           end
         end
@@ -353,11 +385,11 @@ RSpec.describe "As a consumer, I want to checkout my order" do
         describe "payment method" do
           let!(:cash) { create(:payment_method, distributors: [distributor], name: "Cash") }
 
-          context "Cash" do
-            it_behaves_like "different payment methods", "Cash"
+          context("Cash") do
+            it_behaves_like("different payment methods", "Cash")
           end
 
-          context "Paypal" do
+          context("Paypal") do
             let!(:paypal) do
               Spree::Gateway::PayPalExpress.create!(
                 name: "Paypal",
@@ -370,16 +402,18 @@ RSpec.describe "As a consumer, I want to checkout my order" do
               stub_paypal_response(
                 success: true,
                 redirect: payment_gateways_confirm_paypal_path(
-                  payment_method_id: paypal.id, token: "t123", PayerID: 'p123'
+                  payment_method_id: paypal.id,
+                  token: "t123",
+                  PayerID: "p123"
                 )
               )
               stub_paypal_confirm
             end
 
-            it_behaves_like "different payment methods", "Paypal"
+            it_behaves_like("different payment methods", "Paypal")
           end
 
-          context "Stripe SCA" do
+          context("Stripe SCA") do
             let!(:stripe_account) { create(:stripe_account, enterprise: distributor) }
             let!(:stripe_sca_payment_method) {
               create(:stripe_sca_payment_method, distributors: [distributor], name: "Stripe SCA")
@@ -391,37 +425,37 @@ RSpec.describe "As a consumer, I want to checkout my order" do
 
             before do
               stripe_enable
-              visit checkout_step_path(:payment)
+              visit(checkout_step_path(:payment))
             end
 
             it "selects Stripe SCA and proceeds to the summary step" do
-              choose "Stripe SCA"
+              choose("Stripe SCA")
               fill_out_card_details
-              click_on "Next - Order summary"
+              click_on("Next - Order summary")
               proceed_to_summary
             end
 
-            context "when saving card" do
+            context("when saving card") do
               it "selects Stripe SCA and proceeds to the summary step" do
                 stub_customers_post_request(email: order.user.email)
                 stub_payment_method_attach_request
 
-                choose "Stripe SCA"
+                choose("Stripe SCA")
                 fill_out_card_details
-                check "Save card for future use"
+                check("Save card for future use")
 
-                click_on "Next - Order summary"
+                click_on("Next - Order summary")
                 proceed_to_summary
 
                 # Verify card has been saved with correct stripe IDs
                 user_credit_card = order.reload.user.credit_cards.first
-                expect(user_credit_card.gateway_payment_profile_id).to eq "pm_123"
-                expect(user_credit_card.gateway_customer_profile_id).to eq "cus_A123"
+                expect(user_credit_card.gateway_payment_profile_id).to(eq("pm_123"))
+                expect(user_credit_card.gateway_customer_profile_id).to(eq("cus_A123"))
               end
             end
           end
 
-          context "Taler" do
+          context("Taler") do
             let!(:taler) do
               Spree::PaymentMethod::Taler.create!(
                 name: "Taler",
@@ -434,21 +468,22 @@ RSpec.describe "As a consumer, I want to checkout my order" do
             before do
               # Shortcut the user interaction and go straight to our
               # confirmation action.
-              taler_order_id = { "order_id" => "taler-order:123" }
+              taler_order_id = {"order_id" => "taler-order:123"}
               expect_any_instance_of(Taler::Order)
-                .to receive(:create).and_return(taler_order_id)
+                .to(receive(:create).and_return(taler_order_id))
 
               # And fake the payment status to avoid user interaction.
               allow_any_instance_of(Taler::Order)
-                .to receive(:status_url) do
+                .to(receive(:status_url)) do
                   payment = Spree::Payment.last
                   payment_gateways_confirm_taler_path(payment_id: payment.id)
-              end
+                end
+
               allow_any_instance_of(Taler::Order)
-                .to receive(:fetch).with("order_status").and_return("paid")
+                .to(receive(:fetch).with("order_status").and_return("paid"))
             end
 
-            it_behaves_like "different payment methods", "Taler"
+            it_behaves_like("different payment methods", "Taler")
           end
         end
       end
@@ -459,33 +494,37 @@ RSpec.describe "As a consumer, I want to checkout my order" do
           create(:payment_method, distributors: [distributor], name: "Hidden", tag_list: "hide_pm")
         }
         before do
-          create(:filter_payment_methods_tag_rule,
-                 enterprise: distributor,
-                 is_default: true,
-                 preferred_payment_method_tags: "hide_pm",
-                 preferred_matched_payment_methods_visibility: 'hidden')
-          visit checkout_step_path(:payment)
+          create(
+            :filter_payment_methods_tag_rule,
+            enterprise: distributor,
+            is_default: true,
+            preferred_payment_method_tags: "hide_pm",
+            preferred_matched_payment_methods_visibility: "hidden"
+          )
+          visit(checkout_step_path(:payment))
         end
 
-        context "with no exceptions set to a customer" do
+        context("with no exceptions set to a customer") do
           it "hides the payment method" do
-            expect(page).not_to have_content hidden_method.name
+            expect(page).not_to(have_content(hidden_method.name))
           end
         end
 
-        context "with an exception set to a customer" do
+        context("with an exception set to a customer") do
           before do
-            create(:filter_payment_methods_tag_rule,
-                   enterprise: distributor,
-                   preferred_customer_tags: "show_pm",
-                   preferred_payment_method_tags: "hide_pm",
-                   preferred_matched_payment_methods_visibility: 'visible')
+            create(
+              :filter_payment_methods_tag_rule,
+              enterprise: distributor,
+              preferred_customer_tags: "show_pm",
+              preferred_payment_method_tags: "hide_pm",
+              preferred_matched_payment_methods_visibility: "visible"
+            )
             tagged_customer.update_attribute(:tag_list, "show_pm")
-            visit checkout_step_path(:payment)
+            visit(checkout_step_path(:payment))
           end
 
           it "displays the payment method" do
-            expect(page).to have_content hidden_method.name
+            expect(page).to(have_content(hidden_method.name))
           end
         end
       end

@@ -19,14 +19,14 @@ module Admin
       end
 
       respond_with do |format|
-        format.turbo_stream { render :new, status: }
+        format.turbo_stream { render(:new, status:) }
       end
     end
 
     def destroy
       @rule = TagRule.find(params[:id])
       @index = params[:index]
-      authorize! :destroy, @rule
+      authorize!(:destroy, @rule)
 
       status = :ok
       if @rule.destroy
@@ -37,7 +37,7 @@ module Admin
       end
 
       respond_to do |format|
-        format.turbo_stream { render :destroy, status: }
+        format.turbo_stream { render(:destroy, status:) }
       end
     end
 
@@ -46,28 +46,29 @@ module Admin
       respond_to do |format|
         format.json do
           serializer = ActiveModel::ArraySerializer.new(collection)
-          render json: serializer.to_json
+          render(json: serializer.to_json)
         end
       end
     end
 
     # Use to populate autocomplete with available rule for the given tag/enterprise
     def variant_tag_rules
-      tag_rules =
-        TagRule.matching_variant_tag_rules_by_enterprises(params[:enterprise_id], params[:q])
+      tag_rules = TagRule.matching_variant_tag_rules_by_enterprises(params[:enterprise_id], params[:q])
 
-      @formatted_tag_rules = tag_rules.each_with_object({}) do |rule, mapping|
-        rule.preferred_variant_tags.split(",").each do |tag|
-          if mapping[tag]
-            mapping[tag][:rules] += 1
-          else
-            mapping[tag] = { tag:, rules: 1 }
+      @formatted_tag_rules = tag_rules
+        .each_with_object({}) do |rule, mapping|
+          rule.preferred_variant_tags.split(",").each do |tag|
+            if mapping[tag]
+              mapping[tag][:rules] += 1
+            else
+              mapping[tag] = {tag:, rules: 1}
+            end
           end
         end
-      end.values
+        .values
 
       respond_with do |format|
-        format.html { render :variant_tag_rules, layout: false }
+        format.html { render(:variant_tag_rules, layout: false) }
       end
     end
 
@@ -99,7 +100,7 @@ module Admin
     end
 
     def permitted_tag_rule_type
-      %w{FilterOrderCycles FilterPaymentMethods FilterProducts FilterShippingMethods FilterVariants}
+      %w[FilterOrderCycles FilterPaymentMethods FilterProducts FilterShippingMethods FilterVariants]
     end
   end
 end

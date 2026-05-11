@@ -3,7 +3,7 @@
 module Spree
   class TaxCategory < ApplicationRecord
     acts_as_paranoid
-    validates :name, presence: true, uniqueness: { scope: :deleted_at }
+    validates :name, presence: true, uniqueness: {scope: :deleted_at}
 
     has_many :tax_rates, dependent: :destroy, inverse_of: :tax_category
 

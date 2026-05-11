@@ -26,7 +26,7 @@ module Api
       private
 
       def authenticate_user
-        return if (@current_api_user = request.env['warden'].user)
+        return if (@current_api_user = request.env["warden"].user)
 
         if api_key.blank?
           # An anonymous user
@@ -52,68 +52,86 @@ module Api
       end
 
       def error_during_processing(exception)
-        Alert.raise(exception)
+        Alert.raise exception
 
         if Rails.env.local?
-          render status: :unprocessable_entity,
-                 json: json_api_error(exception.message, meta: exception.backtrace)
+          render(
+            status: :unprocessable_entity,
+            json: json_api_error(exception.message, meta: exception.backtrace)
+          )
         else
-          render status: :unprocessable_entity,
-                 json: json_api_error(I18n.t(:unknown_error, scope: "api"))
+          render(
+            status: :unprocessable_entity,
+            json: json_api_error(I18n.t(:unknown_error, scope: "api"))
+          )
         end
       end
 
       def invalid_pagination(exception)
-        render status: :unprocessable_entity,
-               json: json_api_error(exception.message)
+        render(
+          status: :unprocessable_entity,
+          json: json_api_error(exception.message)
+        )
       end
 
       def missing_parameter(error)
-        message = I18n.t('api.missing_parameter', param: error.param)
+        message = I18n.t("api.missing_parameter", param: error.param)
 
-        render status: :unprocessable_entity,
-               json: json_api_error(message)
+        render(
+          status: :unprocessable_entity,
+          json: json_api_error(message)
+        )
       end
 
       def unpermitted_parameters(error)
-        message = I18n.t('api.unpermitted_parameters', params: error.params.join(", "))
+        message = I18n.t("api.unpermitted_parameters", params: error.params.join(", "))
 
-        render status: :unprocessable_entity,
-               json: json_api_error(message)
+        render(
+          status: :unprocessable_entity,
+          json: json_api_error(message)
+        )
       end
 
       def invalid_resource!(resource = nil)
-        render status: :unprocessable_entity,
-               json: json_api_invalid(
-                 I18n.t(:invalid_resource, scope: "api"),
-                 resource&.errors
-               )
+        render(
+          status: :unprocessable_entity,
+          json: json_api_invalid(
+            I18n.t(:invalid_resource, scope: "api"),
+            resource&.errors
+          )
+        )
       end
 
       def invalid_api_key
-        render status: :unauthorized,
-               json: json_api_error(I18n.t(:invalid_api_key, key: api_key, scope: "api"))
+        render(
+          status: :unauthorized,
+          json: json_api_error(I18n.t(:invalid_api_key, key: api_key, scope: "api"))
+        )
       end
 
       def unauthorized
-        render status: :unauthorized,
-               json: json_api_error(I18n.t(:unauthorized, scope: "api"))
+        render(
+          status: :unauthorized,
+          json: json_api_error(I18n.t(:unauthorized, scope: "api"))
+        )
       end
 
       def not_found
-        render status: :not_found,
-               json: json_api_error(I18n.t(:resource_not_found, scope: "api"))
+        render(
+          status: :not_found,
+          json: json_api_error(I18n.t(:resource_not_found, scope: "api"))
+        )
       end
 
       def json_api_error(message, **options)
         error_options = options.delete(:error_options) || {}
 
-        { errors: [{ detail: message }.merge(error_options)] }.merge(options)
+        {errors: [{detail: message}.merge(error_options)]}.merge(options)
       end
 
       def json_api_invalid(message, errors)
-        error_response = { errors: [{ detail: message }] }
-        error_response.merge!(meta: { validation_errors: errors.to_a }) if errors.any?
+        error_response = {errors: [{detail: message}]}
+        error_response.merge!(meta: {validation_errors: errors.to_a}) if errors.any?
         error_response
       end
     end

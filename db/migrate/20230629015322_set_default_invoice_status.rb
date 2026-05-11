@@ -2,13 +2,15 @@
 
 class SetDefaultInvoiceStatus < ActiveRecord::Migration[7.0]
   def change
-    add_column :invoices, :cancelled, :boolean, default: false, null: false
-    ActiveRecord::Base.connection.execute(<<-SQL.squish
+    add_column(:invoices, :cancelled, :boolean, default: false, null: false)
+    ActiveRecord::Base.connection.execute(
+      <<-SQL
       UPDATE invoices
       SET cancelled = true
       WHERE status = 'inactive'
-    SQL
-                                         )
-    remove_column :invoices, :status, :string
+      SQL
+        .squish
+    )
+    remove_column(:invoices, :status, :string)
   end
 end

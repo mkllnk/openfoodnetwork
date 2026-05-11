@@ -5,12 +5,18 @@ module Reporting
     module Payments
       class PaymentsByPaymentType < Base
         def query_result
-          payments = search.result.includes(payments: :payment_method).map do |order|
-            order.payments.select(&:completed?)
-          end.flatten
-          payments.group_by { |payment|
-            [payment.order.payment_state, payment.order.distributor, payment.payment_method]
-          }.values
+          payments = search
+            .result
+            .includes(payments: :payment_method)
+            .map do |order|
+              order.payments.select(&:completed?)
+            end
+            .flatten
+          payments
+            .group_by { |payment|
+              [payment.order.payment_state, payment.order.distributor, payment.payment_method]
+            }
+            .values
         end
 
         def columns

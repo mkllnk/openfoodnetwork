@@ -23,7 +23,8 @@ module Reporting
             end
 
             # The parameters are never persisted.
-            def to_key; end
+            def to_key
+            end
 
             protected
 

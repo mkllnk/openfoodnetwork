@@ -28,7 +28,8 @@ module Reporting
           # The objective is to group the orders by
           # [enterpirse fees,tax_rate, order]
           orders = search.result.to_a
-          orders.flat_map(&join_enterprise_fee)
+          orders
+            .flat_map(&join_enterprise_fee)
             .flat_map(&join_tax_rate)
             .group_by(&group_keys)
             .map(&change_root_to_order)
@@ -39,8 +40,8 @@ module Reporting
             order
               .all_adjustments
               .enterprise_fee
-              .group('originator_id')
-              .pluck("originator_id", 'array_agg(id)')
+              .group("originator_id")
+              .pluck("originator_id", "array_agg(id)")
               .filter(&method(:filter_enterprise_fee_by_id))
               .filter(&method(:filter_enterprise_fee_by_owner))
               .map do |enterprise_fee_id, enterprise_fee_adjustment_ids|
@@ -49,7 +50,7 @@ module Reporting
                   enterprise_fee_adjustment_ids:,
                   order:
                 }
-            end
+              end
           end
         end
 
@@ -66,8 +67,12 @@ module Reporting
 
           enterprise_fee_id = arg.first
 
-          EnterpriseFee.where(id: enterprise_fee_id,
-                              enterprise_id: ransack_params[:enterprise_fee_owner_id_in] ).exists?
+          EnterpriseFee
+            .where(
+              id: enterprise_fee_id,
+              enterprise_id: ransack_params[:enterprise_fee_owner_id_in]
+            )
+            .exists?
         end
 
         def filter_enterprise_fee_by_id_active?
@@ -80,17 +85,21 @@ module Reporting
 
         def join_tax_rate
           proc do |item|
-            tax_rate_ids = item[:order].all_adjustments.tax.where(
-              adjustable_id: item[:enterprise_fee_adjustment_ids],
-              adjustable_type: "Spree::Adjustment"
-            ).pluck(:originator_id)
+            tax_rate_ids = item[:order]
+              .all_adjustments
+              .tax
+              .where(
+                adjustable_id: item[:enterprise_fee_adjustment_ids],
+                adjustable_type: "Spree::Adjustment"
+              )
+              .pluck(:originator_id)
 
             tax_rate_ids << nil if tax_rate_ids.empty?
             tax_rate_ids.map do |tax_rate_id|
               {
                 tax_rate_id:,
                 enterprise_fee_id: item[:enterprise_fee_id],
-                order: item[:order],
+                order: item[:order]
               }
             end
           end
@@ -135,8 +144,8 @@ module Reporting
 
         def rules
           [
-            { group_by: :distributor },
-            { group_by: :order_cycle },
+            {group_by: :distributor},
+            {group_by: :order_cycle},
             {
               group_by: :order_number,
               summary_row: proc do |_key, items, _rows|
@@ -167,14 +176,17 @@ module Reporting
           if filter_enterprise_fee_by_id_active?
             query = query.where(originator_id: ransack_params[:enterprise_fee_id_in])
           end
+
           if filter_enteprise_fee_by_owner_active?
             query = query.where(originator_id: enterprise_fee_ids_for_selected_owners)
           end
+
           query
         end
 
         def enterprise_fee_ids_for_selected_owners
-          EnterpriseFee.where( enterprise_id: ransack_params[:enterprise_fee_owner_id_in] )
+          EnterpriseFee
+            .where(enterprise_id: ransack_params[:enterprise_fee_owner_id_in])
             .pluck(:id)
         end
 
@@ -182,8 +194,7 @@ module Reporting
           query = order.all_adjustments.tax
           query = query.inclusive if included == true
           query = query.additional if added == true
-          amount =
-            query.where(adjustable: enterprise_fees(order)).map(&:amount).compact.sum
+          amount = query.where(adjustable: enterprise_fees(order)).map(&:amount).compact.sum
           apply_voucher_on_amount(order, amount)
         end
 
@@ -225,10 +236,12 @@ module Reporting
 
         def total_excl_tax(query_result_row)
           order = order(query_result_row)
-          amount = Spree::Adjustment.enterprise_fee
+          amount = Spree::Adjustment
+            .enterprise_fee
             .where(order:)
             .where(originator_id: enterprise_fee_id(query_result_row))
-            .pick("sum(amount)") || 0
+            .pick("sum(amount)") ||
+            0
           apply_voucher_on_amount(order, amount) - tax(query_result_row, all: true, included: true)
         end
 
@@ -238,10 +251,12 @@ module Reporting
           query = Spree::Adjustment.tax
           query = query.where(included: true) unless included.nil?
           query = query.where(originator_id: tax_rate_id(query_result_row)) unless all == true
-          tax_amount = query.where(order:)
-            .where(adjustable_type: 'Spree::Adjustment')
+          tax_amount = query
+            .where(order:)
+            .where(adjustable_type: "Spree::Adjustment")
             .where(adjustable_id: adjustment_ids)
-            .pick("sum(amount)") || 0
+            .pick("sum(amount)") ||
+            0
           apply_voucher_on_amount(order, tax_amount)
         end
 
@@ -266,14 +281,16 @@ module Reporting
         end
 
         def enterprise_fee_adjustment_ids(query_result_row)
-          Spree::Adjustment.enterprise_fee
+          Spree::Adjustment
+            .enterprise_fee
             .where(order: order(query_result_row))
             .where(originator_id: enterprise_fee_id(query_result_row))
             .pluck(:id)
         end
 
         def enterprise_fee(query_result_row)
-          order(query_result_row).all_adjustments
+          order(query_result_row)
+            .all_adjustments
             .enterprise_fee
             .find_by(originator_id: enterprise_fee_id(query_result_row))
             .originator

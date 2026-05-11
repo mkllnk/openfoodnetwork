@@ -17,7 +17,8 @@ RSpec.describe ProxyNotifier do
     # Correctly authenticated, the server fails to update its data.
     expect {
       subject.refresh(platform, enterprise_url)
-    }.to raise_error Faraday::ServerError
+    }
+      .to(raise_error(Faraday::ServerError))
   end
 
   # Requires OIDC client secret for FDC dev realm.

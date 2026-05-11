@@ -1,15 +1,24 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 module Api
   module Admin
     class OrderCycleSerializer < ActiveModel::Serializer
-      attributes :id, :name, :orders_open_at, :orders_close_at, :coordinator_id, :exchanges,
-                 :editable_variants_for_incoming_exchanges,
-                 :editable_variants_for_outgoing_exchanges,
-                 :visible_variants_for_outgoing_exchanges,
-                 :viewing_as_coordinator, :schedule_ids, :subscriptions_count
+      attributes(
+        :id,
+        :name,
+        :orders_open_at,
+        :orders_close_at,
+        :coordinator_id,
+        :exchanges,
+        :editable_variants_for_incoming_exchanges,
+        :editable_variants_for_outgoing_exchanges,
+        :visible_variants_for_outgoing_exchanges,
+        :viewing_as_coordinator,
+        :schedule_ids,
+        :subscriptions_count
+      )
 
       has_many :coordinator_fees, serializer: Api::IdSerializer
 
@@ -22,7 +31,7 @@ module Api
       end
 
       def viewing_as_coordinator
-        Enterprise.managed_by(options[:current_user]).include? object.coordinator
+        Enterprise.managed_by(options[:current_user]).include?(object.coordinator)
       end
 
       def subscriptions_count
@@ -32,10 +41,12 @@ module Api
       def exchanges
         scoped_exchanges = permissions.visible_exchanges.by_enterprise_name
 
-        ActiveModel::ArraySerializer.
-          new(scoped_exchanges, each_serializer: Api::Admin::ExchangeSerializer,
-                                current_user: options[:current_user],
-                                preloaded_tags: BatchTaggableTagsQuery.call(scoped_exchanges))
+        ActiveModel::ArraySerializer.new(
+          scoped_exchanges,
+          each_serializer: Api::Admin::ExchangeSerializer,
+          current_user: options[:current_user],
+          preloaded_tags: BatchTaggableTagsQuery.call(scoped_exchanges)
+        )
       end
 
       def editable_variants_for_incoming_exchanges
@@ -50,6 +61,7 @@ module Api
           variants = permissions.editable_variants_for_outgoing_exchanges_to(enterprise).pluck(:id)
           editable[enterprise.id] = variants if variants.any?
         end
+
         editable
       end
 
@@ -62,16 +74,18 @@ module Api
           # for shops. We need this here to allow hubs to restrict visible variants to only those in
           # their inventory if they so choose
           variants = if enterprise.prefers_product_selection_from_inventory_only?
-                       permissions.
-                         visible_variants_for_outgoing_exchanges_to(enterprise).
-                         visible_for(enterprise)
-                     else
-                       permissions.
-                         visible_variants_for_outgoing_exchanges_to(enterprise).
-                         not_hidden_for(enterprise)
-                     end.pluck(:id)
+            permissions
+              .visible_variants_for_outgoing_exchanges_to(enterprise)
+              .visible_for(enterprise)
+          else
+            permissions
+              .visible_variants_for_outgoing_exchanges_to(enterprise)
+              .not_hidden_for(enterprise)
+          end
+            .pluck(:id)
           visible[enterprise.id] = variants if variants.any?
         end
+
         visible
       end
 

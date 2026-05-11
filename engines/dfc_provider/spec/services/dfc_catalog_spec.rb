@@ -17,8 +17,8 @@ RSpec.describe DfcCatalog do
     let(:products) { catalog.products }
 
     it "returns only products" do
-      expect(products.count).to eq 4
-      expect(products.map(&:semanticType).uniq).to eq ["dfc-b:SuppliedProduct"]
+      expect(products.count).to(eq(4))
+      expect(products.map(&:semanticType).uniq).to(eq(["dfc-b:SuppliedProduct"]))
     end
   end
 
@@ -31,15 +31,24 @@ RSpec.describe DfcCatalog do
     }
 
     it "changes price of retail variants" do
-      expect { catalog.apply_wholesale_values! }.to change {
-        offer.price.value.to_f.round(2)
-      }.from(2.09).to(1.57) # 18.85 wholesale price divided by 12
+      expect { catalog.apply_wholesale_values! }.to(
+        change {
+          offer.price.value.to_f.round(2)
+          # 18.85 wholesale price divided by 12
+        }
+          .from(2.09)
+          .to(1.57)
+      )
     end
 
     it "changes stock level of retail variant's catalog item" do
-      expect { catalog.apply_wholesale_values! }.to change {
-        catalog_item.stockLimitation
-      }.from("-1").to(-12)
+      expect { catalog.apply_wholesale_values! }.to(
+        change {
+          catalog_item.stockLimitation
+        }
+          .from("-1")
+          .to(-12)
+      )
     end
 
     it "changes stock level of retail variant's offer" do
@@ -48,9 +57,13 @@ RSpec.describe DfcCatalog do
       )
       wholesale_offer.stockLimitation = 2
 
-      expect { catalog.apply_wholesale_values! }.to change {
-        offer.stockLimitation
-      }.from(nil).to(24)
+      expect { catalog.apply_wholesale_values! }.to(
+        change {
+          offer.stockLimitation
+        }
+          .from(nil)
+          .to(24)
+      )
     end
   end
 end

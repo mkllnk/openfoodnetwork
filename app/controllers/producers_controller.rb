@@ -3,7 +3,7 @@
 class ProducersController < BaseController
   include EmbeddedPages
 
-  layout 'darkswarm'
+  layout "darkswarm"
 
   def index
     @enterprises = Enterprise

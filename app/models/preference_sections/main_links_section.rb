@@ -3,7 +3,7 @@
 module PreferenceSections
   class MainLinksSection
     def name
-      I18n.t('admin.contents.edit.main_links')
+      I18n.t("admin.contents.edit.main_links")
     end
 
     def preferences

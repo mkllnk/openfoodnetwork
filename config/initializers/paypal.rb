@@ -11,5 +11,6 @@ module CAFileHack
   end
 end
 
-require 'paypal-sdk-merchant'
+require "paypal-sdk-merchant"
+
 PayPal::SDK::Core::Util::HTTPHelper.prepend(CAFileHack)

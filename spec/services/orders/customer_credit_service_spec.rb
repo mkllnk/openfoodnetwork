@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
 RSpec.describe Orders::CustomerCreditService do
   subject { described_class.new(order) }
@@ -12,8 +12,13 @@ RSpec.describe Orders::CustomerCreditService do
 
   describe "#apply" do
     let(:order) {
-      create(:order_with_line_items, line_items_count: 1, distributor:, order_cycle:,
-                                     customer: create(:customer, enterprise: distributor))
+      create(
+        :order_with_line_items,
+        line_items_count: 1,
+        distributor:,
+        order_cycle:,
+        customer: create(:customer, enterprise: distributor)
+      )
     }
     it "adds a customer credit payment to the order" do
       # Add credit
@@ -25,26 +30,27 @@ RSpec.describe Orders::CustomerCreditService do
       subject.apply
 
       credit_payment = order.payments.find_by(payment_method: credit_payment_method)
-      expect(credit_payment).to be_present
-      expect(credit_payment.amount).to eq(10.00) # order.total is 10.00
-      expect(credit_payment.state).to eq("checkout")
+      expect(credit_payment).to(be_present)
+      # order.total is 10.00
+      expect(credit_payment.amount).to(eq(10.00))
+      expect(credit_payment.state).to(eq("checkout"))
     end
 
-    context "when no credit available" do
+    context("when no credit available") do
       it "doesn't add a customer credit payment" do
         subject.apply
 
         credit_payment = order.payments.where(payment_method: credit_payment_method)
-        expect(order.payments.where(payment_method: credit_payment_method)).to be_empty
+        expect(order.payments.where(payment_method: credit_payment_method)).to(be_empty)
       end
     end
 
-    context "when credit payment already added" do
+    context("when credit payment already added") do
       before do
         create(
           :customer_account_transaction,
           amount: 100.00,
-          customer: order.customer,
+          customer: order.customer
         )
       end
 
@@ -52,45 +58,45 @@ RSpec.describe Orders::CustomerCreditService do
         subject.apply
 
         credit_payment = order.payments.find_by(payment_method: credit_payment_method)
-        expect(credit_payment.amount).to eq(10.00)
+        expect(credit_payment.amount).to(eq(10.00))
 
         subject.apply
 
         credit_payments = order.payments.customer_credit
-        expect(credit_payments.count).to eq(1)
-        expect(credit_payments.first.amount).to eq(10.00)
+        expect(credit_payments.count).to(eq(1))
+        expect(credit_payments.first.amount).to(eq(10.00))
       end
 
-      context "when order total changed" do
+      context("when order total changed") do
         it "update the credit amount" do
           subject.apply
 
           credit_payment = order.payments.find_by(payment_method: credit_payment_method)
-          expect(credit_payment.amount).to eq(10.00)
+          expect(credit_payment.amount).to(eq(10.00))
 
           order.update!(total: 15.00)
 
           subject.apply
 
           credit_payments = order.payments.customer_credit
-          expect(credit_payments.count).to eq(1)
-          expect(credit_payments.first.amount).to eq(15.00)
+          expect(credit_payments.count).to(eq(1))
+          expect(credit_payments.first.amount).to(eq(15.00))
         end
       end
     end
 
-    context "when no enought credit available" do
+    context("when no enought credit available") do
       it "adds credit payment using all credit" do
         # Add credit
         create(
           :customer_account_transaction,
           amount: 5.00,
-          customer: order.customer,
+          customer: order.customer
         )
         subject.apply
 
         credit_payment = order.payments.find_by(payment_method: credit_payment_method)
-        expect(credit_payment.amount).to eq(5.00)
+        expect(credit_payment.amount).to(eq(5.00))
       end
     end
   end
@@ -107,70 +113,72 @@ RSpec.describe Orders::CustomerCreditService do
     end
 
     it "adds a customer credit payment to the order" do
-      expect { subject.refund(user: ) }.to change { order.payments.count }.by(1)
+      expect { subject.refund(user:) }.to(change { order.payments.count }.by(1))
 
       last_payment = order.payments.reload.order(:id).last
-      expect(last_payment.payment_method).to eq(credit_payment_method)
-      expect(last_payment.amount).to eq(-12.00)
-      expect(last_payment.state).to eq("completed")
+      expect(last_payment.payment_method).to(eq(credit_payment_method))
+      expect(last_payment.amount).to(eq(-12.00))
+      expect(last_payment.state).to(eq("completed"))
 
-      expect(order.payment_state).to eq("paid")
+      expect(order.payment_state).to(eq("paid"))
     end
 
     it "adds an entry in customer account transaction" do
-      subject.refund(user: )
+      subject.refund(user:)
 
       last_transaction = order.customer.customer_account_transactions.last
-      expect(last_transaction.amount).to eq(12.00)
-      expect(last_transaction.created_by).to eq(user)
+      expect(last_transaction.amount).to(eq(12.00))
+      expect(last_transaction.created_by).to(eq(user))
     end
 
     it "returns sucessful reponse" do
-      response = subject.refund(user: )
+      response = subject.refund(user:)
 
-      expect(response.success?).to eq(true)
-      expect(response.message).to eq("Refund successful!")
+      expect(response.success?).to(eq(true))
+      expect(response.message).to(eq("Refund successful!"))
     end
 
-    context "when order payment state is not 'credit_owed'" do
+    context("when order payment state is not 'credit_owed'") do
       before do
         order.update(payment_state: "paid")
       end
 
       it "does nothing" do
-        expect { subject.refund }.not_to change { order.payments.count }
+        expect { subject.refund }.not_to(change { order.payments.count })
       end
 
       it "returns a failed respond" do
         response = subject.refund
 
-        expect(response.failure?).to eq(true)
-        expect(response.message).to eq("No credit owed")
+        expect(response.failure?).to(eq(true))
+        expect(response.message).to(eq("No credit owed"))
       end
     end
 
-    context "when payment creation fails" do
+    context("when payment creation fails") do
       before do
         failed_response = ActiveMerchant::Billing::Response.new(false, "Void error")
-        allow_any_instance_of(Spree::PaymentMethod::CustomerCredit).to receive(:void)
-          .and_return(failed_response)
+        allow_any_instance_of(Spree::PaymentMethod::CustomerCredit).to(
+          receive(:void)
+            .and_return(failed_response)
+        )
       end
 
       it "logs the error" do
-        expect(Alert).to receive(:raise).with(RuntimeError)
+        expect(Alert).to(receive(:raise).with(RuntimeError))
         subject.refund
       end
 
       it "doesn't create a credit payment" do
         # We use `length` to check the payments in memory
-        expect { subject.refund }.not_to change { order.payments.length }
+        expect { subject.refund }.not_to(change { order.payments.length })
       end
 
       it "returns a failed response" do
         response = subject.refund
 
-        expect(response.failure?).to eq(true)
-        expect(response.message).to eq(RuntimeError.new("Void error").to_s)
+        expect(response.failure?).to(eq(true))
+        expect(response.message).to(eq(RuntimeError.new("Void error").to_s))
       end
     end
   end

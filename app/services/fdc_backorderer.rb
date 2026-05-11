@@ -29,14 +29,15 @@ class FdcBackorderer
     # ordering from multiple suppliers one day.
     semantic_ids = ofn_order.semantic_links.pluck(:semantic_id)
 
-    semantic_ids.lazy
+    semantic_ids
+      .lazy
       # Make sure we select an order from the right supplier:
       .select { |id| id.starts_with?(urls.orders_url) }
       # Fetch the order from the remote DFC server, lazily:
       .map { |id| find_order(id) }
       .compact
       # Just in case someone completed the order without updating our database:
-      .select { |o| o.orderStatus == order_status.HELD }
+      .select { |o| o.orderStatus == order_status.HELD() }
       .first
       # The DFC Connector doesn't recognise status values properly yet.
       # So we are overriding the value with something that can be exported.
@@ -98,10 +99,12 @@ class FdcBackorderer
     api = DfcRequest.new(user)
 
     method = if new?(backorder)
-               :post # -> create
-             else
-               :put  # -> update
-             end
+      # -> create
+      :post
+    else
+      # -> update
+      :put
+    end
 
     result = api.call(backorder.semanticId, json, method:)
     find_subject(DfcIo.import(result), "dfc-b:Order")
@@ -125,6 +128,6 @@ class FdcBackorderer
   private
 
   def order_status
-    DfcLoader.vocabulary("vocabulary").STATES.ORDERSTATE
+    DfcLoader.vocabulary("vocabulary").STATES.ORDERSTATE()
   end
 end

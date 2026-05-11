@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require 'system_helper'
+require "system_helper"
 
-RSpec.describe 'sitemap' do
+RSpec.describe "sitemap" do
   let(:enterprise) { create(:distributor_enterprise) }
   let!(:group) { create(:enterprise_group, enterprises: [enterprise], on_front_page: true) }
 
   it "renders sitemap" do
-    visit '/sitemap.xml'
-    expect(page.source).to have_content return_page(enterprise_shop_url(enterprise))
-    expect(page.source).to have_content return_page(group_url(group))
+    visit("/sitemap.xml")
+    expect(page.source).to(have_content(return_page(enterprise_shop_url(enterprise))))
+    expect(page.source).to(have_content(return_page(group_url(group))))
   end
 end
 

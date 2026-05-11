@@ -3,10 +3,22 @@
 module Api
   module Admin
     class VariantSimpleSerializer < ActiveModel::Serializer
-      attributes :id, :name, :import_date,
-                 :options_text, :unit_value, :unit_description, :unit_to_display,
-                 :display_as, :display_name, :name_to_display,
-                 :price, :on_demand, :on_hand, :producer_id
+      attributes(
+        :id,
+        :name,
+        :import_date,
+        :options_text,
+        :unit_value,
+        :unit_description,
+        :unit_to_display,
+        :display_as,
+        :display_name,
+        :name_to_display,
+        :price,
+        :on_demand,
+        :on_hand,
+        :producer_id
+      )
 
       has_many :variant_overrides
 

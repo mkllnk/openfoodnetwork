@@ -1,30 +1,30 @@
 # frozen_string_literal: true
 
 RSpec.describe VoucherAdjustmentsService do
-  describe '#update' do
+  describe "#update" do
     let(:enterprise) { build(:enterprise) }
 
-    context 'with a flat rate voucher' do
+    context("with a flat rate voucher") do
       let(:voucher) do
-        create(:voucher_flat_rate, code: 'new_code', enterprise:, amount: 10)
+        create(:voucher_flat_rate, code: "new_code", enterprise:, amount: 10)
       end
 
-      context 'when voucher covers the order total' do
+      context("when voucher covers the order total") do
         subject { order.voucher_adjustments.first }
 
         let(:order) { create(:order_with_totals) }
 
-        it 'updates the adjustment amount to -order.total' do
+        it "updates the adjustment amount to -order.total" do
           voucher.create_adjustment(voucher.code, order)
           order.update_columns(item_total: 6)
 
           VoucherAdjustmentsService.new(order).update
 
-          expect(subject.amount.to_f).to eq(-6.0)
+          expect(subject.amount.to_f).to(eq(-6.0))
         end
       end
 
-      context 'with tax included in order price' do
+      context("with tax included in order price") do
         subject { order.voucher_adjustments.first }
 
         let(:order) do
@@ -45,28 +45,30 @@ RSpec.describe VoucherAdjustmentsService do
           VoucherAdjustmentsService.new(order).update
         end
 
-        it 'updates the adjustment included_tax' do
+        it "updates the adjustment included_tax" do
           # voucher_rate = amount / order.total
           # -10 / 160 = -0.0625
           # included_tax = voucher_rate * order.included_tax_total
           # -0.625 * 10 = -0.63
-          expect(subject.included_tax.to_f).to eq(-0.63)
+          expect(subject.included_tax.to_f).to(eq(-0.63))
         end
 
-        context "when re calculating" do
+        context("when re calculating") do
           it "does not update the adjustment amount" do
             expect do
               VoucherAdjustmentsService.new(order).update
-            end.not_to change { subject.reload.amount }
+            end
+              .not_to(change { subject.reload.amount })
           end
 
           it "does not update the tax adjustment" do
             expect do
               VoucherAdjustmentsService.new(order).update
-            end.not_to change { subject.reload.included_tax }
+            end
+              .not_to(change { subject.reload.included_tax })
           end
 
-          context "when the order changed" do
+          context("when the order changed") do
             before do
               order.update_columns(item_total: 200)
             end
@@ -74,19 +76,21 @@ RSpec.describe VoucherAdjustmentsService do
             it "does update the adjustment amount" do
               expect do
                 VoucherAdjustmentsService.new(order).update
-              end.not_to change { subject.reload.amount }
+              end
+                .not_to(change { subject.reload.amount })
             end
 
             it "updates the tax adjustment" do
               expect do
                 VoucherAdjustmentsService.new(order).update
-              end.to change { subject.reload.included_tax }
+              end
+                .to(change { subject.reload.included_tax })
             end
           end
         end
       end
 
-      context 'with tax not included in order price' do
+      context("with tax not included in order price") do
         let(:order) do
           create(
             :order_with_taxes,
@@ -98,6 +102,7 @@ RSpec.describe VoucherAdjustmentsService do
             tax_rate_name: "Tax 1"
           )
         end
+
         let(:adjustment) { order.voucher_adjustments.first }
         let(:tax_adjustment) { order.voucher_adjustments.second }
 
@@ -107,43 +112,47 @@ RSpec.describe VoucherAdjustmentsService do
           VoucherAdjustmentsService.new(order).update
         end
 
-        it 'includes amount without tax' do
+        it "includes amount without tax" do
           # voucher_rate = amount / order.total
           # -10 / 171 = -0.058479532
           # amount = voucher_rate * (order.total - order.additional_tax_total)
           # -0.058479532 * (171 -11) = -9.36
-          expect(adjustment.amount.to_f).to eq(-9.36)
+          expect(adjustment.amount.to_f).to(eq(-9.36))
         end
 
-        it 'creates a tax adjustment' do
+        it "creates a tax adjustment" do
           # voucher_rate = amount / order.total
           # -10 / 171 = -0.058479532
           # amount = voucher_rate * order.additional_tax_total
           # -0.058479532 * 11 = -0.64
-          expect(tax_adjustment.amount.to_f).to eq(-0.64)
-          expect(tax_adjustment.label).to match("Tax")
+          expect(tax_adjustment.amount.to_f).to(eq(-0.64))
+          expect(tax_adjustment.label).to(match("Tax"))
 
-          expect(tax_adjustment.metadata.enterprise_id).to eq(
-            tax_adjustment.originator.enterprise.id
+          expect(tax_adjustment.metadata.enterprise_id).to(
+            eq(
+              tax_adjustment.originator.enterprise.id
+            )
           )
-          expect(tax_adjustment.metadata.fee_name).to eq("Tax")
-          expect(tax_adjustment.metadata.fee_type).to eq("Voucher")
+          expect(tax_adjustment.metadata.fee_name).to(eq("Tax"))
+          expect(tax_adjustment.metadata.fee_type).to(eq("Voucher"))
         end
 
-        context "when re calculating" do
+        context("when re calculating") do
           it "does not update the adjustment amount" do
             expect do
               VoucherAdjustmentsService.new(order).update
-            end.not_to change { adjustment.reload.amount }
+            end
+              .not_to(change { adjustment.reload.amount })
           end
 
           it "does not update the tax adjustment" do
             expect do
               VoucherAdjustmentsService.new(order).update
-            end.not_to change { tax_adjustment.reload.amount }
+            end
+              .not_to(change { tax_adjustment.reload.amount })
           end
 
-          context "when the order changed" do
+          context("when the order changed") do
             before do
               order.update_columns(item_total: 200)
             end
@@ -151,46 +160,50 @@ RSpec.describe VoucherAdjustmentsService do
             it "updates the adjustment amount" do
               expect do
                 VoucherAdjustmentsService.new(order).update
-              end.to change { adjustment.reload.amount }
+              end
+                .to(change { adjustment.reload.amount })
             end
 
             it "updates the tax adjustment" do
               expect do
                 VoucherAdjustmentsService.new(order).update
-              end.to change { tax_adjustment.reload.amount }
+              end
+                .to(change { tax_adjustment.reload.amount })
             end
           end
         end
       end
     end
 
-    context 'with a percentage rate voucher' do
+    context("with a percentage rate voucher") do
       let(:voucher) do
-        create(:voucher_percentage_rate, code: 'new_code', enterprise:, amount: 10)
+        create(:voucher_percentage_rate, code: "new_code", enterprise:, amount: 10)
       end
+
       let(:adjustment) { order.voucher_adjustments.first }
       let(:tax_adjustment) { order.voucher_adjustments.second }
 
-      context 'when voucher covers the order total' do
+      context("when voucher covers the order total") do
         subject { order.voucher_adjustments.first }
 
         let(:voucher) do
-          create(:voucher_percentage_rate, code: 'new_code', enterprise:, amount: 100)
+          create(:voucher_percentage_rate, code: "new_code", enterprise:, amount: 100)
         end
+
         let(:order) { create(:order_with_totals) }
 
-        it 'updates the adjustment amount to -order.total' do
+        it "updates the adjustment amount to -order.total" do
           voucher.create_adjustment(voucher.code, order)
 
           order.update_columns(item_total: 150)
 
           VoucherAdjustmentsService.new(order).update
 
-          expect(subject.amount.to_f).to eq(-150.0)
+          expect(subject.amount.to_f).to(eq(-150.0))
         end
       end
 
-      context 'with tax included in order price' do
+      context("with tax included in order price") do
         subject { order.voucher_adjustments.first }
 
         let(:order) do
@@ -211,16 +224,16 @@ RSpec.describe VoucherAdjustmentsService do
           VoucherAdjustmentsService.new(order).update
         end
 
-        it 'updates the adjustment included_tax' do
+        it "updates the adjustment included_tax" do
           # voucher_rate = voucher.amount / 100
           # 10 / 100 = 0.1
           # included_tax = -voucher_rate * included_tax_total
           # -0.1 * 10 = -1
-          expect(subject.included_tax.to_f).to eq(-1)
+          expect(subject.included_tax.to_f).to(eq(-1))
         end
       end
 
-      context 'with tax not included in order price' do
+      context("with tax not included in order price") do
         let(:order) do
           create(
             :order_with_taxes,
@@ -239,38 +252,38 @@ RSpec.describe VoucherAdjustmentsService do
           VoucherAdjustmentsService.new(order).update
         end
 
-        it 'includes amount without tax' do
+        it "includes amount without tax" do
           adjustment = order.voucher_adjustments.first
           # voucher_rate = voucher.amount / 100
           # 10 / 100 = 0.1
           # amount = -voucher_rate * (order.total - order.additional_tax_total)
           # -0.1 * (171 -11) = -16.0
-          expect(adjustment.amount.to_f).to eq(-16.0)
+          expect(adjustment.amount.to_f).to(eq(-16.0))
         end
 
-        it 'creates a tax adjustment' do
+        it "creates a tax adjustment" do
           # voucher_rate = voucher.amount / 100
           # 10 / 100 = 0.1
           # amount = -voucher_rate * order.additional_tax_total
           # -0.1 * 11 = -1.1
           tax_adjustment = order.voucher_adjustments.second
-          expect(tax_adjustment.amount.to_f).to eq(-1.1)
-          expect(tax_adjustment.label).to match("Tax")
+          expect(tax_adjustment.amount.to_f).to(eq(-1.1))
+          expect(tax_adjustment.label).to(match("Tax"))
         end
       end
     end
 
-    context 'when no order given' do
+    context("when no order given") do
       it "doesn't blow up" do
-        expect { VoucherAdjustmentsService.new(nil).update }.not_to raise_error
+        expect { VoucherAdjustmentsService.new(nil).update }.not_to(raise_error)
       end
     end
 
-    context 'when no voucher used on the given order' do
+    context("when no voucher used on the given order") do
       let(:order) { create(:order_with_line_items, line_items_count: 1, distributor: enterprise) }
 
       it "doesn't blow up" do
-        expect { VoucherAdjustmentsService.new(order).update }.not_to raise_error
+        expect { VoucherAdjustmentsService.new(order).update }.not_to(raise_error)
       end
     end
   end
@@ -281,7 +294,7 @@ RSpec.describe VoucherAdjustmentsService do
     let(:order) { create(:order_with_totals) }
     let(:enterprise) { build(:enterprise) }
     let(:voucher) do
-      create(:voucher_flat_rate, code: 'new_code', enterprise:, amount: 10)
+      create(:voucher_flat_rate, code: "new_code", enterprise:, amount: 10)
     end
 
     it "returns included tax from voucher adjusment" do
@@ -290,12 +303,12 @@ RSpec.describe VoucherAdjustmentsService do
       # VoucherAdjustmentsService.update
       voucher_adjustment.update(included_tax: 0.5)
 
-      expect(voucher_included_tax).to eq(0.5)
+      expect(voucher_included_tax).to(eq(0.5))
     end
 
-    context "When no voucher adjustment linked to the order" do
+    context("When no voucher adjustment linked to the order") do
       it "returns 0.0" do
-        expect(voucher_included_tax).to eq(0.0)
+        expect(voucher_included_tax).to(eq(0.0))
       end
     end
   end
@@ -313,9 +326,10 @@ RSpec.describe VoucherAdjustmentsService do
         tax_rate_name: "Tax 1"
       )
     end
+
     let(:enterprise) { build(:enterprise) }
     let(:voucher) do
-      create(:voucher_flat_rate, code: 'new_code', enterprise:, amount: 10)
+      create(:voucher_flat_rate, code: "new_code", enterprise:, amount: 10)
     end
 
     it "returns the amount from the tax voucher adjustment" do
@@ -323,20 +337,20 @@ RSpec.describe VoucherAdjustmentsService do
 
       VoucherAdjustmentsService.new(order).update
 
-      expect(voucher_excluded_tax).to eq(-0.64)
+      expect(voucher_excluded_tax).to(eq(-0.64))
     end
 
-    context "when no voucher adjustment tax" do
+    context("when no voucher adjustment tax") do
       it "returns 0" do
         voucher_adjustment = voucher.create_adjustment(voucher.code, order)
 
-        expect(voucher_excluded_tax).to eq(0.0)
+        expect(voucher_excluded_tax).to(eq(0.0))
       end
     end
 
-    context "when no voucher adjustment linked to the order" do
+    context("when no voucher adjustment linked to the order") do
       it "returns 0.0" do
-        expect(voucher_excluded_tax).to eq(0.0)
+        expect(voucher_excluded_tax).to(eq(0.0))
       end
     end
   end

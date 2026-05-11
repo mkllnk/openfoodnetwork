@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'csv'
-require 'spreadsheet_architect'
+require "csv"
+require "spreadsheet_architect"
 
 module Reporting
   class ReportRenderer
@@ -13,16 +13,16 @@ module Reporting
 
     # Strip header and summary rows for these formats
     def raw_render?
-      @report.params[:report_format].in?(['csv'])
+      @report.params[:report_format].in?(["csv"])
     end
 
     # Do not format values for these output formats
     def unformatted_render?
-      @report.params[:report_format].in?(['json', 'csv'])
+      @report.params[:report_format].in?(["json", "csv"])
     end
 
     def html_render?
-      @report.params[:report_format].in?([nil, '', 'pdf'])
+      @report.params[:report_format].in?([nil, "", "pdf"])
     end
 
     def display_metadata_rows?
@@ -70,7 +70,7 @@ module Reporting
       ApplicationController.render(
         template: "admin/reports/_table",
         layout:,
-        locals: { report: @report }
+        locals: {report: @report}
       )
     end
 
@@ -95,23 +95,23 @@ module Reporting
         data: table_rows,
         freeze_headers: true,
         row_style: spreadsheets_style,
-        header_style: spreadsheets_style.merge({ bg_color: "f7f6f6", bold: true }),
+        header_style: spreadsheets_style.merge({bg_color: "f7f6f6", bold: true}),
         conditional_row_styles: [
           {
             # Detect header_row: the row is nil except for first cell
             if: proc { |row_data, _row_index|
               row_data.compact.count == 1 && row_data[0].present?
             },
-            styles: { font_size: 12, bold: true }
-          },
-        ],
+            styles: {font_size: 12, bold: true}
+          }
+        ]
       }
     end
 
     def spreadsheets_style
       {
-        font_name: 'system-ui',
-        alignment: { horizontal: :left, vertical: :bottom }
+        font_name: "system-ui",
+        alignment: {horizontal: :left, vertical: :bottom}
       }
     end
   end

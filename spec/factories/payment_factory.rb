@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :payment, class: Spree::Payment do
+  factory(:payment, class: Spree::Payment) do
     transient do
       distributor {
         order.distributor ||
@@ -13,18 +13,18 @@ FactoryBot.define do
     amount { 45.75 }
     association(:source, factory: :credit_card)
     order
-    state { 'checkout' }
+    state { "checkout" }
     response_code { nil }
 
     payment_method { FactoryBot.create(:payment_method, distributors: [distributor]) }
   end
 
-  trait :completed do
-    state { 'completed' }
+  trait(:completed) do
+    state { "completed" }
     captured_at { Time.zone.now }
   end
 
-  factory :check_payment, class: Spree::Payment do
+  factory(:check_payment, class: Spree::Payment) do
     amount { 45.75 }
     payment_method
     order

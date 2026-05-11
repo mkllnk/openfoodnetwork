@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 class SocialMediaBuilder < DfcBuilder
-  NAMES = %w(facebook instagram linkedin twitter whatsapp_phone).freeze
+  NAMES = %w[facebook instagram linkedin twitter whatsapp_phone].freeze
 
   def self.social_medias(enterprise)
-    NAMES.map do |name|
-      social_media(enterprise, name)
-    end.compact
+    NAMES
+      .map do |name|
+        social_media(enterprise, name)
+      end
+      .compact
   end
 
   def self.social_media(enterprise, name)
@@ -24,7 +26,8 @@ class SocialMediaBuilder < DfcBuilder
 
     DataFoodConsortium::ConnectorV1::SocialMedia.new(
       urls.enterprise_social_media_url(enterprise.id, name),
-      name:, url:,
+      name:,
+      url:
     )
   end
 end

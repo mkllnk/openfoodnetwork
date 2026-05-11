@@ -24,7 +24,8 @@ module Reporting
         def owners_and_enterprises
           query = Enterprise
             .joins("LEFT JOIN spree_users AS owner ON enterprises.owner_id = owner.id")
-            .where.not(enterprises: { id: nil })
+            .where
+            .not(enterprises: {id: nil})
 
           query = filter_by_int_list_if_present(query, "enterprises.id", params[:enterprise_id_in])
           query = filter_by_int_list_if_present(query, "owner.id", params[:user_id_in])
@@ -36,8 +37,10 @@ module Reporting
           query = Enterprise
             .joins("LEFT JOIN enterprise_roles ON enterprises.id = enterprise_roles.enterprise_id")
             .joins("LEFT JOIN spree_users AS managers ON enterprise_roles.user_id = managers.id")
-            .where.not('enterprise_roles.enterprise_id': nil)
-            .where.not('enterprise_roles.user_id': nil)
+            .where
+            .not('enterprise_roles.enterprise_id': nil)
+            .where
+            .not('enterprise_roles.user_id': nil)
 
           query = filter_by_int_list_if_present(query, "enterprise_id", params[:enterprise_id_in])
           query = filter_by_int_list_if_present(query, "user_id", params[:user_id_in])
@@ -46,15 +49,20 @@ module Reporting
         end
 
         def query_helper(query, email_user, relationship_type)
-          query.order("enterprises.created_at DESC")
-            .select(["enterprises.id AS ofn_uid",
-                     "enterprises.name",
-                     "enterprises.sells",
-                     "enterprises.visible",
-                     "enterprises.is_primary_producer",
-                     "enterprises.created_at",
-                     "#{email_user}.email AS user_email",
-                     "'#{relationship_type}' AS relationship_type"])
+          query
+            .order("enterprises.created_at DESC")
+            .select(
+              [
+                "enterprises.id AS ofn_uid",
+                "enterprises.name",
+                "enterprises.sells",
+                "enterprises.visible",
+                "enterprises.is_primary_producer",
+                "enterprises.created_at",
+                "#{email_user}.email AS user_email",
+                "'#{relationship_type}' AS relationship_type"
+              ]
+            )
             .to_a
         end
 
@@ -62,6 +70,7 @@ module Reporting
           if int_list.present?
             query = query.where("#{filtered_field_name} IN (?)", int_list.map(&:to_i))
           end
+
           query
         end
 
@@ -69,8 +78,7 @@ module Reporting
           results.sort do |a, b|
             a_date = (a.created_at || Date.new(1970, 1, 1)).in_time_zone
             b_date = (b.created_at || Date.new(1970, 1, 1)).in_time_zone
-            [b_date, a.name, b.relationship_type, a.user_email] <=>
-              [a_date, b.name, a.relationship_type, b.user_email]
+            [b_date, a.name, b.relationship_type, a.user_email] <=> [a_date, b.name, a.relationship_type, b.user_email]
           end
         end
       end

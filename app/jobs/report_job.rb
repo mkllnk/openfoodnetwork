@@ -23,17 +23,20 @@ class ReportJob < ApplicationJob
 
     broadcast_result(channel, format, blob) if channel
   rescue StandardError => e
-    Alert.raise(e, { report: { report_class:, user:, params:, format: } })
+    Alert.raise e, {report: {report_class:, user:, params:, format:}}
     Rails.logger.error(e.message)
 
     broadcast_error(channel)
   end
 
   def email_result(user, blob)
-    ReportMailer.with(
-      to: user.email,
-      blob:,
-    ).report_ready.deliver_later
+    ReportMailer
+      .with(
+        to: user.email,
+        blob:
+      )
+      .report_ready
+      .deliver_later
   end
 
   def broadcast_result(channel, format, blob)
@@ -41,10 +44,12 @@ class ReportJob < ApplicationJob
       .inner_html(
         selector: "#report-go",
         html: Spree::Admin::BaseController.helpers.button(I18n.t(:go), "report__submit-btn")
-      ).inner_html(
+      )
+      .inner_html(
         selector: "#report-table",
         html: actioncable_content(format, blob)
-      ).broadcast
+      )
+      .broadcast
   end
 
   def broadcast_error(channel)
@@ -52,22 +57,25 @@ class ReportJob < ApplicationJob
       .inner_html(
         selector: "#report-go",
         html: Spree::Admin::BaseController.helpers.button(I18n.t(:go), "report__submit-btn")
-      ).inner_html(
+      )
+      .inner_html(
         selector: "#report-table",
         html: I18n.t("report_job.report_failed")
-      ).broadcast
+      )
+      .broadcast
   end
 
   def actioncable_content(format, blob)
     if format.to_sym == :html
-      return blob.result if blob.byte_size < 10**6 # 1 MB
+      # 1 MB
+      return blob.result if blob.byte_size < 10 ** 6
 
       return render(
         partial: "admin/reports/display",
-        locals: { file_url: blob.expiring_service_url }
+        locals: {file_url: blob.expiring_service_url}
       )
     end
 
-    render(partial: "admin/reports/download", locals: { file_url: blob.expiring_service_url })
+    render(partial: "admin/reports/download", locals: {file_url: blob.expiring_service_url})
   end
 end

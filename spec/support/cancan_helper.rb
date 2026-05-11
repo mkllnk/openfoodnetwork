@@ -7,16 +7,17 @@ require "cancan/matchers"
 module Spree
   RSpec::Matchers.define :have_ability do |ability_hash, options = {}|
     match do |user|
-      ability         = Ability.new(user)
-      target          = options[:for]
+      ability = Ability.new(user)
+      target = options[:for]
       @ability_result = {}
       # e.g.: :create => {:create => true}
-      ability_hash    = { ability_hash => true } if ability_hash.is_a? Symbol
+      ability_hash = {ability_hash => true} if ability_hash.is_a? Symbol
       if ability_hash.is_a? Array
-        ability_hash = ability_hash.inject({}){ |member, i|
+        ability_hash = ability_hash.inject({}) { |member, i|
           member.merge(i => true)
         }
       end
+
       ability_hash.each_key do |action|
         @ability_result[action] = ability.can?(action, target)
       end
@@ -26,21 +27,23 @@ module Spree
 
     failure_message do |user|
       ability_hash, options = expected
-      ability_hash = { ability_hash => true } if ability_hash.is_a? Symbol # e.g.: :create
+      # e.g.: :create
+      ability_hash = {ability_hash => true} if ability_hash.is_a? Symbol
       if ability_hash.is_a? Array
-        ability_hash = ability_hash.inject({}){ |member, i|
+        ability_hash = ability_hash.inject({}) { |member, i|
           member.merge(i => true)
         }
       end
+
       target = options[:for]
       message = "expected User:#{user} to have ability: #{ability_hash} for #{target}, " \
-                "but actual result is #{@ability_result}"
+        "but actual result is #{@ability_result}"
     end
 
     # to clean up output of RSpec Documentation format
     description do
       target = expected.last[:for]
-      "have ability #{ability_hash.keys.join(', ')} for #{target.class.name}"
+      "have ability #{ability_hash.keys.join(", ")} for #{target.class.name}"
     end
   end
 end

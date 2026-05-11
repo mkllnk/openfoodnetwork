@@ -54,8 +54,12 @@ module OrderManagement
 
                   expect(payment).not_to receive(:update)
                   expect(payment_setup.call!).to eq payment
-                  expect(order.errors[:base].first).to eq "There are no authorised " \
-                                                          "credit cards available to charge"
+                  expect(order.errors[:base].first).to(
+                    eq(
+                      "There are no authorised " \
+                        "credit cards available to charge"
+                    )
+                  )
                 end
               end
 
@@ -63,16 +67,20 @@ module OrderManagement
                 let(:saved_credit_card) { create(:credit_card) }
 
                 before do
-                  allow(order).to receive(:user) {
-                    instance_double(Spree::User, default_card: saved_credit_card)
-                  }
+                  allow(order).to(
+                    receive(:user) {
+                      instance_double(Spree::User, default_card: saved_credit_card)
+                    }
+                  )
                 end
 
                 context "but the customer has not authorised the shop to charge credit cards" do
                   before do
-                    allow(order).to receive(:customer) {
-                      instance_double(Customer, allow_charges?: false)
-                    }
+                    allow(order).to(
+                      receive(:customer) {
+                        instance_double(Customer, allow_charges?: false)
+                      }
+                    )
                   end
 
                   it "adds an error to the order and does not update the payment" do
@@ -80,16 +88,22 @@ module OrderManagement
 
                     expect(payment).not_to receive(:update)
                     expect(payment_setup.call!).to eq payment
-                    expect(order.errors[:base].first).to eq "There are no authorised " \
-                                                            "credit cards available to charge"
+                    expect(order.errors[:base].first).to(
+                      eq(
+                        "There are no authorised " \
+                          "credit cards available to charge"
+                      )
+                    )
                   end
                 end
 
                 context "and the customer has authorised the shop to charge credit cards" do
                   before do
-                    allow(order).to receive(:customer) {
-                      instance_double(Customer, allow_charges?: true)
-                    }
+                    allow(order).to(
+                      receive(:customer) {
+                        instance_double(Customer, allow_charges?: true)
+                      }
+                    )
                   end
 
                   it "uses the saved credit card as the source for the payment" do

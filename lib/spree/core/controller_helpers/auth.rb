@@ -26,11 +26,11 @@ module Spree
         def unauthorized
           if spree_current_user
             flash[:error] = t(:authorization_failure)
-            redirect_to '/unauthorized'
+            redirect_to("/unauthorized")
           else
             store_location
 
-            redirect_to main_app.root_path(anchor: "/login", after_login: request.original_fullpath)
+            redirect_to(main_app.root_path(anchor: "/login", after_login: request.original_fullpath))
           end
         end
 
@@ -44,10 +44,10 @@ module Spree
             end
           end
 
-          disallowed_urls.map!{ |url| url[%r{/\w+$}] }
+          disallowed_urls.map! { |url| url[%r{/\w+$}] }
           return if disallowed_urls.include?(request.fullpath)
 
-          session['spree_user_return_to'] = request.fullpath.gsub('//', '/')
+          session["spree_user_return_to"] = request.fullpath.gsub("//", "/")
         end
 
         def return_url_or_default(default)

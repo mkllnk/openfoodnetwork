@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'rspec/expectations'
-require 'spree/i18n'
+require "rspec/expectations"
+require "spree/i18n"
 
 RSpec.describe "i18n" do
   before do
@@ -21,46 +21,48 @@ RSpec.describe "i18n" do
       }
     )
 
-    allow(ActionView::Helpers::TranslationHelper).
-      to receive(:raise_on_missing_translations).
-      and_return(false)
+    allow(ActionView::Helpers::TranslationHelper).to(
+      receive(:raise_on_missing_translations).and_return(false)
+    )
   end
 
   it "translates within the spree scope" do
-    expect(Spree.t(:foo)).to eql("bar")
-    expect(Spree.translate(:foo)).to eql("bar")
+    expect(Spree.t(:foo)).to(eql("bar"))
+    expect(Spree.translate(:foo)).to(eql("bar"))
   end
 
   it "translates within the spree scope using a path" do
-    allow(Spree).to receive(:virtual_path).and_return('bar')
+    allow(Spree).to(receive(:virtual_path).and_return("bar"))
 
-    expect(Spree.t('.legacy_translation')).to eql("back in the day...")
-    expect(Spree.translate('.legacy_translation')).to eql("back in the day...")
+    expect(Spree.t(".legacy_translation")).to(eql("back in the day..."))
+    expect(Spree.translate(".legacy_translation")).to(eql("back in the day..."))
   end
 
   it "raise error without any context when using a path" do
     expect {
-      Spree.t('.legacy_translation')
-    }.to raise_error RuntimeError
+      Spree.t(".legacy_translation")
+    }
+      .to(raise_error(RuntimeError))
 
     expect {
-      Spree.translate('.legacy_translation')
-    }.to raise_error RuntimeError
+      Spree.translate(".legacy_translation")
+    }
+      .to(raise_error(RuntimeError))
   end
 
   it "prepends a string scope" do
-    expect(Spree.t(:foo, scope: "bar")).to eql("bar within bar scope")
+    expect(Spree.t(:foo, scope: "bar")).to(eql("bar within bar scope"))
   end
 
   it "prepends to an array scope" do
-    expect(Spree.t(:foo, scope: ["bar"])).to eql("bar within bar scope")
+    expect(Spree.t(:foo, scope: ["bar"])).to(eql("bar within bar scope"))
   end
 
   it "returns two translations" do
-    expect(Spree.t([:foo, 'bar.foo'])).to eql(["bar", "bar within bar scope"])
+    expect(Spree.t([:foo, "bar.foo"])).to(eql(["bar", "bar within bar scope"]))
   end
 
   it "returns reasonable string for missing translations" do
-    expect(Spree.t(:missing_entry)).to include("<span")
+    expect(Spree.t(:missing_entry)).to(include("<span"))
   end
 end

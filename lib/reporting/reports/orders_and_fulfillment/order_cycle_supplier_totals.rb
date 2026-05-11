@@ -27,10 +27,11 @@ module Reporting
               summary_row: proc do |_key, _items, rows|
                 total_units = rows.map(&:total_units)
                 summary_total_units = if total_units.all?(&:present?)
-                                        rows.map(&:total_units).sum(&:to_f).round(3)
-                                      else
-                                        " "
-                                      end
+                  rows.map(&:total_units).sum(&:to_f).round(3)
+                else
+                  " "
+                end
+
                 {
                   quantity: rows.map(&:quantity).sum(&:to_i),
                   total_units: summary_total_units,
@@ -42,21 +43,28 @@ module Reporting
         end
 
         def line_item_includes
-          [{ variant: [:supplier, :product] }]
+          [{variant: [:supplier, :product]}]
         end
 
         def query_result
-          report_line_items.list(line_item_includes).group_by { |e|
-            [e.variant_id, e.price]
-          }.values
+          report_line_items
+            .list(line_item_includes)
+            .group_by { |e|
+              [e.variant_id, e.price]
+            }
+            .values
         end
 
         def default_params
-          super.merge({ fields_to_hide: [
-                        :sku,
-                        :producer_charges_sales_tax?,
-                        :product_tax_category
-                      ] })
+          super.merge(
+            {
+              fields_to_hide: [
+                :sku,
+                :producer_charges_sales_tax?,
+                :product_tax_category
+              ]
+            }
+          )
         end
       end
     end

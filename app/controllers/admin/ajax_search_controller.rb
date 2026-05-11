@@ -3,22 +3,25 @@
 module Admin
   class AjaxSearchController < Spree::Admin::BaseController
     def producers
-      query = OpenFoodNetwork::Permissions.new(spree_current_user)
-        .managed_product_enterprises.is_primary_producer.by_name
+      query = OpenFoodNetwork::Permissions
+        .new(spree_current_user)
+        .managed_product_enterprises
+        .is_primary_producer
+        .by_name
 
-      render json: build_search_response(query)
+      render(json: build_search_response(query))
     end
 
     def categories
       query = Spree::Taxon.all
 
-      render json: build_search_response(query)
+      render(json: build_search_response(query))
     end
 
     def tax_categories
       query = Spree::TaxCategory.all
 
-      render json: build_search_response(query)
+      render(json: build_search_response(query))
     end
 
     private
@@ -32,7 +35,7 @@ module Admin
       items = paginated_items(filtered_query, page, per_page)
       results = format_results(items)
 
-      { results: results, pagination: { more: (page * per_page) < total_count } }
+      {results: results, pagination: {more: (page * per_page) < total_count}}
     end
 
     def apply_search_filter(query)
@@ -42,7 +45,7 @@ module Admin
       escaped_search_term = ActiveRecord::Base.sanitize_sql_like(search_term)
       pattern = "%#{escaped_search_term}%"
 
-      query.where('name ILIKE ?', pattern)
+      query.where("name ILIKE ?", pattern)
     end
 
     def paginated_items(query, page, per_page)
@@ -50,7 +53,7 @@ module Admin
     end
 
     def format_results(items)
-      items.map { |label, value| { value:, label: } }
+      items.map { |label, value| {value:, label:} }
     end
   end
 end

@@ -8,15 +8,17 @@ module Spree
       @delivery = delivery
       @order = @shipment.order
       subject = base_subject
-      mail(to: @order.email,
-           subject:,
-           reply_to: @order.distributor.contact.email)
+      mail(
+        to: @order.email,
+        subject:,
+        reply_to: @order.distributor.contact.email
+      )
     end
 
     private
 
     def base_subject
-      default_subject = @delivery ? default_i18n_subject : t('.picked_up_subject')
+      default_subject = @delivery ? default_i18n_subject : t(".picked_up_subject")
       "#{@shipment.order.distributor.name} #{default_subject} ##{@shipment.order.number}"
     end
   end

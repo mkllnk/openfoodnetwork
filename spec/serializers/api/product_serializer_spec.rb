@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'open_food_network/enterprise_fee_calculator'
+require "open_food_network/enterprise_fee_calculator"
 
 RSpec.describe Api::ProductSerializer do
-  include ShopWorkflow
+  include(ShopWorkflow)
 
   let!(:distributor) { create(:distributor_enterprise) }
   let!(:order_cycle) { create(:order_cycle, distributors: [distributor]) }
@@ -14,10 +14,12 @@ RSpec.describe Api::ProductSerializer do
   let(:variant1) { create(:variant, product:) }
 
   let(:serializer) {
-    described_class.new(product,
-                        variants: [variant1],
-                        current_distributor: distributor,
-                        current_order_cycle: order_cycle)
+    described_class.new(
+      product,
+      variants: [variant1],
+      current_distributor: distributor,
+      current_order_cycle: order_cycle
+    )
   }
 
   before do
@@ -25,15 +27,27 @@ RSpec.describe Api::ProductSerializer do
   end
 
   it "serializes various attributes" do
-    expect(serializer.serializable_hash.keys).to eq [
-      :id, :name, :meta_keywords, :group_buy, :notes, :description, :description_html,
-      :properties_with_values, :variants, :image
-    ]
+    expect(serializer.serializable_hash.keys).to(
+      eq(
+        [
+          :id,
+          :name,
+          :meta_keywords,
+          :group_buy,
+          :notes,
+          :description,
+          :description_html,
+          :properties_with_values,
+          :variants,
+          :image
+        ]
+      )
+    )
   end
 
   it "serializes product properties" do
-    product_property = { id: property.id, name: property.presentation, value: nil }
+    product_property = {id: property.id, name: property.presentation, value: nil}
 
-    expect(serializer.serializable_hash[:properties_with_values]).to include product_property
+    expect(serializer.serializable_hash[:properties_with_values]).to(include(product_property))
   end
 end

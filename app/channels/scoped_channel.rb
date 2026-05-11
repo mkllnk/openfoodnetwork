@@ -8,6 +8,6 @@ class ScopedChannel < ApplicationCable::Channel
   end
 
   def subscribed
-    stream_from "ScopedChannel:#{params[:id]}"
+    stream_from("ScopedChannel:#{params[:id]}")
   end
 end

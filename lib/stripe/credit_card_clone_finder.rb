@@ -11,16 +11,19 @@ module Stripe
       return nil unless fingerprint = fingerprint_for_card(@card)
       return nil unless email = @card.user&.email
 
-      customers = Stripe::Customer.list({ email:, limit: 100 },
-                                        stripe_account: @stripe_account)
+      customers = Stripe::Customer.list(
+        {email:, limit: 100},
+        stripe_account: @stripe_account
+      )
 
       customers.auto_paging_each do |customer|
-        options = { customer: customer.id, type: 'card', limit: 100 }
+        options = {customer: customer.id, type: "card", limit: 100}
         payment_methods = Stripe::PaymentMethod.list(options, stripe_account: @stripe_account)
         payment_methods.auto_paging_each do |payment_method|
           return [customer.id, payment_method.id] if clone?(payment_method, fingerprint)
         end
       end
+
       nil
     end
 

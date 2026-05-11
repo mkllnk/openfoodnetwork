@@ -29,5 +29,6 @@ class OrderLocker
     # the locking query without building Spree::Variant objects.
     Spree::Variant.where(id: variant_ids).order(:id).lock.pluck(:id)
   end
+
   private_class_method :lock_variants_of
 end

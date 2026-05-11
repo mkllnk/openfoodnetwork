@@ -7,7 +7,7 @@ class PaymentsController < BaseController
 
   def redirect_to_authorize
     @payment = Spree::Payment.find(params[:id])
-    authorize! :show, @payment.order
+    authorize!(:show, @payment.order)
 
     redirect_to(@payment.redirect_auth_url || order_url(@payment.order), allow_other_host: true)
   end
@@ -17,9 +17,9 @@ class PaymentsController < BaseController
   def require_logged_in
     return if session[:access_token] || spree_current_user
 
-    store_location_for :spree_user, request.original_fullpath
+    store_location_for(:spree_user, request.original_fullpath)
 
     flash[:error] = I18n.t("spree.orders.edit.login_to_view_order")
-    redirect_to main_app.root_path(anchor: "/login", after_login: request.original_fullpath)
+    redirect_to(main_app.root_path(anchor: "/login", after_login: request.original_fullpath))
   end
 end

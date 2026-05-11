@@ -2,7 +2,7 @@
 
 RSpec.describe "simplecov.rake" do
   describe "simplecov:collate_results" do
-    context "when there are reports to merge" do
+    context("when there are reports to merge") do
       let(:input_dir) { Rails.root.join("spec/fixtures/simplecov") }
 
       it "creates a new combined report" do
@@ -19,17 +19,22 @@ RSpec.describe "simplecov.rake" do
               # Use the quick standard invocation in dev.
               invoke_task(task_name)
             end
-          }.to change { Dir.exist?(output_dir) }.
-            from(false).
-            to(true).
-
-            and change { File.exist?(File.join(output_dir, "index.html")) }.
-            from(false).
-            to(true).
-
-            and change { File.exist?(File.join(output_dir, "coverage.json")) }.
-            from(false).
-            to(true)
+          }
+            .to(
+              change { Dir.exist?(output_dir) }
+                .from(false)
+                .to(true)
+                .and(
+                  change { File.exist?(File.join(output_dir, "index.html")) }
+                    .from(false)
+                    .to(true)
+                    .and(
+                      change { File.exist?(File.join(output_dir, "coverage.json")) }
+                        .from(false)
+                        .to(true)
+                    )
+                )
+            )
         end
       end
     end

@@ -7,6 +7,7 @@ class OrderCycleNotificationJob < ApplicationJob
     order_cycle.suppliers.each do |supplier|
       ProducerMailer.order_cycle_report(supplier, order_cycle).deliver_later
     end
-    order_cycle.update_columns mails_sent: true
+
+    order_cycle.update_columns(mails_sent: true)
   end
 end

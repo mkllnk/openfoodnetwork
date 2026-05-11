@@ -13,10 +13,12 @@ class CartController < BaseController
 
       StockSyncJob.sync_linked_catalogs_later(order)
 
-      render json: { error: false, stock_levels: stock_levels(order) }, status: :ok
+      render(json: {error: false, stock_levels: stock_levels(order)}, status: :ok)
     else
-      render json: { error: cart_service.errors.full_messages.join(",") },
-             status: :precondition_failed
+      render(
+        json: {error: cart_service.errors.full_messages.join(",")},
+        status: :precondition_failed
+      )
     end
   end
 
@@ -34,9 +36,9 @@ class CartController < BaseController
     order = Spree::Order.find_by(number: params[:id]) || current_order
 
     if order
-      authorize! :edit, order, session[:access_token]
+      authorize!(:edit, order, session[:access_token])
     else
-      authorize! :create, Spree::Order
+      authorize!(:create, Spree::Order)
     end
   end
 end

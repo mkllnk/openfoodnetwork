@@ -28,9 +28,11 @@ module Reporting
             data["shipping_method_name"]
           end
 
-          def fee_placement; end
+          def fee_placement
+          end
 
-          def fee_calculated_on_transfer_through_name; end
+          def fee_calculated_on_transfer_through_name
+          end
 
           def tax_category_name
             i18n_translate("tax_category_name.shipping_instance_rate")

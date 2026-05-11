@@ -11,8 +11,12 @@ RSpec.describe "Darkswarm data caching", caching: true do
     create(:distributor_enterprise, with_payment_and_shipping: true, is_primary_producer: true)
   }
   let!(:product) {
-    create(:simple_product, supplier_id: producer.id, primary_taxon: taxon,
-                            properties: [property])
+    create(
+      :simple_product,
+      supplier_id: producer.id,
+      primary_taxon: taxon,
+      properties: [property]
+    )
   }
   let!(:order_cycle) {
     create(:simple_order_cycle, distributors: [distributor], coordinator: distributor)
@@ -30,31 +34,31 @@ RSpec.describe "Darkswarm data caching", caching: true do
 
   describe "caching injected taxons and properties" do
     it "caches taxons and properties" do
-      expect(Spree::Taxon).to receive(:all).at_least(:once).and_call_original
-      expect(Spree::Property).to receive(:all).at_least(:once).and_call_original
+      expect(Spree::Taxon).to(receive(:all).at_least(:once).and_call_original)
+      expect(Spree::Property).to(receive(:all).at_least(:once).and_call_original)
 
-      visit shops_path
+      visit(shops_path)
 
-      expect(Spree::Taxon).not_to receive(:all)
-      expect(Spree::Property).not_to receive(:all)
+      expect(Spree::Taxon).not_to(receive(:all))
+      expect(Spree::Property).not_to(receive(:all))
 
-      visit shops_path
+      visit(shops_path)
     end
 
     it "invalidates caches for taxons and properties" do
-      visit shops_path
+      visit(shops_path)
 
       taxon_timestamp1 = CacheService.latest_timestamp_by_class(Spree::Taxon)
-      expect_cached "views/#{CacheService::FragmentCaching.ams_all_taxons[0]}"
+      expect_cached("views/#{CacheService::FragmentCaching.ams_all_taxons[0]}")
 
       property_timestamp1 = CacheService.latest_timestamp_by_class(Spree::Property)
-      expect_cached "views/#{CacheService::FragmentCaching.ams_all_properties[0]}"
+      expect_cached("views/#{CacheService::FragmentCaching.ams_all_properties[0]}")
 
       toggle_filters
 
-      within "#hubs .filter-box" do
-        expect(page).to have_content taxon.name
-        expect(page).to have_content property.presentation
+      within("#hubs .filter-box") do
+        expect(page).to(have_content(taxon.name))
+        expect(page).to(have_content(property.presentation))
       end
 
       taxon.update!(name: "Changed Taxon")
@@ -63,35 +67,35 @@ RSpec.describe "Darkswarm data caching", caching: true do
       # Clear timed shops cache so we can test uncached supplied properties
       clear_shops_cache
 
-      visit shops_path
+      visit(shops_path)
 
       # Wait for /shops page to load properly before checking for new timestamps
-      expect(page).not_to have_selector ".row.filter-box"
+      expect(page).not_to(have_selector(".row.filter-box"))
 
       taxon_timestamp2 = CacheService.latest_timestamp_by_class(Spree::Taxon)
-      expect_cached "views/#{CacheService::FragmentCaching.ams_all_taxons[0]}"
+      expect_cached("views/#{CacheService::FragmentCaching.ams_all_taxons[0]}")
 
       property_timestamp2 = CacheService.latest_timestamp_by_class(Spree::Property)
-      expect_cached "views/#{CacheService::FragmentCaching.ams_all_properties[0]}"
+      expect_cached("views/#{CacheService::FragmentCaching.ams_all_properties[0]}")
 
-      expect(taxon_timestamp1).not_to eq taxon_timestamp2
-      expect(property_timestamp1).not_to eq property_timestamp2
+      expect(taxon_timestamp1).not_to(eq(taxon_timestamp2))
+      expect(property_timestamp1).not_to(eq(property_timestamp2))
 
       toggle_filters
 
-      within "#hubs .filter-box" do
-        expect(page).to have_content "Changed Taxon"
-        expect(page).to have_content "Changed Property"
+      within("#hubs .filter-box") do
+        expect(page).to(have_content("Changed Taxon"))
+        expect(page).to(have_content("Changed Property"))
       end
     end
   end
 
   def expect_cached(key)
-    expect(Rails.cache.exist?(key)).to be true
+    expect(Rails.cache.exist?(key)).to(be(true))
   end
 
   def clear_shops_cache
     cache_key = "views/#{CacheService::FragmentCaching.ams_shops[0]}"
-    Rails.cache.delete cache_key
+    Rails.cache.delete(cache_key)
   end
 end

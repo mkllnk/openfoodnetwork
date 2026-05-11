@@ -12,34 +12,40 @@ class AffiliateSalesDataRowBuilder < DfcBuilder
   def build_supplier
     DataFoodConsortium::ConnectorV1::Enterprise.new(
       nil,
-      localizations: [build_address(
-        item[:supplier_postcode],
-        item[:supplier_country]
-      )],
-      suppliedProducts: [build_product],
+      localizations: [
+        build_address(
+          item[:supplier_postcode],
+          item[:supplier_country]
+        )
+      ],
+      suppliedProducts: [build_product]
     )
   end
 
   def build_distributor
     DataFoodConsortium::ConnectorV1::Enterprise.new(
       nil,
-      localizations: [build_address(
-        item[:distributor_postcode],
-        item[:distributor_country]
-      )],
+      localizations: [
+        build_address(
+          item[:distributor_postcode],
+          item[:distributor_country]
+        )
+      ]
     )
   end
 
   def build_product
-    DataFoodConsortium::ConnectorV1::SuppliedProduct.new(
-      nil,
-      name: item[:product_name],
-      quantity: build_product_quantity,
-    ).tap do |product|
-      product.registerSemanticProperty("dfc-b:concernedBy") {
-        build_order_line
-      }
-    end
+    DataFoodConsortium::ConnectorV1::SuppliedProduct
+      .new(
+        nil,
+        name: item[:product_name],
+        quantity: build_product_quantity
+      )
+      .tap do |product|
+        product.registerSemanticProperty("dfc-b:concernedBy") {
+          build_order_line
+        }
+      end
   end
 
   def build_order_line
@@ -47,51 +53,53 @@ class AffiliateSalesDataRowBuilder < DfcBuilder
       nil,
       quantity: build_line_quantity,
       price: build_price,
-      order: build_order,
+      order: build_order
     )
   end
 
   def build_order
     DataFoodConsortium::ConnectorV1::Order.new(
       nil,
-      saleSession: build_sale_session,
+      saleSession: build_sale_session
     )
   end
 
   def build_sale_session
-    DataFoodConsortium::ConnectorV1::SaleSession.new(
-      nil,
-    ).tap do |session|
-      session.registerSemanticProperty("dfc-b:objectOf") {
-        build_coordination
-      }
-    end
+    DataFoodConsortium::ConnectorV1::SaleSession
+      .new(
+        nil
+      )
+      .tap do |session|
+        session.registerSemanticProperty("dfc-b:objectOf") {
+          build_coordination
+        }
+      end
   end
 
   def build_coordination
     DfcProvider::Coordination.new(
       nil,
-      coordinator: build_distributor,
+      coordinator: build_distributor
     )
   end
 
   def build_product_quantity
     DataFoodConsortium::ConnectorV1::QuantitativeValue.new(
       unit: QuantitativeValueBuilder.unit(item[:unit_type]),
-      value: item[:units]&.to_f,
+      value: item[:units]&.to_f
     )
   end
 
   def build_line_quantity
     DataFoodConsortium::ConnectorV1::QuantitativeValue.new(
-      unit: DfcLoader.connector.MEASURES.PIECE,
-      value: item[:quantity_sold]&.to_f,
+      unit: DfcLoader.connector.MEASURES.PIECE(),
+      value: item[:quantity_sold]&.to_f
     )
   end
 
   def build_price
     DataFoodConsortium::ConnectorV1::QuantitativeValue.new(
-      value: item[:price]&.to_f,
+      value: item[:price]&.to_f
     )
   end
 
@@ -99,7 +107,7 @@ class AffiliateSalesDataRowBuilder < DfcBuilder
     DataFoodConsortium::ConnectorV1::Address.new(
       nil,
       country:,
-      postalCode: postcode,
+      postalCode: postcode
     )
   end
 end

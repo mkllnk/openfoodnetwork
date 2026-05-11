@@ -12,11 +12,11 @@ class DfcPlatformRequest
 
   def request_token
     connection = Faraday.new(
-      request: { timeout: 5 },
+      request: {timeout: 5}
     ) do |f|
-      f.request :url_encoded
-      f.response :json
-      f.response :raise_error
+      f.request(:url_encoded)
+      f.response(:json)
+      f.response(:raise_error)
     end
 
     url = ApiUser.token_endpoint(@platform)
@@ -24,7 +24,7 @@ class DfcPlatformRequest
       grant_type: "client_credentials",
       client_id: ENV.fetch("OPENID_APP_ID", nil),
       client_secret: ENV.fetch("OPENID_APP_SECRET", nil),
-      scope: "ReadEnterprise",
+      scope: "ReadEnterprise"
     }
     response = connection.post(url, data)
     response.body["access_token"]

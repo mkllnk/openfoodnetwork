@@ -4,17 +4,17 @@ module Spree
   class PaymentMethod
     class Check < Spree::PaymentMethod
       def actions
-        %w{capture_and_complete_order void}
+        %w[capture_and_complete_order void]
       end
 
       # Indicates whether its possible to capture the payment
       def can_capture_and_complete_order?(payment)
-        ['checkout', 'pending'].include?(payment.state)
+        ["checkout", "pending"].include?(payment.state)
       end
 
       # Indicates whether its possible to void the payment.
       def can_void?(payment)
-        payment.state != 'void'
+        payment.state != "void"
       end
 
       def capture(*_args)

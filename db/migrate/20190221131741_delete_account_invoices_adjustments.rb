@@ -1,7 +1,7 @@
 class DeleteAccountInvoicesAdjustments < ActiveRecord::Migration[4.2]
   def up
     Spree::Adjustment
-      .where(source_type: 'BillablePeriod')
+      .where(source_type: "BillablePeriod")
       .destroy_all
   end
 

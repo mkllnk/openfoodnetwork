@@ -22,14 +22,14 @@ module Spree
     validates :amount, presence: true, numericality: true
     validates_with DefaultTaxZoneValidator
 
-    scope :by_zone, ->(zone) { where(zone_id: zone) }
+    scope :by_zone, -> (zone) { where(zone_id: zone) }
 
     # Gets the array of TaxRates appropriate for the specified order
     def self.match(order)
       return [] if order.distributor && !order.distributor.charges_sales_tax
       return [] unless order.tax_zone
 
-      includes(zone: { zone_members: :zoneable }).load.select do |rate|
+      includes(zone: {zone_members: :zoneable}).load.select do |rate|
         rate.potentially_applicable?(order.tax_zone)
       end
     end
@@ -66,8 +66,10 @@ module Spree
       return 0 unless category
 
       address ||= Address.new(country_id: DefaultCountry.id)
-      rate = category.tax_rates
-        .detect { |tax_rate| tax_rate.zone.contains_address? address }.try(:amount)
+      rate = category
+        .tax_rates
+        .detect { |tax_rate| tax_rate.zone.contains_address?(address) }
+        .try(:amount)
 
       rate || 0
     end
@@ -104,7 +106,7 @@ module Spree
           calculator.compute(item)
         else
           # In this case, it's a refund (for instance offering a manual discount via an adjustment)
-          calculator.compute(item) * - 1
+          calculator.compute(item) * -1
         end
       else
         calculator.compute(item)
@@ -122,7 +124,7 @@ module Spree
       label << "#{Spree.t(:refund)} " if adjustment_amount.negative?
       label << "#{name.presence || tax_category.name} "
       label << (show_rate_in_label? ? "#{amount * 100}%" : "")
-      label << " (#{I18n.t('models.tax_rate.included_in_price')})" if included_in_price?
+      label << " (#{I18n.t("models.tax_rate.included_in_price")})" if included_in_price?
       label
     end
   end

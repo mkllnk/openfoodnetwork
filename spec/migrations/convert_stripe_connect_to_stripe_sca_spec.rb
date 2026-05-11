@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../db/migrate/20220118053107_convert_stripe_connect_to_stripe_sca'
+require_relative "../../db/migrate/20220118053107_convert_stripe_connect_to_stripe_sca"
 
 module Spree
   class Gateway
@@ -26,7 +26,7 @@ RSpec.describe ConvertStripeConnectToStripeSca do
 
   before do
     # Activate the cache because it's deactivated in test environment.
-    allow(Spree::Preferences::Store.instance).to receive(:should_persist?).and_return(true)
+    allow(Spree::Preferences::Store.instance).to(receive(:should_persist?).and_return(true))
 
     # Create the payment method after cache activation to store the owner.
     old_stripe_connect
@@ -35,21 +35,21 @@ RSpec.describe ConvertStripeConnectToStripeSca do
   it "converts payment methods" do
     subject.up
 
-    expect(result.class).to eq Spree::Gateway::StripeSCA
+    expect(result.class).to(eq(Spree::Gateway::StripeSCA))
   end
 
   it "keeps attributes" do
     subject.up
 
-    expect(result.name).to eq "Stripe"
-    expect(result.environment).to eq "test"
-    expect(result.distributor_ids).to eq [owner.id]
+    expect(result.name).to(eq("Stripe"))
+    expect(result.environment).to(eq("test"))
+    expect(result.distributor_ids).to(eq([owner.id]))
   end
 
   it "keeps Spree preferences" do
     subject.up
 
-    expect(result.preferred_enterprise_id).to eq owner.id
+    expect(result.preferred_enterprise_id).to(eq(owner.id))
   end
 
   it "doesn't move outdated StripeConnect preferences to StripeSCA methods" do
@@ -62,7 +62,7 @@ RSpec.describe ConvertStripeConnectToStripeSca do
 
     subject.up
 
-    expect(result.preferred_enterprise_id).to eq new_owner.id
+    expect(result.preferred_enterprise_id).to(eq(new_owner.id))
   end
 
   it "keeps Spree preferences despite conflicting preference keys" do
@@ -77,7 +77,7 @@ RSpec.describe ConvertStripeConnectToStripeSca do
 
     subject.up
 
-    expect(result.preferred_enterprise_id).to eq new_owner.id
+    expect(result.preferred_enterprise_id).to(eq(new_owner.id))
   end
 
   it "doesn't mess with new Stripe payment methods" do
@@ -88,7 +88,7 @@ RSpec.describe ConvertStripeConnectToStripeSca do
       distributor_ids: [owner.id]
     )
 
-    expect { subject.up }.not_to change { stripe.reload.attributes }
+    expect { subject.up }.not_to(change { stripe.reload.attributes })
   end
 
   it "doesn't mess with other payment methods" do
@@ -98,6 +98,6 @@ RSpec.describe ConvertStripeConnectToStripeSca do
       distributor_ids: [owner.id]
     )
 
-    expect { subject.up }.not_to change { cash.reload.attributes }
+    expect { subject.up }.not_to(change { cash.reload.attributes })
   end
 end

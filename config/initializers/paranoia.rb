@@ -9,7 +9,9 @@ module Paranoia
     elsif !frozen?
       assign_attributes(paranoia_destroy_attributes)
     end
+
     self
   end
+
   alias_method :delete, :paranoia_delete
 end

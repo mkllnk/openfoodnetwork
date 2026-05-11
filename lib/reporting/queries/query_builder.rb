@@ -16,44 +16,51 @@ module Reporting
       end
 
       def selecting(lambda)
-        fields = instance_exec(&lambda).map{ |key, value| value.as(key.to_s) }
+        fields = instance_exec(&lambda).map { |key, value| value.as(key.to_s) }
 
-        reflect query.project(*fields)
+        reflect(query.project(*fields))
       end
 
       def scoped_to_orders(orders_relation)
-        reflect query.where(
-          line_item_table[:order_id].in(Arel.sql(orders_relation.to_sql))
+        reflect(
+          query.where(
+            line_item_table[:order_id].in(Arel.sql(orders_relation.to_sql))
+          )
         )
       end
 
       def scoped_to_line_items(line_items_relation)
-        reflect query.where(
-          line_item_table[:id].in(Arel.sql(line_items_relation.to_sql))
+        reflect(
+          query.where(
+            line_item_table[:id].in(Arel.sql(line_items_relation.to_sql))
+          )
         )
       end
 
       def with_managed_orders(orders_relation)
-        reflect query.
-          outer_join(managed_orders_alias).
-          on(
-            managed_orders_alias[:id].eq(line_item_table[:order_id]).
-            and(managed_orders_alias[:distributor_id].in(Arel.sql(orders_relation.to_sql)))
-          )
+        reflect(
+          query
+            .outer_join(managed_orders_alias)
+            .on(
+              managed_orders_alias[:id]
+                .eq(line_item_table[:order_id])
+                .and(managed_orders_alias[:distributor_id].in(Arel.sql(orders_relation.to_sql)))
+            )
+        )
       end
 
       def grouped_in_sets(group_sets)
-        reflect query.group(*instance_exec(&group_sets))
+        reflect(query.group(*instance_exec(&group_sets)))
       end
 
       def ordered_by(ordering_fields)
-        reflect query.order(*instance_exec(&ordering_fields))
+        reflect(query.order(*instance_exec(&ordering_fields)))
       end
 
       def distinct_results(fields = nil)
-        return reflect query.distinct if fields.blank?
+        return reflect(query.distinct) if fields.blank?
 
-        reflect query.distinct_on(fields)
+        reflect(query.distinct_on(fields))
       end
 
       def variant_full_name
@@ -66,10 +73,13 @@ module Reporting
         combined_description = sql_concat(display_name, raw("' ('"), unit_to_display, raw("')'"))
         # rubocop:enable Rails/OutputSafety
 
-        Case.new.
-          when(nullify_empty_strings(display_name).eq(nil)).then(unit_to_display).
-          when(nullify_empty_strings(unit_to_display).not_eq(nil)).then(combined_description).
-          else(display_name)
+        Case
+          .new
+          .when(nullify_empty_strings(display_name).eq(nil))
+          .then(unit_to_display)
+          .when(nullify_empty_strings(unit_to_display).not_eq(nil))
+          .then(combined_description)
+          .else(display_name)
       end
 
       private

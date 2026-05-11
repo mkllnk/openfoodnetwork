@@ -3,7 +3,7 @@
 class Invoice < ApplicationRecord
   self.belongs_to_required_by_default = false
 
-  belongs_to :order, class_name: 'Spree::Order'
+  belongs_to :order, class_name: "Spree::Order"
   serialize :data, type: Hash, coder: YAML
   before_validation :serialize_order
   after_create :cancel_previous_invoices

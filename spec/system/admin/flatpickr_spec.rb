@@ -3,30 +3,30 @@
 require "system_helper"
 
 RSpec.describe "Test Flatpickr" do
-  include AuthenticationHelper
-  include WebHelper
+  include(AuthenticationHelper)
+  include(WebHelper)
 
-  context "orders" do
+  context("orders") do
     it "opens the datepicker and closes it using the 'Close' button" do
       login_as_admin
-      visit 'admin/orders'
-      open_datepicker('.datepicker')
+      visit("admin/orders")
+      open_datepicker(".datepicker")
       # Looks for the close button and click it
       within(".flatpickr-calendar.open") do
-        expect(page).to have_selector '.shortcut-buttons-flatpickr-buttons'
+        expect(page).to(have_selector(".shortcut-buttons-flatpickr-buttons"))
         find("button", text: "Close").click
       end
       # Should no more have opened flatpickr
-      expect(page).not_to have_selector '.flatpickr-calendar.open'
+      expect(page).not_to(have_selector(".flatpickr-calendar.open"))
     end
 
     it "opens the datepicker and closes it by clicking outside" do
       login_as_admin
-      visit 'admin/orders'
-      open_datepicker('.datepicker')
+      visit("admin/orders")
+      open_datepicker(".datepicker")
       find("#admin-menu").click
       # Should no more have opened flatpickr
-      expect(page).not_to have_selector '.flatpickr-calendar.open'
+      expect(page).not_to(have_selector(".flatpickr-calendar.open"))
     end
   end
 
@@ -36,11 +36,11 @@ RSpec.describe "Test Flatpickr" do
     # Opens a datepicker
     find(field).click
     # Should have opened flatpickr
-    expect(page).to have_selector '.flatpickr-calendar.open'
+    expect(page).to(have_selector(".flatpickr-calendar.open"))
   end
 
   def check_fielddate(field, date)
     # Check the value is correct
-    expect(find(field, match: :first).value).to eq date.to_datetime.strftime("%Y-%m-%d")
+    expect(find(field, match: :first).value).to(eq(date.to_datetime.strftime("%Y-%m-%d")))
   end
 end

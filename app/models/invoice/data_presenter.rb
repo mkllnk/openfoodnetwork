@@ -9,29 +9,59 @@ class Invoice
     delegate :display_number, :data, :previous_invoice, to: :invoice
     delegate :date, to: :invoice, prefix: true
 
-    FINALIZED_NON_SUCCESSFUL_STATES = %w(canceled returned).freeze
+    FINALIZED_NON_SUCCESSFUL_STATES = %w[canceled returned].freeze
 
     extend Invoice::DataPresenterAttributes
 
-    attributes :additional_tax_total, :currency, :included_tax_total, :payment_total,
-               :shipping_method_id, :state, :total, :number, :note, :special_instructions,
-               :completed_at
+    attributes(
+      :additional_tax_total,
+      :currency,
+      :included_tax_total,
+      :payment_total,
+      :shipping_method_id,
+      :state,
+      :total,
+      :number,
+      :note,
+      :special_instructions,
+      :completed_at
+    )
 
-    attributes_with_presenter :bill_address, :customer, :distributor, :ship_address,
-                              :shipping_method, :order_cycle
+    attributes_with_presenter(
+      :bill_address,
+      :customer,
+      :distributor,
+      :ship_address,
+      :shipping_method,
+      :order_cycle
+    )
 
-    array_attribute :sorted_line_items, class_name: 'LineItem'
-    array_attribute :all_eligible_adjustments, class_name: 'Adjustment'
-    array_attribute :payments, class_name: 'Payment'
+    array_attribute :sorted_line_items, class_name: "LineItem"
+    array_attribute :all_eligible_adjustments, class_name: "Adjustment"
+    array_attribute :payments, class_name: "Payment"
 
     # if any of the following attributes is updated, a new invoice should be generated
-    invoice_generation_attributes :additional_tax_total, :all_eligible_adjustments, :bill_address,
-                                  :included_tax_total, :payments, :payment_total, :ship_address,
-                                  :shipping_method_id, :sorted_line_items, :total
+    invoice_generation_attributes(
+      :additional_tax_total,
+      :all_eligible_adjustments,
+      :bill_address,
+      :included_tax_total,
+      :payments,
+      :payment_total,
+      :ship_address,
+      :shipping_method_id,
+      :sorted_line_items,
+      :total
+    )
 
     # if any of the following attributes is updated, the latest invoice should be updated
-    invoice_update_attributes :note, :special_instructions, :state,
-                              :all_eligible_adjustments, :payments
+    invoice_update_attributes(
+      :note,
+      :special_instructions,
+      :state,
+      :all_eligible_adjustments,
+      :payments
+    )
 
     def initialize(invoice)
       @invoice = invoice
@@ -53,22 +83,23 @@ class Invoice
 
     def checkout_adjustments(exclude: [])
       adjustments = all_eligible_adjustments
-        .reject { |a| a.originator.type == 'Spree::TaxRate' }
+        .reject { |a| a.originator.type == "Spree::TaxRate" }
         .map(&:clone)
 
       adjustments.reject! { |a| a.amount == 0 }
       [:line_item, :shipment].each do |type|
-        next unless exclude.include? type
+        next unless exclude.include?(type)
 
         adjustments.reject! { |a|
           a.adjustable_type == "Spree::#{type.to_s.classify}"
         }
       end
+
       adjustments
     end
 
     def shipment_adjustment
-      all_eligible_adjustments.find { |a| a.originator.type == 'Spree::ShippingMethod' }
+      all_eligible_adjustments.find { |a| a.originator.type == "Spree::ShippingMethod" }
     end
 
     # contains limited information about the shipment
@@ -77,11 +108,13 @@ class Invoice
     end
 
     def null_shipment
-      Struct.new(
-        :amount,
-        :included_tax_total,
-        :additional_tax_total,
-      ).new(0, 0, 0)
+      Struct
+        .new(
+          :amount,
+          :included_tax_total,
+          :additional_tax_total
+        )
+        .new(0, 0, 0)
     end
 
     def display_shipment_amount_without_taxes
@@ -93,29 +126,40 @@ class Invoice
     end
 
     def display_line_item_tax_rate(item)
-      all_tax_adjustments.select { |a|
-        a.adjustable.type == 'Spree::LineItem' && a.adjustable.id == item.id
-      }.map(&:originator).map(&:amount).sort.map { |amount|
-        number_to_percentage(amount * 100, precision: 1)
-      }.join(", ")
+      all_tax_adjustments
+        .select { |a|
+          a.adjustable.type == "Spree::LineItem" && a.adjustable.id == item.id
+        }
+        .map(&:originator)
+        .map(&:amount)
+        .sort
+        .map { |amount|
+          number_to_percentage(amount * 100, precision: 1)
+        }
+        .join(", ")
     end
 
     def display_shipment_tax_rates
-      all_eligible_adjustments.select { |a|
-        a.originator.type == 'Spree::TaxRate' && a.adjustable_type == 'Spree::Shipment'
-      }.map(&:originator)
-        .map { |tr| number_to_percentage(tr.amount * 100, precision: 1) }.join(", ")
+      all_eligible_adjustments
+        .select { |a|
+          a.originator.type == "Spree::TaxRate" && a.adjustable_type == "Spree::Shipment"
+        }
+        .map(&:originator)
+        .map { |tr| number_to_percentage(tr.amount * 100, precision: 1) }
+        .join(", ")
     end
 
     def display_checkout_taxes_hash
-      tax_adjustment_totals.map do |tax_rate_id, tax_amount|
-        tax_rate = tax_rate_by_id[tax_rate_id]
-        {
-          amount: Spree::Money.new(tax_amount, currency:),
-          percentage: number_to_percentage(tax_rate.amount * 100, precision: 1),
-          rate_amount: tax_rate.amount,
-        }
-      end.sort_by { |tax| tax[:rate_amount] }
+      tax_adjustment_totals
+        .map do |tax_rate_id, tax_amount|
+          tax_rate = tax_rate_by_id[tax_rate_id]
+          {
+            amount: Spree::Money.new(tax_amount, currency:),
+            percentage: number_to_percentage(tax_rate.amount * 100, precision: 1),
+            rate_amount: tax_rate.amount
+          }
+        end
+        .sort_by { |tax| tax[:rate_amount] }
     end
 
     def display_date
@@ -139,11 +183,11 @@ class Invoice
     end
 
     def all_tax_adjustments
-      all_eligible_adjustments.select { |a| a.originator.type == 'Spree::TaxRate' }
+      all_eligible_adjustments.select { |a| a.originator.type == "Spree::TaxRate" }
     end
 
     def paid?
-      ['paid', 'credit_owed'].include?(data[:payment_state])
+      ["paid", "credit_owed"].include?(data[:payment_state])
     end
 
     def outstanding_balance?

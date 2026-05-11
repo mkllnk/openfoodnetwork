@@ -7,9 +7,8 @@
 # WHERE enterprises.id IS NULL
 #   AND inventory_items.enterprise_id IS NOT NULL
 
-
 class AddForeignKeyToInventoryItemsEnterprises < ActiveRecord::Migration[6.0]
   def change
-    add_foreign_key :inventory_items, :enterprises, column: :enterprise_id
+    add_foreign_key(:inventory_items, :enterprises, column: :enterprise_id)
   end
 end

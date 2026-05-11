@@ -6,19 +6,19 @@ module Calculator
     preference :per_unit, :decimal, default: 0.0
 
     def self.description
-      I18n.t('spree.weight')
+      I18n.t("spree.weight")
     end
 
     def set_preference(name, value)
       if name == :unit_from_list && ["kg", "lb"].exclude?(value)
         calculable.errors.add(:preferred_unit_from_list, I18n.t(:calculator_preferred_unit_error))
       else
-        __send__ self.class.preference_setter_method(name), value
+        __send__(self.class.preference_setter_method(name), value)
       end
     end
 
     def compute(object)
-      line_items = line_items_for object
+      line_items = line_items_for(object)
       (total_weight(line_items) * preferred_per_unit).round(2)
     end
 
@@ -43,7 +43,7 @@ module Calculator
     end
 
     def weight_per_variant(line_item)
-      if variant_unit(line_item) == 'weight'
+      if variant_unit(line_item) == "weight"
         # Convert unit_value to the preferred unit
         convert_weight(line_item.variant&.unit_value)
       else
@@ -52,7 +52,7 @@ module Calculator
     end
 
     def weight_per_final_weight_volume(line_item)
-      if variant_unit(line_item) == 'weight'
+      if variant_unit(line_item) == "weight"
         # Convert final_weight_volume to the preferred unit
         convert_weight(line_item.final_weight_volume)
       else

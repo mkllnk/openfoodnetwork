@@ -19,7 +19,7 @@ module Reporting
             amount: proc { |order| order.total },
             balance: proc { |order| order.balance_value },
             temp_controlled_items: proc { |order| has_temperature_controlled_items?(order) },
-            special_instructions: proc { |order| order.special_instructions },
+            special_instructions: proc { |order| order.special_instructions }
           }
         end
         # rubocop:enable Metrics/AbcSize

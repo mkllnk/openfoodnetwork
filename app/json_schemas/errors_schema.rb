@@ -10,9 +10,9 @@ class ErrorsSchema
           items: {
             type: :object,
             properties: {
-              title: { type: :string },
-              detail: { type: :string },
-              source: { type: :object }
+              title: {type: :string},
+              detail: {type: :string},
+              source: {type: :object}
             },
             required: [:detail]
           }

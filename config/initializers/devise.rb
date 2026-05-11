@@ -3,16 +3,16 @@
 Devise.setup do |config|
   # ==> Mailer Configuration
   # Configure the e-mail address which will be shown in DeviseMailer.
-  config.mailer_sender = 'please-change-me@config-initializers-devise.com'
+  config.mailer_sender = "please-change-me@config-initializers-devise.com"
 
   # Configure the class responsible to send e-mails.
-  config.mailer = 'Spree::UserMailer'
+  config.mailer = "Spree::UserMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
   # :mongoid (bson_ext recommended) by default. Other ORMs may be
   # available as additional gems.
-  require 'devise/orm/active_record'
+  require "devise/orm/active_record"
 
   # ==> Configuration for any authentication mechanism
   # Configure which keys are used when authenticating an user. By default is
@@ -32,7 +32,7 @@ Devise.setup do |config|
   #config.http_authenticatable_on_xhr = false
 
   # The realm used in Http Basic Authentication
-  config.http_authentication_realm = 'Spree Application'
+  config.http_authentication_realm = "Spree Application"
 
   # ==> Configuration for :database_authenticatable
   # For bcrypt, this is the cost for hashing the password and defaults to 10. If
@@ -141,27 +141,31 @@ end
 if ENV["OPENID_APP_ID"].present? && ENV["OPENID_APP_SECRET"].present?
   Devise.setup do |config|
     site = if Rails.env.development?
-             # The lescommuns server accepts localhost:3000 as valid.
-             # So you can test in development.
-             "http://localhost:3000"
-           else
-             "https://#{ENV["SITE_URL"]}"
-           end
-    config.omniauth :openid_connect, {
-      name: :openid_connect,
-      issuer: "https://login.lescommuns.org/auth/realms/data-food-consortium",
-      scope: [:openid, :profile, :email, :offline_access],
-      response_type: :code,
-      uid_field: "email",
-      discovery: true,
-      client_auth_method: :jwks,
+      # The lescommuns server accepts localhost:3000 as valid.
+      # So you can test in development.
+      "http://localhost:3000"
+    else
+      "https://#{ENV["SITE_URL"]}"
+    end
 
-      client_options: {
-        identifier: ENV["OPENID_APP_ID"],
-        secret: ENV["OPENID_APP_SECRET"],
-        redirect_uri: "#{site}/user/spree_user/auth/openid_connect/callback",
-        jwks_uri: 'https://login.lescommuns.org/auth/realms/data-food-consortium/protocol/openid-connect/certs'
+    config.omniauth(
+      :openid_connect,
+      {
+        name: :openid_connect,
+        issuer: "https://login.lescommuns.org/auth/realms/data-food-consortium",
+        scope: [:openid, :profile, :email, :offline_access],
+        response_type: :code,
+        uid_field: "email",
+        discovery: true,
+        client_auth_method: :jwks,
+
+        client_options: {
+          identifier: ENV["OPENID_APP_ID"],
+          secret: ENV["OPENID_APP_SECRET"],
+          redirect_uri: "#{site}/user/spree_user/auth/openid_connect/callback",
+          jwks_uri: "https://login.lescommuns.org/auth/realms/data-food-consortium/protocol/openid-connect/certs"
+        }
       }
-    }
+    )
   end
 end

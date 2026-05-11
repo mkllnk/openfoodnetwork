@@ -7,7 +7,7 @@ class Invoice
       invoice_generation_attributes :id
 
       def category
-        I18n.t "invoice_shipping_category_#{require_ship_address ? 'delivery' : 'pickup'}"
+        I18n.t("invoice_shipping_category_#{require_ship_address ? "delivery" : "pickup"}")
       end
     end
   end

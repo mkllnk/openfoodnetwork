@@ -7,7 +7,7 @@ class BackorderMailer < ApplicationMailer
     @order = order
     @linked_variants = order.variants
 
-    I18n.with_locale valid_locale(order.distributor.owner) do
+    I18n.with_locale(valid_locale(order.distributor.owner)) do
       mail(to: order.distributor.owner.email)
     end
   end
@@ -17,7 +17,7 @@ class BackorderMailer < ApplicationMailer
     @order_cycle = order_cycle
     @order_id = order_id
 
-    I18n.with_locale valid_locale(user) do
+    I18n.with_locale(valid_locale(user)) do
       mail(to: user.email)
     end
   end

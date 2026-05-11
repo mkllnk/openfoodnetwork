@@ -7,22 +7,22 @@ class WebhookEndpointsController < BaseController
     webhook_endpoint = spree_current_user.webhook_endpoints.new(webhook_endpoint_params)
 
     if webhook_endpoint.save
-      flash[:success] = t('.success')
+      flash[:success] = t(".success")
     else
-      flash[:error] = t('.error')
+      flash[:error] = t(".error")
     end
 
-    redirect_to redirect_path
+    redirect_to(redirect_path)
   end
 
   def destroy
     if @webhook_endpoint.destroy
-      flash[:success] = t('.success')
+      flash[:success] = t(".success")
     else
-      flash[:error] = t('.error')
+      flash[:error] = t(".error")
     end
 
-    redirect_to redirect_path
+    redirect_to(redirect_path)
   end
 
   def test
@@ -34,8 +34,12 @@ class WebhookEndpointsController < BaseController
     flash[:success] = t(".success")
     respond_with do |format|
       format.turbo_stream do
-        render turbo_stream: turbo_stream.update(
-          :flashes, partial: "shared/flashes", locals: { flashes: flash }
+        render(
+          turbo_stream: turbo_stream.update(
+            :flashes,
+            partial: "shared/flashes",
+            locals: {flashes: flash}
+          )
         )
       end
     end

@@ -8,10 +8,14 @@ module Admin
       payment_capture = Orders::CaptureService.new(@order)
 
       if payment_capture.call
-        cable_ready.replace(selector: dom_id(@order),
-                            html: render(partial: "spree/admin/orders/table_row",
-                                         locals: { order: @order.reload, success: true }))
-        morph :nothing
+        cable_ready.replace(
+          selector: dom_id(@order),
+          html: render(
+            partial: "spree/admin/orders/table_row",
+            locals: {order: @order.reload, success: true}
+          )
+        )
+        morph(:nothing)
       else
         flash[:error] = payment_capture.gateway_error || I18n.t(:payment_processing_failed)
         morph_admin_flashes
@@ -22,10 +26,15 @@ module Admin
       @order.send_shipment_email = false unless params[:send_shipment_email]
       if @order.ship
         paths = %w[edit customer payments adjustments invoices return_authorizations].freeze
-        return set_param_for_controller if Regexp.union(paths).match? request.url
+        return set_param_for_controller if Regexp.union(paths).match?(request.url)
 
-        morph dom_id(@order), render(partial: "spree/admin/orders/table_row",
-                                     locals: { order: @order.reload, success: true })
+        morph(
+          dom_id(@order),
+          render(
+            partial: "spree/admin/orders/table_row",
+            locals: {order: @order.reload, success: true}
+          )
+        )
       else
         flash[:error] = I18n.t("api.orders.failed_to_update")
         morph_admin_flashes
@@ -39,11 +48,15 @@ module Admin
 
       file_id = "#{Time.zone.now.to_i}-#{SecureRandom.hex(2)}"
 
-      cable_ready.append(
-        selector: "#orders-index",
-        html: render(partial: "spree/admin/orders/bulk/invoice_modal",
-                     locals: { invoice_url: "/admin/orders/invoices/#{file_id}" })
-      ).broadcast
+      cable_ready
+        .append(
+          selector: "#orders-index",
+          html: render(
+            partial: "spree/admin/orders/bulk/invoice_modal",
+            locals: {invoice_url: "/admin/orders/invoices/#{file_id}"}
+          )
+        )
+        .broadcast
 
       # Preserve order of bulk_ids.
       # The ids are supplied in the sequence of the orders screen and may be
@@ -57,7 +70,7 @@ module Admin
         current_user_id: current_user.id
       )
 
-      morph :nothing
+      morph(:nothing)
     end
 
     def cancel_orders(params)
@@ -68,17 +81,17 @@ module Admin
       cancelled_orders.each do |order|
         cable_ready.replace(
           selector: dom_id(order),
-          html: render(partial: "spree/admin/orders/table_row", locals: { order: })
+          html: render(partial: "spree/admin/orders/table_row", locals: {order:})
         )
       end
 
       cable_ready.broadcast
-      morph :nothing
+      morph(:nothing)
     end
 
     def resend_confirmation_emails(params)
       editable_orders.where(id: params[:bulk_ids]).find_each do |order|
-        next unless can? :resend, order
+        next unless can?(:resend, order)
 
         Spree::OrderMailer.confirm_email_for_customer(order.id, true).deliver_later
       end
@@ -103,7 +116,7 @@ module Admin
     def authorize_order
       id = element.dataset[:id] || params[:id]
       @order = Spree::Order.find_by(id:)
-      authorize! :admin, @order
+      authorize!(:admin, @order)
     end
 
     def success(i18n_key, count)
@@ -123,8 +136,10 @@ module Admin
     def render_business_number_required_error(distributors)
       distributor_names = distributors.pluck(:name)
 
-      flash[:error] = I18n.t(:must_have_valid_business_number,
-                             enterprise_name: distributor_names.join(", "))
+      flash[:error] = I18n.t(
+        :must_have_valid_business_number,
+        enterprise_name: distributor_names.join(", ")
+      )
       morph_admin_flashes
     end
 
@@ -148,13 +163,14 @@ module Admin
 
     def distributors_without_abn(orders)
       abn = if OpenFoodNetwork::FeatureToggle.enabled?(:invoices)
-              [nil, ""]
-            else
-              [nil]
-            end
+        [nil, ""]
+      else
+        [nil]
+      end
+
       Enterprise.where(
         id: orders.select(:distributor_id),
-        abn:,
+        abn:
       )
     end
   end

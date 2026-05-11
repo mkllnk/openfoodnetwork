@@ -3,7 +3,7 @@
 module JobLogger
   class Formatter < ::Logger::Formatter
     def call(_severity, timestamp, _progname, msg)
-      time = timestamp.strftime('%FT%T%z')
+      time = timestamp.strftime("%FT%T%z")
       "#{time}: #{msg.is_a?(String) ? msg : msg.inspect}\n"
     end
   end

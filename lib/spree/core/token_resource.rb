@@ -5,9 +5,9 @@ module Spree
     module TokenResource
       module ClassMethods
         def token_resource
-          has_one :tokenized_permission, as: :permissable
-          delegate :token, to: :tokenized_permission, allow_nil: true
-          after_create :create_token
+          has_one(:tokenized_permission, as: :permissable)
+          delegate(:token, to: :tokenized_permission, allow_nil: true)
+          after_create(:create_token)
         end
       end
 
@@ -19,10 +19,10 @@ module Spree
       end
 
       def self.included(receiver)
-        receiver.extend ClassMethods
+        receiver.extend(ClassMethods)
       end
     end
   end
 end
 
-ActiveRecord::Base.class_eval { include Spree::Core::TokenResource }
+ActiveRecord::Base.class_eval { include(Spree::Core::TokenResource) }

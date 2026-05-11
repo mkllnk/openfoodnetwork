@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 module OpenFoodNetwork
   # There are two translator classes on the boundary between Angular and Rails: On the Angular side,
@@ -23,13 +23,23 @@ module OpenFoodNetwork
         enterprise_fee_ids = exchange[:enterprise_fee_ids]
 
         if exchange_exists?(exchange[:enterprise_id], @order_cycle.coordinator_id, true)
-          update_exchange(exchange[:enterprise_id], @order_cycle.coordinator_id, true,
-                          variant_ids:, enterprise_fee_ids:,
-                          receival_instructions: exchange[:receival_instructions] )
+          update_exchange(
+            exchange[:enterprise_id],
+            @order_cycle.coordinator_id,
+            true,
+            variant_ids:,
+            enterprise_fee_ids:,
+            receival_instructions: exchange[:receival_instructions]
+          )
         else
-          add_exchange(exchange[:enterprise_id], @order_cycle.coordinator_id, true,
-                       variant_ids:, enterprise_fee_ids:,
-                       receival_instructions: exchange[:receival_instructions], )
+          add_exchange(
+            exchange[:enterprise_id],
+            @order_cycle.coordinator_id,
+            true,
+            variant_ids:,
+            enterprise_fee_ids:,
+            receival_instructions: exchange[:receival_instructions]
+          )
         end
       end
 
@@ -39,19 +49,27 @@ module OpenFoodNetwork
         enterprise_fee_ids = exchange[:enterprise_fee_ids]
 
         if exchange_exists?(@order_cycle.coordinator_id, exchange[:enterprise_id], false)
-          update_exchange(@order_cycle.coordinator_id, exchange[:enterprise_id], false,
-                          variant_ids:,
-                          enterprise_fee_ids:,
-                          pickup_time: exchange[:pickup_time],
-                          pickup_instructions: exchange[:pickup_instructions],
-                          tag_list: exchange[:tag_list] )
+          update_exchange(
+            @order_cycle.coordinator_id,
+            exchange[:enterprise_id],
+            false,
+            variant_ids:,
+            enterprise_fee_ids:,
+            pickup_time: exchange[:pickup_time],
+            pickup_instructions: exchange[:pickup_instructions],
+            tag_list: exchange[:tag_list]
+          )
         else
-          add_exchange(@order_cycle.coordinator_id, exchange[:enterprise_id], false,
-                       variant_ids:,
-                       enterprise_fee_ids:,
-                       pickup_time: exchange[:pickup_time],
-                       pickup_instructions: exchange[:pickup_instructions],
-                       tag_list: exchange[:tag_list] )
+          add_exchange(
+            @order_cycle.coordinator_id,
+            exchange[:enterprise_id],
+            false,
+            variant_ids:,
+            enterprise_fee_ids:,
+            pickup_time: exchange[:pickup_time],
+            pickup_instructions: exchange[:pickup_instructions],
+            tag_list: exchange[:tag_list]
+          )
         end
       end
 
@@ -63,15 +81,24 @@ module OpenFoodNetwork
     attr_accessor :touched_exchanges
 
     def exchange_exists?(sender_id, receiver_id, incoming)
-      @order_cycle.exchanges.where(sender_id:, receiver_id:,
-                                   incoming:).present?
+      @order_cycle
+        .exchanges
+        .where(
+          sender_id:,
+          receiver_id:,
+          incoming:
+        )
+        .present?
     end
 
     def add_exchange(sender_id, receiver_id, incoming, attrs = {})
-      attrs = attrs.reverse_merge(sender_id:, receiver_id:,
-                                  incoming:)
-      variant_ids = attrs.delete :variant_ids
-      exchange = @order_cycle.exchanges.build attrs
+      attrs = attrs.reverse_merge(
+        sender_id:,
+        receiver_id:,
+        incoming:
+      )
+      variant_ids = attrs.delete(:variant_ids)
+      exchange = @order_cycle.exchanges.build(attrs)
 
       return unless manages_coordinator?
 
@@ -82,12 +109,18 @@ module OpenFoodNetwork
     end
 
     def update_exchange(sender_id, receiver_id, incoming, attrs = {})
-      exchange = @order_cycle.exchanges.where(sender_id:, receiver_id:,
-                                              incoming:).first
+      exchange = @order_cycle
+        .exchanges
+        .where(
+          sender_id:,
+          receiver_id:,
+          incoming:
+        )
+        .first
       return unless permission_for(exchange)
 
       remove_unauthorized_exchange_attributes(exchange, attrs)
-      variant_ids = attrs.delete :variant_ids
+      variant_ids = attrs.delete(:variant_ids)
       exchange.update!(attrs)
       ExchangeVariantBulkUpdater.new(exchange).update!(variant_ids) unless variant_ids.nil?
 
@@ -97,10 +130,10 @@ module OpenFoodNetwork
     def remove_unauthorized_exchange_attributes(exchange, exchange_attrs)
       return if manages_coordinator? || manager_for(exchange)
 
-      exchange_attrs.delete :enterprise_fee_ids
-      exchange_attrs.delete :pickup_time
-      exchange_attrs.delete :pickup_instructions
-      exchange_attrs.delete :tag_list
+      exchange_attrs.delete(:enterprise_fee_ids)
+      exchange_attrs.delete(:pickup_time)
+      exchange_attrs.delete(:pickup_instructions)
+      exchange_attrs.delete(:tag_list)
     end
 
     def destroy_untouched_exchanges
@@ -111,44 +144,47 @@ module OpenFoodNetwork
 
     def untouched_exchanges
       touched_exchange_ids = @touched_exchanges.map(&:id)
-      @order_cycle.exchanges.reject { |ex| touched_exchange_ids.include? ex.id }
+      @order_cycle.exchanges.reject { |ex| touched_exchange_ids.include?(ex.id) }
     end
 
     def manager_for(exchange)
-      Enterprise.managed_by(@spree_current_user).include? exchange.participant
+      Enterprise.managed_by(@spree_current_user).include?(exchange.participant)
     end
 
     def permission_for(exchange)
-      permitted_enterprises.include? exchange.participant
+      permitted_enterprises.include?(exchange.participant)
     end
 
     def permitted_enterprises
       return @permitted_enterprises unless @permitted_enterprises.nil?
 
-      @permitted_enterprises = OpenFoodNetwork::OrderCyclePermissions.
-        new(@spree_current_user, @order_cycle).visible_enterprises
+      @permitted_enterprises = OpenFoodNetwork::OrderCyclePermissions
+        .new(@spree_current_user, @order_cycle)
+        .visible_enterprises
     end
 
     def manages_coordinator?
       return @manages_coordinator unless @manages_coordinator.nil?
 
-      @manages_coordinator =
-        Enterprise.managed_by(@spree_current_user).include? @order_cycle.coordinator
+      @manages_coordinator = Enterprise.managed_by(@spree_current_user).include?(@order_cycle.coordinator)
     end
 
     def editable_variant_ids_for_incoming_exchange_between(sender, _receiver)
-      OpenFoodNetwork::OrderCyclePermissions.new(@spree_current_user, @order_cycle).
-        editable_variants_for_incoming_exchanges_from(sender).pluck(:id)
+      OpenFoodNetwork::OrderCyclePermissions
+        .new(@spree_current_user, @order_cycle)
+        .editable_variants_for_incoming_exchanges_from(sender)
+        .pluck(:id)
     end
 
     def editable_variant_ids_for_outgoing_exchange_between(_sender, receiver)
-      OpenFoodNetwork::OrderCyclePermissions.new(@spree_current_user, @order_cycle).
-        editable_variants_for_outgoing_exchanges_to(receiver).pluck(:id)
+      OpenFoodNetwork::OrderCyclePermissions
+        .new(@spree_current_user, @order_cycle)
+        .editable_variants_for_outgoing_exchanges_to(receiver)
+        .pluck(:id)
     end
 
     def find_exchange(sender_id, receiver_id, incoming)
-      @order_cycle.exchanges.
-        find_by(sender_id:, receiver_id:, incoming:)
+      @order_cycle.exchanges.find_by(sender_id:, receiver_id:, incoming:)
     end
 
     def incoming_exchange_variant_ids(attrs)
@@ -156,7 +192,8 @@ module OpenFoodNetwork
       receiver = @order_cycle.coordinator
       exchange = find_exchange(sender.id, receiver.id, true)
 
-      requested_ids = variants_to_a(attrs[:variants]) # Only the ids the user has requested
+      # Only the ids the user has requested
+      requested_ids = variants_to_a(attrs[:variants])
       # The ids that already exist
       existing_ids = exchange.present? ? exchange.variants.pluck(:id) : []
       # The ids we are allowed to add/remove
@@ -177,7 +214,8 @@ module OpenFoodNetwork
       receiver = Enterprise.find(attrs[:enterprise_id])
       exchange = find_exchange(sender.id, receiver.id, false)
 
-      requested_ids = variants_to_a(attrs[:variants]) # Only the ids the user has requested
+      # Only the ids the user has requested
+      requested_ids = variants_to_a(attrs[:variants])
       # The ids that already exist
       existing_ids = exchange.present? ? exchange.variants.pluck(:id) : []
       # The ids we are allowed to add/remove
@@ -187,7 +225,8 @@ module OpenFoodNetwork
 
       # add any requested & editable ids that are not yet in the exchange
       result |= (requested_ids & editable_ids)
-      result -= (result - incoming_variant_ids) # remove any ids not in incoming exchanges
+      # remove any ids not in incoming exchanges
+      result -= (result - incoming_variant_ids)
       # remove any editable ids that were not specifically mentioned in the request
       result -= ((result & editable_ids) - requested_ids)
 

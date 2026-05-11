@@ -18,9 +18,10 @@ module OrderManagement
           OpenFoodNetwork::ScopeVariantToHub.new(order.distributor).scope(variant)
 
           on_hand, backordered = variant.fill_status(line_item.quantity)
-          package.add variant, on_hand, :on_hand if on_hand.positive?
-          package.add variant, backordered, :backordered if backordered.positive?
+          package.add(variant, on_hand, :on_hand) if on_hand.positive?
+          package.add(variant, backordered, :backordered) if backordered.positive?
         end
+
         package
       end
     end

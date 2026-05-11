@@ -22,7 +22,8 @@ module Reporting
         def query_result
           # The objective is to group the line items by
           # [tax_rate, supplier_id, distributor_id and order_cycle_id]
-          report_line_items.list
+          report_line_items
+            .list
             .flat_map do |line_item|
               line_item.adjustments.eligible.tax.map do |tax_rate|
                 {
@@ -30,16 +31,18 @@ module Reporting
                   line_item:
                 }
               end
-            end.group_by do |hash|
-            [
-              hash[:tax_rate_id],
-              hash[:line_item].supplier_id,
-              hash[:line_item].order.distributor_id,
-              hash[:line_item].order.order_cycle_id
-            ]
-          end.each_value do |v|
-            v.map!{ |item| item[:line_item] }
-          end
+            end
+            .group_by do |hash|
+              [
+                hash[:tax_rate_id],
+                hash[:line_item].supplier_id,
+                hash[:line_item].order.distributor_id,
+                hash[:line_item].order.order_cycle_id
+              ]
+            end
+            .each_value do |v|
+              v.map! { |item| item[:line_item] }
+            end
         end
 
         def columns
@@ -67,21 +70,23 @@ module Reporting
         def rules
           [
             {
-              group_by: :distributor,
+              group_by: :distributor
             },
             {
-              group_by: :producer,
+              group_by: :producer
             },
             {
               group_by: :order_cycle,
               summary_row: proc do |_key, items, _rows|
                 line_items = items.flat_map(&:second).flatten.uniq
-                total_excl_tax =
-                  line_items.map(&:amount).compact.sum -
+                total_excl_tax = line_items.map(&:amount).compact.sum -
                   line_items.map(&:included_tax).compact.sum
-                tax = line_items.map do |line_item|
-                  line_item.adjustments.eligible.tax.map(&:amount).sum(&:to_f)
-                end.compact.sum
+                tax = line_items
+                  .map do |line_item|
+                    line_item.adjustments.eligible.tax.map(&:amount).sum(&:to_f)
+                  end
+                  .compact
+                  .sum
                 {
                   total_excl_tax:,
                   tax:,
@@ -132,12 +137,19 @@ module Reporting
         end
 
         def tax(query_result_row)
-          line_items(query_result_row).to_a.map do |line_item|
-            line_item.adjustments.eligible.tax
-              .where(originator_id: tax_rate_id(query_result_row))
-              .map(&:amount)
-              .sum(&:to_f)
-          end.compact.sum
+          line_items(query_result_row)
+            .to_a
+            .map do |line_item|
+              line_item
+                .adjustments
+                .eligible
+                .tax
+                .where(originator_id: tax_rate_id(query_result_row))
+                .map(&:amount)
+                .sum(&:to_f)
+            end
+            .compact
+            .sum
         end
 
         def total_incl_tax(query_result_row)

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec::Matchers.define :have_select2 do |id, options = {}|
+RSpec::Matchers.define(:have_select2) do |id, options = {}|
   # TODO: Implement other have_select options
   #       http://www.rubydoc.info/github/jnicklas/capybara/Capybara/Node/Matchers#has_select%3F-instance_method
   # TODO: Instead of passing in id, use a more general locator
@@ -14,16 +14,19 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
 
     results << node.has_selector?(from)
 
-    if results.all? && (options.key? :selected)
+    if results.all? && (options.key?(:selected))
       results << selected_option_is(from, options[:selected])
     end
 
     if results.all?
-      results << all_options_present(from, options[:with_options]) if options.key? :with_options
-      results << exact_options_present(from, options[:options]) if options.key? :options
-      if options.key? :without_options
-        results << all_options_absent(from,
-                                      options[:without_options])
+      results << all_options_present(from, options[:with_options]) if options.key?(:with_options)
+      results << exact_options_present(from, options[:options]) if options.key?(:options)
+      if options.key?(:without_options)
+        results <<
+          all_options_absent(
+            from,
+            options[:without_options]
+          )
       end
     end
 
@@ -31,7 +34,7 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
   end
 
   failure_message do |_actual|
-    message  = "expected to find select2 ##{@id}"
+    message = "expected to find select2 ##{@id}"
     message += " with #{@options.inspect}" if @options.any?
     message
   end
@@ -49,14 +52,14 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
     #   results << selected_option_is(from, options[:selected]) if options.key? :selected
     # end
 
-    if results.none? && (options.key? :with_options)
+    if results.none? && (options.key?(:with_options))
       results << all_options_absent(from, options[:with_options])
       # results << exact_options_present(from, options[:options]) if options.key? :options
       # results << no_options_present(from, options[:without_options])
       #   if options.key? :without_options
     end
 
-    if options.keys.intersect?(%i(selected options without_options))
+    if options.keys.intersect?(%i[selected options without_options])
       raise "Not yet implemented"
     end
 
@@ -64,7 +67,7 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
   end
 
   failure_message_when_negated do |_actual|
-    message  = "expected not to find select2 ##{@id}"
+    message = "expected not to find select2 ##{@id}"
     message += " with #{@options.inspect}" if @options.any?
     message
   end
@@ -72,7 +75,7 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
   def all_options_present(from, options)
     with_select2_open(from) do
       options.all? do |option|
-        @node.has_selector? "div.select2-drop-active ul.select2-results li", text: option
+        @node.has_selector?("div.select2-drop-active ul.select2-results li", text: option)
       end
     end
   end
@@ -80,7 +83,7 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
   def all_options_absent(from, options)
     with_select2_open(from) do
       options.all? do |option|
-        @node.has_no_selector? "div.select2-drop-active ul.select2-results li", text: option
+        @node.has_no_selector?("div.select2-drop-active ul.select2-results li", text: option)
       end
     end
   end
@@ -96,7 +99,7 @@ RSpec::Matchers.define :have_select2 do |id, options = {}|
   end
 
   def with_select2_open(from)
-    open_select2 from
+    open_select2(from)
     r = yield
     close_select2
     r

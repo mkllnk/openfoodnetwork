@@ -65,12 +65,14 @@ module Orders
     end
 
     def current_state_invoice
-      @current_state_invoice ||= Invoice.new(
-        order:,
-        data: serialize_for_invoice,
-        date: Time.zone.today,
-        number: invoices.count + 1
-      ).presenter
+      @current_state_invoice ||= Invoice
+        .new(
+          order:,
+          data: serialize_for_invoice,
+          date: Time.zone.today,
+          number: invoices.count + 1
+        )
+        .presenter
     end
 
     def invoices

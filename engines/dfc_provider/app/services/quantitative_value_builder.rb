@@ -12,18 +12,18 @@ class QuantitativeValueBuilder < DfcBuilder
   def self.quantity(variant)
     DataFoodConsortium::ConnectorV1::QuantitativeValue.new(
       unit: unit(variant.variant_unit),
-      value: variant.unit_value,
+      value: variant.unit_value
     )
   end
 
   def self.unit(unit_name)
     case unit_name
     when "volume"
-      DfcLoader.connector.MEASURES.LITRE
+      DfcLoader.connector.MEASURES.LITRE()
     when "weight"
-      DfcLoader.connector.MEASURES.GRAM
+      DfcLoader.connector.MEASURES.GRAM()
     else
-      DfcLoader.connector.MEASURES.PIECE
+      DfcLoader.connector.MEASURES.PIECE()
     end
   end
 
@@ -32,7 +32,7 @@ class QuantitativeValueBuilder < DfcBuilder
     value = quantity.value.to_f * unit_scale
 
     # Import invalid value as one item.
-    if measure.in?(%w(weight volume)) && value <= 0
+    if measure.in?(%w[weight volume]) && value <= 0
       measure = "items"
       unit_name = "items"
       value = 1
@@ -77,46 +77,47 @@ class QuantitativeValueBuilder < DfcBuilder
   # * https://github.com/datafoodconsortium/connector-ruby/issues/18
   #
   # Until then, we can ignore Rubocop metrics, IMO.
-  def self.map_unit(unit) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
-    quantity_unit = DfcLoader.connector.MEASURES
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
+  def self.map_unit(unit)
+    quantity_unit = DfcLoader.connector.MEASURES()
 
     # The unit name is only set for items. The name is implied for weight and
     # volume and filled in by `WeightsAndMeasures`.
     case unit
-    when quantity_unit.LITRE
+    when quantity_unit.LITRE()
       ["volume", nil, 1]
-    when quantity_unit.MILLILITRE
+    when quantity_unit.MILLILITRE()
       ["volume", nil, 0.001]
-    when quantity_unit.CENTILITRE
+    when quantity_unit.CENTILITRE()
       ["volume", nil, 0.01]
-    when quantity_unit.DECILITRE
+    when quantity_unit.DECILITRE()
       ["volume", nil, 0.1]
-    when quantity_unit.GALLON
+    when quantity_unit.GALLON()
       ["volume", nil, 4.54609]
 
-    when quantity_unit.MILLIGRAM
+    when quantity_unit.MILLIGRAM()
       ["weight", nil, 0.001]
-    when quantity_unit.GRAM
+    when quantity_unit.GRAM()
       ["weight", nil, 1]
-    when quantity_unit.KILOGRAM
+    when quantity_unit.KILOGRAM()
       ["weight", nil, 1_000]
-    when quantity_unit.TONNE
+    when quantity_unit.TONNE()
       ["weight", nil, 1_000_000]
-    # Not part of the DFC yet:
-    # when quantity_unit.OUNCE
-    #   ["weight", nil, 28.349523125]
-    when quantity_unit.POUNDMASS
+      # Not part of the DFC yet:
+      # when quantity_unit.OUNCE
+      #   ["weight", nil, 28.349523125]
+    when quantity_unit.POUNDMASS()
       ["weight", nil, 453.59237]
 
-    when quantity_unit.PAIR
+    when quantity_unit.PAIR()
       ["items", "pair", 2]
     when quantity_unit._4PACK
       ["items", "4 pack", 4]
     when quantity_unit._6PACK
       ["items", "6 pack", 6]
-    when quantity_unit.HALFDOZEN
+    when quantity_unit.HALFDOZEN()
       ["items", "half dozen", 6]
-    when quantity_unit.DOZEN
+    when quantity_unit.DOZEN()
       ["items", "dozen", 12]
     else
       # Labels may be provided one day:

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe OpenOrderCycleJob do
-  let(:now){ Time.zone.now }
+  let(:now) { Time.zone.now }
   let(:order_cycle) { create(:simple_order_cycle, orders_open_at: now) }
   subject { OpenOrderCycleJob.perform_now(order_cycle.id) }
 
@@ -14,14 +14,14 @@ RSpec.describe OpenOrderCycleJob do
       subject
       order_cycle.reload
     }
-      .to change { order_cycle.opened_at }
+      .to(change { order_cycle.opened_at })
 
-    expect(order_cycle.opened_at).to be_within(1).of(now)
+    expect(order_cycle.opened_at).to(be_within(1).of(now))
   end
 
   it "enqueues webhook job" do
     expect(OrderCycles::WebhookService)
-      .to receive(:create_webhook_job).with(order_cycle, 'order_cycle.opened', now).once
+      .to(receive(:create_webhook_job).with(order_cycle, "order_cycle.opened", now).once)
 
     subject
   end
@@ -46,13 +46,11 @@ RSpec.describe OpenOrderCycleJob do
     it "synchronises products from a FDC catalog", vcr: true do
       user.update!(oidc_account: build(:testdfc_account))
       # One current product is existing in OFN
-      product_id =
-        "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts/44519466467635"
+      product_id = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts/44519466467635"
       variant.semantic_links << SemanticLink.new(semantic_id: product_id)
 
       # One discontinued product is existing in OFN
-      old_product_id =
-        "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts/44519466467635-disc"
+      old_product_id = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts/44519466467635-disc"
       variant_discontinued.semantic_links << SemanticLink.new(semantic_id: old_product_id)
 
       expect {
@@ -60,20 +58,43 @@ RSpec.describe OpenOrderCycleJob do
         variant.reload
         variant_discontinued.reload
         order_cycle.reload
-      }.to change { order_cycle.opened_at }
-        .and change { enterprise.supplied_products.count }.by(0) # It shouldn't add, only update
-        .and change { variant.display_name }
-        .and change { variant.unit_value }
-        # 18.85 wholesale variant price divided by 12 cans in the slab.
-        .and change { variant.price }.to(1.57)
-        .and change { variant.on_demand }.to(true)
-        .and change { variant.on_hand }.by(0)
-        .and change { variant_discontinued.on_hand }.to(0)
-        .and query_database 58
+      }
+        .to(
+          change { order_cycle.opened_at }
+            # It shouldn't add, only update
+            .and(
+              change { enterprise.supplied_products.count }
+                .by(0)
+                .and(
+                  change { variant.display_name }
+                    .and(
+                      change { variant.unit_value }
+                        # 18.85 wholesale variant price divided by 12 cans in the slab.
+                        .and(
+                          change { variant.price }
+                            .to(1.57)
+                            .and(
+                              change { variant.on_demand }
+                                .to(true)
+                                .and(
+                                  change { variant.on_hand }
+                                    .by(0)
+                                    .and(
+                                      change { variant_discontinued.on_hand }
+                                        .to(0)
+                                        .and(query_database(58))
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
     end
   end
 
-  context "with cloned order cycle" do
+  context("with cloned order cycle") do
     subject { OpenOrderCycleJob.perform_now(cloned_order_cycle.id) }
 
     let!(:cloned_order_cycle) do
@@ -91,14 +112,14 @@ RSpec.describe OpenOrderCycleJob do
         subject
         cloned_order_cycle.reload
       }
-        .to change { cloned_order_cycle.opened_at }
+        .to(change { cloned_order_cycle.opened_at })
 
-      expect(cloned_order_cycle.opened_at).to be_within(1).of(now)
+      expect(cloned_order_cycle.opened_at).to(be_within(1).of(now))
     end
 
     it "enqueues webhook job" do
       expect(OrderCycles::WebhookService)
-        .to receive(:create_webhook_job).with(cloned_order_cycle, 'order_cycle.opened', now).once
+        .to(receive(:create_webhook_job).with(cloned_order_cycle, "order_cycle.opened", now).once)
 
       subject
     end
@@ -119,7 +140,7 @@ RSpec.describe OpenOrderCycleJob do
       )
 
       expect(OrderCycles::WebhookService)
-        .to receive(:create_webhook_job).with(order_cycle, 'order_cycle.opened', now).once
+        .to(receive(:create_webhook_job).with(order_cycle, "order_cycle.opened", now).once)
 
       # Start two jobs in parallel:
       threads = [1, 2].map do
@@ -133,7 +154,7 @@ RSpec.describe OpenOrderCycleJob do
 
       # Wait for both to jobs to pause.
       # This can reveal a race condition.
-      sleep 0.1
+      sleep(0.1)
 
       # Resume and complete both jobs:
       breakpoint.unlock
@@ -143,7 +164,8 @@ RSpec.describe OpenOrderCycleJob do
       expect {
         threads.pop.join
         threads.pop.join
-      }.to raise_error ActiveRecord::RecordNotFound
+      }
+        .to(raise_error(ActiveRecord::RecordNotFound))
 
       # If the first `join` raised an error, we still need to wait for the
       # second thread to finish:

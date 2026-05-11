@@ -5,17 +5,17 @@ class MigrateLineItemFees < ActiveRecord::Migration[4.2]
   end
 
   def up
-    Spree::Adjustment.
-      where(originator_type: 'EnterpriseFee', source_type: 'Spree::LineItem').
-      update_all(
+    Spree::Adjustment
+      .where(originator_type: "EnterpriseFee", source_type: "Spree::LineItem")
+      .update_all(
         "adjustable_id = source_id, adjustable_type = 'Spree::LineItem'"
       )
   end
 
   def down
-    Spree::Adjustment.
-      where(originator_type: 'EnterpriseFee', source_type: 'Spree::LineItem').
-      update_all(
+    Spree::Adjustment
+      .where(originator_type: "EnterpriseFee", source_type: "Spree::LineItem")
+      .update_all(
         "adjustable_id = order_id, adjustable_type = 'Spree::Order'"
       )
   end

@@ -9,12 +9,11 @@ module OpenFoodNetwork
     end
 
     def active_distributor_ids
-      @active_distributor_ids ||=
-        begin
-          enterprises = Enterprise.distributors_with_active_order_cycles.ready_for_checkout
-          enterprises = enterprises.where(id: @enterprise_ids) if @enterprise_ids.present?
-          enterprises.pluck(:id)
-        end
+      @active_distributor_ids ||= begin
+        enterprises = Enterprise.distributors_with_active_order_cycles.ready_for_checkout
+        enterprises = enterprises.where(id: @enterprise_ids) if @enterprise_ids.present?
+        enterprises.pluck(:id)
+      end
     end
 
     def earliest_closing_times

@@ -10,7 +10,7 @@ module ReportsActions
   private
 
   def authorize_report
-    authorize! report_type.to_sym, :report
+    authorize!(report_type.to_sym, :report)
   end
 
   def report_class
@@ -68,27 +68,29 @@ module ReportsActions
   end
 
   def i18n_scope
-    'admin.reports'
+    "admin.reports"
   end
 
   def rendering_options
-    @rendering_options ||= ReportRenderingOptions.where(
-      user: spree_current_user,
-      report_type:,
-      report_subtype:
-    ).first_or_create do |report_rendering_options|
-      report_rendering_options.options = {
-        fields_to_show: if request.get?
-                          @report.columns.keys -
-                            @report.fields_to_hide
-                        else
-                          params[:fields_to_show]
-                        end,
-        display_metadata_rows: false,
-        display_summary_row: request.get?,
-        display_header_row: false
-      }
-    end
+    @rendering_options ||= ReportRenderingOptions
+      .where(
+        user: spree_current_user,
+        report_type:,
+        report_subtype:
+      )
+      .first_or_create do |report_rendering_options|
+        report_rendering_options.options = {
+          fields_to_show: if request.get?
+            @report.columns.keys -
+              @report.fields_to_hide
+          else
+            params[:fields_to_show]
+          end,
+          display_metadata_rows: false,
+          display_summary_row: request.get?,
+          display_header_row: false
+        }
+      end
   end
 
   def update_rendering_options

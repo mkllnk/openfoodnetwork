@@ -6,10 +6,10 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
       OidcAccount.link(spree_current_user, request.env["omniauth.auth"])
     end
 
-    redirect_to admin_oidc_settings_path
+    redirect_to(admin_oidc_settings_path)
   rescue ActiveRecord::RecordNotUnique
     flash[:error] = t("devise.oidc.record_not_unique", uid: request.env["omniauth.auth"].uid)
-    redirect_to admin_oidc_settings_path
+    redirect_to(admin_oidc_settings_path)
   end
 
   def failure

@@ -6,14 +6,15 @@ module Spree
 
     acts_as_paranoid without_default_scope: true
 
-    belongs_to :variant, -> { with_deleted }, class_name: 'Spree::Variant', inverse_of: :prices
+    belongs_to :variant, -> { with_deleted }, class_name: "Spree::Variant", inverse_of: :prices
 
     validate :check_price
-    validates :amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+    validates :amount, numericality: {greater_than_or_equal_to: 0}, allow_nil: true
 
     def display_amount
       money
     end
+
     alias :display_price :display_amount
 
     def money
@@ -41,13 +42,17 @@ module Spree
       return nil if price.blank?
       return price unless price.is_a?(String)
 
-      separator, _delimiter = I18n.t([:'number.currency.format.separator',
-                                      :'number.currency.format.delimiter'])
+      separator, _delimiter = I18n.t(
+        [
+          :"number.currency.format.separator",
+          :"number.currency.format.delimiter"
+        ]
+      )
       non_price_characters = /[^0-9\-#{separator}]/
       # Strip everything else first
-      price = price.gsub(non_price_characters, '')
+      price = price.gsub(non_price_characters, "")
       # Then replace the locale-specific decimal separator with the standard separator if necessary
-      price.gsub!(separator, '.') unless separator == '.'
+      price.gsub!(separator, ".") unless separator == "."
 
       price.to_d
     end

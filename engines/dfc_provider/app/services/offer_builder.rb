@@ -4,15 +4,17 @@ class OfferBuilder < DfcBuilder
   def self.build(variant)
     id = urls.enterprise_offer_url(
       enterprise_id: variant.supplier_id,
-      id: variant.id,
+      id: variant.id
     )
 
     price = DataFoodConsortium::ConnectorV1::Price.new(
       value: variant.price.to_f,
-      unit: price_measure(variant)&.semanticId,
+      unit: price_measure(variant)&.semanticId
     )
     DataFoodConsortium::ConnectorV1::Offer.new(
-      id, price:, stockLimitation: stock_limitation(variant),
+      id,
+      price:,
+      stockLimitation: stock_limitation(variant)
     )
   end
 
@@ -44,15 +46,15 @@ class OfferBuilder < DfcBuilder
 
     case variant.currency
     when "AUD"
-      measures.AUSTRALIANDOLLAR
+      measures.AUSTRALIANDOLLAR()
     when "CAD"
-      measures.CANADIANDOLLAR
+      measures.CANADIANDOLLAR()
     when "EUR"
-      measures.EURO
+      measures.EURO()
     when "GBP"
-      measures.POUNDSTERLING
+      measures.POUNDSTERLING()
     when "USD"
-      measures.USDOLLAR
+      measures.USDOLLAR()
     end
   end
 end

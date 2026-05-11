@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe "spree/admin/orders/edit.html.haml" do
-  helper Spree::BaseHelper # required to make pretty_time work
-  helper Spree::Admin::NavigationHelper
-  helper Admin::InjectionHelper
-  helper Admin::OrdersHelper
+  # required to make pretty_time work
+  helper(Spree::BaseHelper)
+  helper(Spree::Admin::NavigationHelper)
+  helper(Admin::InjectionHelper)
+  helper(Admin::OrdersHelper)
 
   around do |example|
     original_config = Spree::Config[:enable_invoices?]
@@ -16,7 +17,7 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
 
   before do
     controller.singleton_class.class_eval do
-      attr_accessor :current_test_user
+      attr_accessor(:current_test_user)
 
       def current_ability
         Spree::Ability.new(current_test_user)
@@ -24,10 +25,10 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
     end
 
     controller.current_test_user = current_test_user
-    allow(view).to receive_messages spree_current_user: current_test_user
+    allow(view).to(receive_messages(spree_current_user: current_test_user))
   end
 
-  context "when order is complete" do
+  context("when order is complete") do
     let(:order) { create(:completed_order_with_fees) }
 
     before do
@@ -41,13 +42,13 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
       it "displays order shipping costs, transaction fee and order total" do
         render
 
-        expect(rendered).to have_content("Shipping Method\nUPS Ground $6.00")
-        expect(rendered).to have_content("Transaction fee:\n\n$10.00")
-        expect(rendered).to have_content("Order Total\n$36.00")
+        expect(rendered).to(have_content("Shipping Method\nUPS Ground $6.00"))
+        expect(rendered).to(have_content("Transaction fee:\n\n$10.00"))
+        expect(rendered).to(have_content("Order Total\n$36.00"))
       end
     end
 
-    context "when some line items are out of stock" do
+    context("when some line items are out of stock") do
       let!(:out_of_stock_line_item) do
         line_item = order.line_items.first
         line_item.variant.update!(on_demand: false, on_hand: 0)
@@ -57,19 +58,23 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
       it "doesn't display a table of out of stock line items" do
         render
 
-        expect(rendered).not_to have_selector ".insufficient-stock-items",
-                                              text: out_of_stock_line_item.variant.display_name
+        expect(rendered).not_to(
+          have_selector(
+            ".insufficient-stock-items",
+            text: out_of_stock_line_item.variant.display_name
+          )
+        )
       end
     end
 
     it "doesn't display closed associated adjustments" do
       render
 
-      expect(rendered).not_to have_content "Associated adjustment closed"
+      expect(rendered).not_to(have_content("Associated adjustment closed"))
     end
   end
 
-  context "when order is incomplete" do
+  context("when order is incomplete") do
     let(:order) { create(:order_with_line_items) }
 
     before do
@@ -78,7 +83,7 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
       assign(:order_cycles, [])
     end
 
-    context "when some line items are out of stock" do
+    context("when some line items are out of stock") do
       let!(:out_of_stock_line_item) do
         line_item = order.line_items.first
         line_item.variant.update!(on_demand: false, on_hand: 0)
@@ -88,24 +93,28 @@ RSpec.describe "spree/admin/orders/edit.html.haml" do
       it "displays a table of out of stock line items" do
         render
 
-        expect(rendered).to have_content "Out of Stock"
-        expect(rendered).to have_selector ".insufficient-stock-items",
-                                          text: out_of_stock_line_item.variant.display_name
+        expect(rendered).to(have_content("Out of Stock"))
+        expect(rendered).to(
+          have_selector(
+            ".insufficient-stock-items",
+            text: out_of_stock_line_item.variant.display_name
+          )
+        )
       end
     end
 
-    context "when all line items are in stock" do
+    context("when all line items are in stock") do
       it "doesn't display a table of out of stock line items" do
         render
 
-        expect(rendered).not_to have_selector ".insufficient-stock-items"
+        expect(rendered).not_to(have_selector(".insufficient-stock-items"))
       end
     end
 
     it "doesn't display closed associated adjustments" do
       render
 
-      expect(rendered).not_to have_content "Associated adjustment closed"
+      expect(rendered).not_to(have_content("Associated adjustment closed"))
     end
   end
 end

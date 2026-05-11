@@ -3,8 +3,10 @@
 class Subscription < ApplicationRecord
   include SetUnusedAddressFields
 
-  ALLOWED_PAYMENT_METHOD_TYPES = ["Spree::PaymentMethod::Check",
-                                  "Spree::Gateway::StripeSCA"].freeze
+  ALLOWED_PAYMENT_METHOD_TYPES = [
+    "Spree::PaymentMethod::Check",
+    "Spree::Gateway::StripeSCA"
+  ].freeze
 
   self.belongs_to_required_by_default = false
 
@@ -12,11 +14,11 @@ class Subscription < ApplicationRecord
   searchable_associations :shop
   searchable_scopes :active, :not_ended, :not_paused, :not_canceled
 
-  belongs_to :shop, class_name: 'Enterprise'
+  belongs_to :shop, class_name: "Enterprise"
   belongs_to :customer
   belongs_to :schedule
-  belongs_to :shipping_method, class_name: 'Spree::ShippingMethod'
-  belongs_to :payment_method, class_name: 'Spree::PaymentMethod'
+  belongs_to :shipping_method, class_name: "Spree::ShippingMethod"
+  belongs_to :payment_method, class_name: "Spree::PaymentMethod"
   belongs_to :bill_address, class_name: "Spree::Address"
   belongs_to :ship_address, class_name: "Spree::Address"
   has_many :subscription_line_items, inverse_of: :subscription, dependent: :destroy
@@ -32,16 +34,26 @@ class Subscription < ApplicationRecord
   accepts_nested_attributes_for :subscription_line_items, allow_destroy: true
   accepts_nested_attributes_for :bill_address, :ship_address
 
-  scope :not_ended, -> {
-                      where('subscriptions.ends_at > (?) OR subscriptions.ends_at IS NULL',
-                            Time.zone.now)
-                    }
-  scope :not_canceled, -> { where(subscriptions: { canceled_at: nil }) }
-  scope :not_paused, -> { where(subscriptions: { paused_at: nil }) }
-  scope :active, -> {
-                   not_canceled.not_ended.not_paused.where('subscriptions.begins_at <= (?)',
-                                                           Time.zone.now)
-                 }
+  scope(
+    :not_ended,
+    -> {
+      where(
+        "subscriptions.ends_at > (?) OR subscriptions.ends_at IS NULL",
+        Time.zone.now
+      )
+    }
+  )
+  scope :not_canceled, -> { where(subscriptions: {canceled_at: nil}) }
+  scope :not_paused, -> { where(subscriptions: {paused_at: nil}) }
+  scope(
+    :active,
+    -> {
+      not_canceled.not_ended.not_paused.where(
+        "subscriptions.begins_at <= (?)",
+        Time.zone.now
+      )
+    }
+  )
 
   def closed_proxy_orders
     proxy_orders.closed
@@ -54,7 +66,7 @@ class Subscription < ApplicationRecord
   def cancel(keep_ids = [])
     transaction do
       update_column(:canceled_at, Time.zone.now)
-      proxy_orders.reject{ |o| keep_ids.include? o.id }.each(&:cancel)
+      proxy_orders.reject { |o| keep_ids.include?(o.id) }.each(&:cancel)
       true
     end
   end
@@ -69,9 +81,10 @@ class Subscription < ApplicationRecord
 
   def state
     # NOTE: the order is important here
-    %w(canceled paused pending ended).each do |state|
+    %w[canceled paused pending ended].each do |state|
       return state if __send__("#{state}?")
     end
+
     "active"
   end
 

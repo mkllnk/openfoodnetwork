@@ -23,12 +23,12 @@ class Alert
   def self.raise(error, metadata = {}, &block)
     Bugsnag.notify(error) do |payload|
       unless metadata.respond_to?(:each)
-        metadata = { metadata: { data: metadata } }
+        metadata = {metadata: {data: metadata}}
       end
 
       metadata.each do |name, data|
         # Bugsnag only reports metadata when given a Hash.
-        data = { data: } unless data.is_a?(Hash)
+        data = {data:} unless data.is_a?(Hash)
         payload.add_metadata(name, data)
       end
 
@@ -38,8 +38,8 @@ class Alert
 
   def self.raise_with_record(error, record, &)
     metadata = {
-      record.class.name => record&.attributes || { record_was_nil: true }
+      record.class.name => record&.attributes || {record_was_nil: true}
     }
-    self.raise(error, metadata, &)
+    self.raise error, metadata, &
   end
 end

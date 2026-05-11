@@ -7,7 +7,7 @@ module DfcProvider
 
     def show
       person = PersonBuilder.person(user)
-      render json: DfcIo.export(person)
+      render(json: DfcIo.export(person))
     end
 
     private

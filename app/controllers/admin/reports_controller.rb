@@ -17,7 +17,7 @@ module Admin
 
     def index
       @reports = reports.select do |report_type, _description|
-        can? report_type, :report
+        can?(report_type, :report)
       end
     end
 
@@ -37,7 +37,7 @@ module Admin
 
     def show_report
       assign_view_data
-      render "show"
+      render("show")
     end
 
     def assign_view_data
@@ -66,7 +66,7 @@ module Admin
         params:,
         format: report_format,
         blob: @blob,
-        channel: ScopedChannel.for_id(params[:uuid]),
+        channel: ScopedChannel.for_id(params[:uuid])
       )
     end
   end

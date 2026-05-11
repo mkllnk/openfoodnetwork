@@ -9,16 +9,16 @@ module Spree
 
       def known_users
         @users = if exact_match = Spree::User.find_by(email: search_params[:q])
-                   [exact_match]
-                 else
-                   spree_current_user.known_users.ransack(ransack_hash).result.limit(10)
-                 end
+          [exact_match]
+        else
+          spree_current_user.known_users.ransack(ransack_hash).result.limit(10)
+        end
 
-        render json: @users, each_serializer: ::Api::Admin::UserSerializer
+        render(json: @users, each_serializer: ::Api::Admin::UserSerializer)
       end
 
       def customers
-        render json: load_customers, each_serializer: ::Api::Admin::CustomerSerializer
+        render(json: load_customers, each_serializer: ::Api::Admin::CustomerSerializer)
       end
 
       private
@@ -26,23 +26,31 @@ module Spree
       def load_customers
         return [] unless valid_enterprise_given?
 
-        Customer.ransack(
-          m: 'or', email_start: search_params[:q],
-          first_name_start: search_params[:q], last_name_start: search_params[:q]
-        ).result.where(enterprise_id: search_params[:distributor_id].to_i)
+        Customer
+          .ransack(
+            m: "or",
+            email_start: search_params[:q],
+            first_name_start: search_params[:q],
+            last_name_start: search_params[:q]
+          )
+          .result
+          .where(enterprise_id: search_params[:distributor_id].to_i)
       end
 
       def valid_enterprise_given?
         return true if spree_current_user.admin?
 
-        spree_current_user.enterprises.where(
-          id: search_params[:distributor_id].to_i
-        ).present?
+        spree_current_user
+          .enterprises
+          .where(
+            id: search_params[:distributor_id].to_i
+          )
+          .present?
       end
 
       def ransack_hash
         {
-          m: 'or',
+          m: "or",
           email_start: search_params[:q],
           ship_address_firstname_start: search_params[:q],
           ship_address_lastname_start: search_params[:q],

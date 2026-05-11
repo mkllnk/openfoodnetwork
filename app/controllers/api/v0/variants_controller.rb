@@ -10,41 +10,41 @@ module Api
 
       def index
         @variants = scope.ransack(params[:q]).result
-        render json: @variants, each_serializer: Api::VariantSerializer
+        render(json: @variants, each_serializer: Api::VariantSerializer)
       end
 
       def show
         @variant = scope.find(params[:id])
-        render json: @variant, serializer: Api::VariantSerializer
+        render(json: @variant, serializer: Api::VariantSerializer)
       end
 
       def create
-        authorize! :create, Spree::Variant
+        authorize!(:create, Spree::Variant)
         @variant = scope.new(variant_params)
         if @variant.save
-          render json: @variant, serializer: Api::VariantSerializer, status: :created
+          render(json: @variant, serializer: Api::VariantSerializer, status: :created)
         else
           invalid_resource!(@variant)
         end
       end
 
       def update
-        authorize! :update, Spree::Variant
+        authorize!(:update, Spree::Variant)
         @variant = scope.find(params[:id])
         if @variant.update(variant_params)
-          render json: @variant, serializer: Api::VariantSerializer, status: :ok
+          render(json: @variant, serializer: Api::VariantSerializer, status: :ok)
         else
           invalid_resource!(@product)
         end
       end
 
       def destroy
-        authorize! :delete, Spree::Variant
+        authorize!(:delete, Spree::Variant)
         @variant = scope.find(params[:id])
-        authorize! :delete, @variant
+        authorize!(:delete, @variant)
 
         VariantDeleter.new.delete(@variant)
-        head :no_content
+        head(:no_content)
       end
 
       private
@@ -56,10 +56,10 @@ module Api
       def scope
         if @product
           variants = if current_api_user.admin? || params[:show_deleted]
-                       @product.variants.with_deleted
-                     else
-                       @product.variants
-                     end
+            @product.variants.with_deleted
+          else
+            @product.variants
+          end
         else
           variants = Spree::Variant.where(nil)
           if current_api_user.admin?
@@ -70,6 +70,7 @@ module Api
             variants = variants.active
           end
         end
+
         variants
       end
 

@@ -7,9 +7,8 @@
 # WHERE spree_shipping_categories.id IS NULL
 #   AND spree_shipping_method_categories.shipping_category_id IS NOT NULL
 
-
 class AddForeignKeyToSpreeShippingMethodCategoriesSpreeShippingCategories < ActiveRecord::Migration[6.0]
   def change
-    add_foreign_key :spree_shipping_method_categories, :spree_shipping_categories, column: :shipping_category_id
+    add_foreign_key(:spree_shipping_method_categories, :spree_shipping_categories, column: :shipping_category_id)
   end
 end

@@ -1,35 +1,59 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_form_applicator'
+require "open_food_network/order_cycle_form_applicator"
 
 RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
   let!(:user) { create(:user) }
 
-  context "unit specs" do
+  context("unit specs") do
     it "creates new exchanges for incoming_exchanges" do
       coordinator_id = 123
       supplier_id = 456
 
-      incoming_exchange = { enterprise_id: supplier_id, incoming: true,
-                            variants: { '1' => true, '2' => false, '3' => true },
-                            enterprise_fee_ids: [1, 2],
-                            receival_instructions: 'receival instructions' }
+      incoming_exchange = {
+        enterprise_id: supplier_id,
+        incoming: true,
+        variants: {"1" => true, "2" => false, "3" => true},
+        enterprise_fee_ids: [1, 2],
+        receival_instructions: "receival instructions"
+      }
 
-      oc = double(:order_cycle, coordinator_id:, exchanges: [],
-                                incoming_exchanges: [incoming_exchange], outgoing_exchanges: [])
+      oc = double(
+        :order_cycle,
+        coordinator_id:,
+        exchanges: [],
+        incoming_exchanges: [incoming_exchange],
+        outgoing_exchanges: []
+      )
 
       applicator = described_class.new(oc, user)
 
-      expect(applicator).to receive(:incoming_exchange_variant_ids)
-        .with(incoming_exchange).and_return([1, 3])
-      expect(applicator).to receive(:exchange_exists?).with(supplier_id, coordinator_id,
-                                                            true).and_return(false)
-      expect(applicator).to receive(:add_exchange)
-        .with(supplier_id, coordinator_id, true,
-              variant_ids: [1, 3],
-              enterprise_fee_ids: [1, 2],
-              receival_instructions: 'receival instructions')
-      expect(applicator).to receive(:destroy_untouched_exchanges)
+      expect(applicator).to(
+        receive(:incoming_exchange_variant_ids)
+          .with(incoming_exchange)
+          .and_return([1, 3])
+      )
+      expect(applicator).to(
+        receive(:exchange_exists?)
+          .with(
+            supplier_id,
+            coordinator_id,
+            true
+          )
+          .and_return(false)
+      )
+      expect(applicator).to(
+        receive(:add_exchange)
+          .with(
+            supplier_id,
+            coordinator_id,
+            true,
+            variant_ids: [1, 3],
+            enterprise_fee_ids: [1, 2],
+            receival_instructions: "receival instructions"
+          )
+      )
+      expect(applicator).to(receive(:destroy_untouched_exchanges))
 
       applicator.go!
     end
@@ -38,28 +62,54 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       coordinator_id = 123
       distributor_id = 456
 
-      outgoing_exchange = { enterprise_id: distributor_id, incoming: false,
-                            variants: { '1' => true, '2' => false, '3' => true },
-                            enterprise_fee_ids: [1, 2], pickup_time: 'pickup time',
-                            pickup_instructions: 'pickup instructions', tag_list: 'wholesale' }
+      outgoing_exchange = {
+        enterprise_id: distributor_id,
+        incoming: false,
+        variants: {"1" => true, "2" => false, "3" => true},
+        enterprise_fee_ids: [1, 2],
+        pickup_time: "pickup time",
+        pickup_instructions: "pickup instructions",
+        tag_list: "wholesale"
+      }
 
-      oc = double(:order_cycle, coordinator_id:, exchanges: [],
-                                incoming_exchanges: [], outgoing_exchanges: [outgoing_exchange])
+      oc = double(
+        :order_cycle,
+        coordinator_id:,
+        exchanges: [],
+        incoming_exchanges: [],
+        outgoing_exchanges: [outgoing_exchange]
+      )
 
       applicator = described_class.new(oc, user)
 
-      expect(applicator).to receive(:outgoing_exchange_variant_ids)
-        .with(outgoing_exchange).and_return([1, 3])
-      expect(applicator).to receive(:exchange_exists?).with(coordinator_id, distributor_id,
-                                                            false).and_return(false)
-      expect(applicator).to receive(:add_exchange)
-        .with(coordinator_id, distributor_id, false,
-              variant_ids: [1, 3],
-              enterprise_fee_ids: [1, 2],
-              pickup_time: 'pickup time',
-              pickup_instructions: 'pickup instructions',
-              tag_list: 'wholesale')
-      expect(applicator).to receive(:destroy_untouched_exchanges)
+      expect(applicator).to(
+        receive(:outgoing_exchange_variant_ids)
+          .with(outgoing_exchange)
+          .and_return([1, 3])
+      )
+      expect(applicator).to(
+        receive(:exchange_exists?)
+          .with(
+            coordinator_id,
+            distributor_id,
+            false
+          )
+          .and_return(false)
+      )
+      expect(applicator).to(
+        receive(:add_exchange)
+          .with(
+            coordinator_id,
+            distributor_id,
+            false,
+            variant_ids: [1, 3],
+            enterprise_fee_ids: [1, 2],
+            pickup_time: "pickup time",
+            pickup_instructions: "pickup instructions",
+            tag_list: "wholesale"
+          )
+      )
+      expect(applicator).to(receive(:destroy_untouched_exchanges))
 
       applicator.go!
     end
@@ -68,30 +118,57 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       coordinator_id = 123
       supplier_id = 456
 
-      incoming_exchange = { enterprise_id: supplier_id, incoming: true,
-                            variants: { '1' => true, '2' => false, '3' => true },
-                            enterprise_fee_ids: [1, 2],
-                            receival_instructions: 'receival instructions' }
+      incoming_exchange = {
+        enterprise_id: supplier_id,
+        incoming: true,
+        variants: {"1" => true, "2" => false, "3" => true},
+        enterprise_fee_ids: [1, 2],
+        receival_instructions: "receival instructions"
+      }
 
-      oc = double(:order_cycle,
-                  coordinator_id:,
-                  exchanges: [double(:exchange, sender_id: supplier_id,
-                                                receiver_id: coordinator_id, incoming: true)],
-                  incoming_exchanges: [incoming_exchange],
-                  outgoing_exchanges: [])
+      oc = double(
+        :order_cycle,
+        coordinator_id:,
+        exchanges: [
+          double(
+            :exchange,
+            sender_id: supplier_id,
+            receiver_id: coordinator_id,
+            incoming: true
+          )
+        ],
+        incoming_exchanges: [incoming_exchange],
+        outgoing_exchanges: []
+      )
 
       applicator = described_class.new(oc, user)
 
-      expect(applicator).to receive(:incoming_exchange_variant_ids)
-        .with(incoming_exchange).and_return([1, 3])
-      expect(applicator).to receive(:exchange_exists?).with(supplier_id, coordinator_id,
-                                                            true).and_return(true)
-      expect(applicator).to receive(:update_exchange)
-        .with(supplier_id, coordinator_id, true,
-              variant_ids: [1, 3],
-              enterprise_fee_ids: [1, 2],
-              receival_instructions: 'receival instructions')
-      expect(applicator).to receive(:destroy_untouched_exchanges)
+      expect(applicator).to(
+        receive(:incoming_exchange_variant_ids)
+          .with(incoming_exchange)
+          .and_return([1, 3])
+      )
+      expect(applicator).to(
+        receive(:exchange_exists?)
+          .with(
+            supplier_id,
+            coordinator_id,
+            true
+          )
+          .and_return(true)
+      )
+      expect(applicator).to(
+        receive(:update_exchange)
+          .with(
+            supplier_id,
+            coordinator_id,
+            true,
+            variant_ids: [1, 3],
+            enterprise_fee_ids: [1, 2],
+            receival_instructions: "receival instructions"
+          )
+      )
+      expect(applicator).to(receive(:destroy_untouched_exchanges))
 
       applicator.go!
     end
@@ -100,32 +177,61 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       coordinator_id = 123
       distributor_id = 456
 
-      outgoing_exchange = { enterprise_id: distributor_id, incoming: false,
-                            variants: { '1' => true, '2' => false, '3' => true },
-                            enterprise_fee_ids: [1, 2], pickup_time: 'pickup time',
-                            pickup_instructions: 'pickup instructions', tag_list: 'wholesale' }
+      outgoing_exchange = {
+        enterprise_id: distributor_id,
+        incoming: false,
+        variants: {"1" => true, "2" => false, "3" => true},
+        enterprise_fee_ids: [1, 2],
+        pickup_time: "pickup time",
+        pickup_instructions: "pickup instructions",
+        tag_list: "wholesale"
+      }
 
-      oc = double(:order_cycle,
-                  coordinator_id:,
-                  exchanges: [double(:exchange, sender_id: coordinator_id,
-                                                receiver_id: distributor_id, incoming: false)],
-                  incoming_exchanges: [],
-                  outgoing_exchanges: [outgoing_exchange])
+      oc = double(
+        :order_cycle,
+        coordinator_id:,
+        exchanges: [
+          double(
+            :exchange,
+            sender_id: coordinator_id,
+            receiver_id: distributor_id,
+            incoming: false
+          )
+        ],
+        incoming_exchanges: [],
+        outgoing_exchanges: [outgoing_exchange]
+      )
 
       applicator = described_class.new(oc, user)
 
-      expect(applicator).to receive(:outgoing_exchange_variant_ids)
-        .with(outgoing_exchange).and_return([1, 3])
-      expect(applicator).to receive(:exchange_exists?).with(coordinator_id, distributor_id,
-                                                            false).and_return(true)
-      expect(applicator).to receive(:update_exchange)
-        .with(coordinator_id, distributor_id, false,
-              variant_ids: [1, 3],
-              enterprise_fee_ids: [1, 2],
-              pickup_time: 'pickup time',
-              pickup_instructions: 'pickup instructions',
-              tag_list: 'wholesale')
-      expect(applicator).to receive(:destroy_untouched_exchanges)
+      expect(applicator).to(
+        receive(:outgoing_exchange_variant_ids)
+          .with(outgoing_exchange)
+          .and_return([1, 3])
+      )
+      expect(applicator).to(
+        receive(:exchange_exists?)
+          .with(
+            coordinator_id,
+            distributor_id,
+            false
+          )
+          .and_return(true)
+      )
+      expect(applicator).to(
+        receive(:update_exchange)
+          .with(
+            coordinator_id,
+            distributor_id,
+            false,
+            variant_ids: [1, 3],
+            enterprise_fee_ids: [1, 2],
+            pickup_time: "pickup time",
+            pickup_instructions: "pickup instructions",
+            tag_list: "wholesale"
+          )
+      )
+      expect(applicator).to(receive(:destroy_untouched_exchanges))
 
       applicator.go!
     end
@@ -134,21 +240,28 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       it "destroys untouched exchanges" do
         coordinator_id = 123
         supplier_id = 456
-        exchange = double(:exchange, id: 1, sender_id: supplier_id, receiver_id: coordinator_id,
-                                     incoming: true)
+        exchange = double(
+          :exchange,
+          id: 1,
+          sender_id: supplier_id,
+          receiver_id: coordinator_id,
+          incoming: true
+        )
 
-        oc = double(:order_cycle,
-                    coordinator_id:,
-                    exchanges: [exchange],
-                    incoming_exchanges: [],
-                    outgoing_exchanges: [])
+        oc = double(
+          :order_cycle,
+          coordinator_id:,
+          exchanges: [exchange],
+          incoming_exchanges: [],
+          outgoing_exchanges: []
+        )
 
         applicator = described_class.new(oc, user)
 
-        expect(applicator).to receive(:destroy_untouched_exchanges)
+        expect(applicator).to(receive(:destroy_untouched_exchanges))
 
         applicator.go!
-        expect(applicator.__send__(:untouched_exchanges)).to eq([exchange])
+        expect(applicator.__send__(:untouched_exchanges)).to(eq([exchange]))
       end
 
       it "compares exchanges by id only" do
@@ -161,111 +274,136 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
           @touched_exchanges = [e2]
         end
 
-        expect(applicator.__send__(:untouched_exchanges)).to eq([])
+        expect(applicator.__send__(:untouched_exchanges)).to(eq([]))
       end
 
-      context "as a manager of the coordinator" do
+      context("as a manager of the coordinator") do
         let(:applicator) { described_class.new(nil, user) }
-        before { allow(applicator).to receive(:manages_coordinator?) { true } }
+        before { allow(applicator).to(receive(:manages_coordinator?) { true }) }
 
         it "destroys exchanges" do
           exchanges = [double(:exchange), double(:exchange)]
-          expect(applicator).to receive(:untouched_exchanges) { exchanges }
-          exchanges.each { |ex| expect(ex).to receive(:destroy) }
+          expect(applicator).to(receive(:untouched_exchanges) { exchanges })
+          exchanges.each { |ex| expect(ex).to(receive(:destroy)) }
 
           applicator.__send__(:destroy_untouched_exchanges)
         end
       end
 
-      context "as a non-manager of the coordinator" do
+      context("as a non-manager of the coordinator") do
         let(:applicator) { described_class.new(nil, user) }
-        before { allow(applicator).to receive(:manages_coordinator?) { false } }
+        before { allow(applicator).to(receive(:manages_coordinator?) { false }) }
 
         it "does not destroy any exchanges" do
-          expect(applicator).not_to receive(:with_permission)
+          expect(applicator).not_to(receive(:with_permission))
           applicator.__send__(:destroy_untouched_exchanges)
         end
       end
     end
 
     describe "updating the list of variants for a given outgoing exchange" do
-      let!(:v1) { create(:variant) } # Not Existing + Request Add + Editable + Incoming
-      let!(:v2) { create(:variant) } # Not Existing + Request Add + Not Editable + Incoming
-      let!(:v3) { create(:variant) } # Existing + Request Add + Editable + Incoming
-      let!(:v4) { create(:variant) } # Existing + Not mentioned + Editable + Incoming
-      let!(:v5) { create(:variant) } # Existing + Request Remove + Editable + Incoming
-      let!(:v6) { create(:variant) } # Existing + Request Remove + Not Editable + Incoming
-      let!(:v7) { create(:variant) } # Existing + Request Add + Not Editable + Not Incoming
-      let!(:v8) { create(:variant) } # Existing + Request Add + Editable + Not Incoming
-      let!(:v9) { create(:variant) } # Not Existing + Request Add + Editable + Not Incoming
+      # Not Existing + Request Add + Editable + Incoming
+      let!(:v1) { create(:variant) }
+      # Not Existing + Request Add + Not Editable + Incoming
+      let!(:v2) { create(:variant) }
+      # Existing + Request Add + Editable + Incoming
+      let!(:v3) { create(:variant) }
+      # Existing + Not mentioned + Editable + Incoming
+      let!(:v4) { create(:variant) }
+      # Existing + Request Remove + Editable + Incoming
+      let!(:v5) { create(:variant) }
+      # Existing + Request Remove + Not Editable + Incoming
+      let!(:v6) { create(:variant) }
+      # Existing + Request Add + Not Editable + Not Incoming
+      let!(:v7) { create(:variant) }
+      # Existing + Request Add + Editable + Not Incoming
+      let!(:v8) { create(:variant) }
+      # Not Existing + Request Add + Editable + Not Incoming
+      let!(:v9) { create(:variant) }
       let!(:exchange) {
-        create(:exchange, incoming: false,
-                          variant_ids: [v3.id, v4.id, v5.id, v6.id, v7.id, v8.id])
+        create(
+          :exchange,
+          incoming: false,
+          variant_ids: [v3.id, v4.id, v5.id, v6.id, v7.id, v8.id]
+        )
       }
       let!(:oc) { exchange.order_cycle }
       let!(:enterprise) { exchange.receiver }
       let!(:coordinator) { oc.coordinator }
       let!(:applicator) { described_class.new(oc, user) }
       let(:ids) do
-        applicator.__send__(:outgoing_exchange_variant_ids,
-                            enterprise_id: enterprise.id,
-                            variants: {
-                              v1.id.to_s => true,
-                              v2.id.to_s => true,
-                              v3.id.to_s => true,
-                              v5.id.to_s => false,
-                              v6.id.to_s => false,
-                              v7.id.to_s => true,
-                              v8.id.to_s => true,
-                              v9.id.to_s => true
-                            })
+        applicator.__send__(
+          :outgoing_exchange_variant_ids,
+          enterprise_id: enterprise.id,
+          variants: {
+            v1.id.to_s => true,
+            v2.id.to_s => true,
+            v3.id.to_s => true,
+            v5.id.to_s => false,
+            v6.id.to_s => false,
+            v7.id.to_s => true,
+            v8.id.to_s => true,
+            v9.id.to_s => true
+          }
+        )
       end
 
       before do
-        allow(applicator).to receive(:incoming_variant_ids) {
-                               [v1.id, v2.id, v3.id, v4.id, v5.id, v6.id]
-                             }
-        allow(applicator).to receive(:editable_variant_ids_for_outgoing_exchange_between) {
-                               [v1.id, v3.id, v4.id, v5.id, v8.id, v9.id]
-                             }
+        allow(applicator).to(
+          receive(:incoming_variant_ids) {
+            [v1.id, v2.id, v3.id, v4.id, v5.id, v6.id]
+          }
+        )
+        allow(applicator).to(
+          receive(:editable_variant_ids_for_outgoing_exchange_between) {
+            [v1.id, v3.id, v4.id, v5.id, v8.id, v9.id]
+          }
+        )
       end
 
       it "updates the list of variants for the exchange" do
         # Adds variants that are editable
-        expect(ids).to include v1.id
+        expect(ids).to(include(v1.id))
 
         # Does not add variants that are not editable
-        expect(ids).not_to include v2.id
+        expect(ids).not_to(include(v2.id))
 
         # Keeps existing variants, when they are explicitly mentioned in the request
-        expect(ids).to include v3.id
+        expect(ids).to(include(v3.id))
 
         # Removes existing variants that are editable, when they are not mentioned in the request
-        expect(ids).not_to include v4.id
+        expect(ids).not_to(include(v4.id))
 
         # Removes existing variants that are editable, when the request explicitly removes them
-        expect(ids).not_to include v5.id
+        expect(ids).not_to(include(v5.id))
 
         # Keeps existing variants that are not editable
-        expect(ids).to include v6.id
+        expect(ids).to(include(v6.id))
 
         # Removes existing variants that are not in an incoming exchange,
         # regardless of whether they are not editable
-        expect(ids).not_to include v7.id, v8.id
+        expect(ids).not_to(include(v7.id, v8.id))
 
         # Does not add variants that are not in an incoming exchange
-        expect(ids).not_to include v9.id
+        expect(ids).not_to(include(v9.id))
       end
     end
 
     describe "updating the list of variants for a given incoming exchange" do
-      let!(:v1) { create(:variant) } # Not Existing + Request Add + Editable
-      let!(:v2) { create(:variant) } # Not Existing + Request Add + Not Editable
-      let!(:v3) { create(:variant) } # Existing + Request Add + Editable
-      let!(:v4) { create(:variant) } # Existing + Request Remove + Not Editable
-      let!(:v5) { create(:variant) } # Existing + Request Remove + Editable
-      let!(:v6) { create(:variant) } # Existing + Request Remove + Not Editable
-      let!(:v7) { create(:variant) } # Existing + Not mentioned + Editable
+      # Not Existing + Request Add + Editable
+      let!(:v1) { create(:variant) }
+      # Not Existing + Request Add + Not Editable
+      let!(:v2) { create(:variant) }
+      # Existing + Request Add + Editable
+      let!(:v3) { create(:variant) }
+      # Existing + Request Remove + Not Editable
+      let!(:v4) { create(:variant) }
+      # Existing + Request Remove + Editable
+      let!(:v5) { create(:variant) }
+      # Existing + Request Remove + Not Editable
+      let!(:v6) { create(:variant) }
+      # Existing + Not mentioned + Editable
+      let!(:v7) { create(:variant) }
       let!(:exchange) {
         create(:exchange, incoming: true, variant_ids: [v3.id, v4.id, v5.id, v6.id, v7.id])
       }
@@ -274,45 +412,49 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       let!(:coordinator) { oc.coordinator }
       let!(:applicator) { described_class.new(oc, user) }
       let(:ids) do
-        applicator.__send__(:incoming_exchange_variant_ids,
-                            enterprise_id: enterprise.id,
-                            variants: {
-                              v1.id.to_s => true,
-                              v2.id.to_s => true,
-                              v3.id.to_s => true,
-                              v4.id.to_s => false,
-                              v5.id.to_s => false,
-                              v6.id.to_s => false
-                            })
+        applicator.__send__(
+          :incoming_exchange_variant_ids,
+          enterprise_id: enterprise.id,
+          variants: {
+            v1.id.to_s => true,
+            v2.id.to_s => true,
+            v3.id.to_s => true,
+            v4.id.to_s => false,
+            v5.id.to_s => false,
+            v6.id.to_s => false
+          }
+        )
       end
 
       before do
-        allow(applicator).to receive(:editable_variant_ids_for_incoming_exchange_between) {
-                               [v1.id, v3.id, v5.id, v7.id]
-                             }
+        allow(applicator).to(
+          receive(:editable_variant_ids_for_incoming_exchange_between) {
+            [v1.id, v3.id, v5.id, v7.id]
+          }
+        )
       end
 
       it "updates the list of variants for the exchange" do
         # Adds variants that are editable
-        expect(ids).to include v1.id
+        expect(ids).to(include(v1.id))
 
         # Does not add variants that are not editable
-        expect(ids).not_to include v2.id
+        expect(ids).not_to(include(v2.id))
 
         # Keeps existing variants, if they are editable and requested
-        expect(ids).to include v3.id
+        expect(ids).to(include(v3.id))
 
         # Keeps existing variants if they are non-editable, regardless of request
-        expect(ids).to include v4.id
+        expect(ids).to(include(v4.id))
 
         # Removes existing variants that are editable, when the request explicitly removes them
-        expect(ids).not_to include v5.id
+        expect(ids).not_to(include(v5.id))
 
         # Keeps existing variants that are not editable
-        expect(ids).to include v6.id
+        expect(ids).to(include(v6.id))
 
         # Removes existing variants that are editable, when they are not mentioned in the request
-        expect(ids).not_to include v7.id
+        expect(ids).not_to(include(v7.id))
       end
     end
 
@@ -323,9 +465,9 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
           ex = double(:exchange, participant: e)
 
           applicator = described_class.new(nil, user)
-          allow(applicator).to receive(:permitted_enterprises) { [e] }
+          allow(applicator).to(receive(:permitted_enterprises) { [e] })
 
-          expect(applicator.__send__(:permission_for, ex)).to be true
+          expect(applicator.__send__(:permission_for, ex)).to(be(true))
         end
 
         it "returns false otherwise" do
@@ -333,17 +475,18 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
           ex = double(:exchange, participant: e)
 
           applicator = described_class.new(nil, user)
-          allow(applicator).to receive(:permitted_enterprises) { [] }
+          allow(applicator).to(receive(:permitted_enterprises) { [] })
 
-          expect(applicator.__send__(:permission_for, ex)).to be false
+          expect(applicator.__send__(:permission_for, ex)).to(be(false))
         end
       end
     end
   end
 
-  context "integration specs" do
+  context("integration specs") do
     before(:all) do
-      require 'spec_helper'
+      require "spec_helper"
+
     end
 
     it "checks whether exchanges exist" do
@@ -351,18 +494,60 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       exchange = FactoryBot.create(:exchange, order_cycle: oc)
       applicator = described_class.new(oc, user)
 
-      expect(applicator.__send__(:exchange_exists?, exchange.sender_id, exchange.receiver_id,
-                                 exchange.incoming)).to be true
-      expect(applicator.__send__(:exchange_exists?, exchange.sender_id, exchange.receiver_id,
-                                 !exchange.incoming)).to be false
-      expect(applicator.__send__(:exchange_exists?, exchange.receiver_id, exchange.sender_id,
-                                 exchange.incoming)).to be false
-      expect(applicator.__send__(:exchange_exists?, exchange.sender_id, 999_999,
-                                 exchange.incoming)).to be false
-      expect(applicator.__send__(:exchange_exists?, 999_999, exchange.receiver_id,
-                                 exchange.incoming)).to be false
-      expect(applicator.__send__(:exchange_exists?, 999_999, 888_888,
-                                 exchange.incoming)).to be false
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          exchange.sender_id,
+          exchange.receiver_id,
+          exchange.incoming
+        )
+      )
+        .to(be(true))
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          exchange.sender_id,
+          exchange.receiver_id,
+          !exchange.incoming
+        )
+      )
+        .to(be(false))
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          exchange.receiver_id,
+          exchange.sender_id,
+          exchange.incoming
+        )
+      )
+        .to(be(false))
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          exchange.sender_id,
+          999_999,
+          exchange.incoming
+        )
+      )
+        .to(be(false))
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          999_999,
+          exchange.receiver_id,
+          exchange.incoming
+        )
+      )
+        .to(be(false))
+      expect(
+        applicator.__send__(
+          :exchange_exists?,
+          999_999,
+          888_888,
+          exchange.incoming
+        )
+      )
+        .to(be(false))
     end
 
     describe "adding exchanges" do
@@ -376,37 +561,47 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       let!(:enterprise_fee1) { create(:enterprise_fee) }
       let!(:enterprise_fee2) { create(:enterprise_fee) }
 
-      context "as a manager of the coorindator" do
+      context("as a manager of the coorindator") do
         before do
-          allow(applicator).to receive(:manages_coordinator?) { true }
+          allow(applicator).to(receive(:manages_coordinator?) { true })
           applicator.__send__(:touched_exchanges=, [])
-          applicator.__send__(:add_exchange, sender.id, receiver.id, incoming,
-                              variant_ids: [variant1.id, variant2.id],
-                              enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id])
+          applicator.__send__(
+            :add_exchange,
+            sender.id,
+            receiver.id,
+            incoming,
+            variant_ids: [variant1.id, variant2.id],
+            enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id]
+          )
         end
 
         it "adds new exchanges" do
           exchange = Exchange.last
-          expect(exchange.sender).to eq sender
-          expect(exchange.receiver).to eq receiver
-          expect(exchange.incoming).to eq incoming
-          expect(exchange.variants).to match_array [variant1, variant2]
-          expect(exchange.enterprise_fees).to match_array [enterprise_fee1, enterprise_fee2]
+          expect(exchange.sender).to(eq(sender))
+          expect(exchange.receiver).to(eq(receiver))
+          expect(exchange.incoming).to(eq(incoming))
+          expect(exchange.variants).to(match_array([variant1, variant2]))
+          expect(exchange.enterprise_fees).to(match_array([enterprise_fee1, enterprise_fee2]))
 
-          expect(applicator.__send__(:touched_exchanges)).to eq([exchange])
+          expect(applicator.__send__(:touched_exchanges)).to(eq([exchange]))
         end
       end
 
-      context "as a user which does not manage the coorindator" do
+      context("as a user which does not manage the coorindator") do
         before do
-          allow(applicator).to receive(:manages_coordinator?) { false }
-          applicator.__send__(:add_exchange, sender.id, receiver.id, incoming,
-                              variant_ids: [variant1.id, variant2.id],
-                              enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id])
+          allow(applicator).to(receive(:manages_coordinator?) { false })
+          applicator.__send__(
+            :add_exchange,
+            sender.id,
+            receiver.id,
+            incoming,
+            variant_ids: [variant1.id, variant2.id],
+            enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id]
+          )
         end
 
         it "does not add new exchanges" do
-          expect(Exchange.last).to be_nil
+          expect(Exchange.last).to(be_nil)
         end
       end
     end
@@ -425,83 +620,104 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       let!(:enterprise_fee3) { create(:enterprise_fee) }
 
       let!(:exchange) {
-        create(:exchange, order_cycle: oc, sender:, receiver:, incoming:,
-                          variant_ids: [variant1.id, variant2.id],
-                          enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id])
+        create(
+          :exchange,
+          order_cycle: oc,
+          sender:,
+          receiver:,
+          incoming:,
+          variant_ids: [variant1.id, variant2.id],
+          enterprise_fee_ids: [enterprise_fee1.id, enterprise_fee2.id]
+        )
       }
 
-      context "as a manager of the coorindator" do
+      context("as a manager of the coorindator") do
         before do
-          allow(applicator).to receive(:manages_coordinator?) { true }
-          allow(applicator).to receive(:manager_for) { false }
-          allow(applicator).to receive(:permission_for) { true }
+          allow(applicator).to(receive(:manages_coordinator?) { true })
+          allow(applicator).to(receive(:manager_for) { false })
+          allow(applicator).to(receive(:permission_for) { true })
           applicator.__send__(:touched_exchanges=, [])
-          applicator.__send__(:update_exchange, sender.id, receiver.id, incoming,
-                              variant_ids: [variant1.id, variant3.id],
-                              enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
-                              pickup_time: 'New Pickup Time',
-                              pickup_instructions: 'New Pickup Instructions',
-                              tag_list: 'wholesale')
+          applicator.__send__(
+            :update_exchange,
+            sender.id,
+            receiver.id,
+            incoming,
+            variant_ids: [variant1.id, variant3.id],
+            enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
+            pickup_time: "New Pickup Time",
+            pickup_instructions: "New Pickup Instructions",
+            tag_list: "wholesale"
+          )
         end
 
         it "updates the variants, enterprise fees tags, and pickup information of the exchange" do
           exchange.reload
-          expect(exchange.variants).to match_array [variant1, variant3]
-          expect(exchange.enterprise_fees).to match_array [enterprise_fee2, enterprise_fee3]
-          expect(exchange.pickup_time).to eq 'New Pickup Time'
-          expect(exchange.pickup_instructions).to eq 'New Pickup Instructions'
-          expect(exchange.tag_list).to eq ['wholesale']
-          expect(applicator.__send__(:touched_exchanges)).to eq [exchange]
+          expect(exchange.variants).to(match_array([variant1, variant3]))
+          expect(exchange.enterprise_fees).to(match_array([enterprise_fee2, enterprise_fee3]))
+          expect(exchange.pickup_time).to(eq("New Pickup Time"))
+          expect(exchange.pickup_instructions).to(eq("New Pickup Instructions"))
+          expect(exchange.tag_list).to(eq(["wholesale"]))
+          expect(applicator.__send__(:touched_exchanges)).to(eq([exchange]))
         end
       end
 
-      context "as a manager of the participating enterprise" do
+      context("as a manager of the participating enterprise") do
         before do
-          allow(applicator).to receive(:manages_coordinator?) { false }
-          allow(applicator).to receive(:manager_for) { true }
-          allow(applicator).to receive(:permission_for) { true }
+          allow(applicator).to(receive(:manages_coordinator?) { false })
+          allow(applicator).to(receive(:manager_for) { true })
+          allow(applicator).to(receive(:permission_for) { true })
           applicator.__send__(:touched_exchanges=, [])
-          applicator.__send__(:update_exchange, sender.id, receiver.id, incoming,
-                              variant_ids: [variant1.id, variant3.id],
-                              enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
-                              pickup_time: 'New Pickup Time',
-                              pickup_instructions: 'New Pickup Instructions',
-                              tag_list: 'wholesale')
+          applicator.__send__(
+            :update_exchange,
+            sender.id,
+            receiver.id,
+            incoming,
+            variant_ids: [variant1.id, variant3.id],
+            enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
+            pickup_time: "New Pickup Time",
+            pickup_instructions: "New Pickup Instructions",
+            tag_list: "wholesale"
+          )
         end
 
         it "updates the variants, enterprise fees, tags and pickup information of the exchange" do
           exchange.reload
-          expect(exchange.variants).to match_array [variant1, variant3]
-          expect(exchange.enterprise_fees).to match_array [enterprise_fee2, enterprise_fee3]
-          expect(exchange.pickup_time).to eq 'New Pickup Time'
-          expect(exchange.pickup_instructions).to eq 'New Pickup Instructions'
-          expect(exchange.tag_list).to eq ['wholesale']
-          expect(applicator.__send__(:touched_exchanges)).to eq [exchange]
+          expect(exchange.variants).to(match_array([variant1, variant3]))
+          expect(exchange.enterprise_fees).to(match_array([enterprise_fee2, enterprise_fee3]))
+          expect(exchange.pickup_time).to(eq("New Pickup Time"))
+          expect(exchange.pickup_instructions).to(eq("New Pickup Instructions"))
+          expect(exchange.tag_list).to(eq(["wholesale"]))
+          expect(applicator.__send__(:touched_exchanges)).to(eq([exchange]))
         end
       end
 
-      context "where the participating enterprise is permitted for the user" do
+      context("where the participating enterprise is permitted for the user") do
         before do
-          allow(applicator).to receive(:manages_coordinator?) { false }
-          allow(applicator).to receive(:manager_for) { false }
-          allow(applicator).to receive(:permission_for) { true }
+          allow(applicator).to(receive(:manages_coordinator?) { false })
+          allow(applicator).to(receive(:manager_for) { false })
+          allow(applicator).to(receive(:permission_for) { true })
           applicator.__send__(:touched_exchanges=, [])
-          applicator.__send__(:update_exchange, sender.id, receiver.id, incoming,
-                              variant_ids: [variant1.id, variant3.id],
-                              enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
-                              pickup_time: 'New Pickup Time',
-                              pickup_instructions: 'New Pickup Instructions',
-                              tag_list: 'wholesale')
+          applicator.__send__(
+            :update_exchange,
+            sender.id,
+            receiver.id,
+            incoming,
+            variant_ids: [variant1.id, variant3.id],
+            enterprise_fee_ids: [enterprise_fee2.id, enterprise_fee3.id],
+            pickup_time: "New Pickup Time",
+            pickup_instructions: "New Pickup Instructions",
+            tag_list: "wholesale"
+          )
         end
 
         it "updates the variants in the exchange, but not the fees, tags or pickup information" do
           exchange.reload
-          expect(exchange.variants).to match_array [variant1, variant3]
-          expect(exchange.enterprise_fees).to match_array [enterprise_fee1, enterprise_fee2]
-          expect(exchange.pickup_time).not_to eq 'New Pickup Time'
-          expect(exchange.pickup_instructions).not_to eq 'New Pickup Instructions'
-          expect(exchange.tag_list).to eq []
-          expect(applicator.__send__(:touched_exchanges)).to eq [exchange]
+          expect(exchange.variants).to(match_array([variant1, variant3]))
+          expect(exchange.enterprise_fees).to(match_array([enterprise_fee1, enterprise_fee2]))
+          expect(exchange.pickup_time).not_to(eq("New Pickup Time"))
+          expect(exchange.pickup_instructions).not_to(eq("New Pickup Instructions"))
+          expect(exchange.tag_list).to(eq([]))
+          expect(applicator.__send__(:touched_exchanges)).to(eq([exchange]))
         end
       end
     end
@@ -516,7 +732,8 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       expect do
         applicator.__send__(:touched_exchanges=, [])
         applicator.__send__(:add_exchange, sender.id, receiver.id, incoming)
-      end.to change { Exchange.count }.by(0)
+      end
+        .to(change { Exchange.count }.by(0))
     end
 
     it "does not update exchanges it is not permitted to touch" do
@@ -525,15 +742,25 @@ RSpec.describe OpenFoodNetwork::OrderCycleFormApplicator do
       oc = FactoryBot.create(:simple_order_cycle)
       applicator = described_class.new(oc, user)
       incoming = true
-      exchange = FactoryBot.create(:exchange, order_cycle: oc, sender:,
-                                              receiver:, incoming:)
+      exchange = FactoryBot.create(
+        :exchange,
+        order_cycle: oc,
+        sender:,
+        receiver:,
+        incoming:
+      )
       variant1 = FactoryBot.create(:variant)
 
       applicator.__send__(:touched_exchanges=, [])
-      applicator.__send__(:update_exchange, sender.id, receiver.id, incoming,
-                          variant_ids: [variant1.id])
+      applicator.__send__(
+        :update_exchange,
+        sender.id,
+        receiver.id,
+        incoming,
+        variant_ids: [variant1.id]
+      )
 
-      expect(exchange.variants).not_to eq([variant1])
+      expect(exchange.variants).not_to(eq([variant1]))
     end
   end
 end

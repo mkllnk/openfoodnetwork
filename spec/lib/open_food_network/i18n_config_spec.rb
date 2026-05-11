@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/i18n_config'
+require "open_food_network/i18n_config"
 
 module OpenFoodNetwork
   RSpec.describe I18nConfig do

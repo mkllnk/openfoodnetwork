@@ -3,7 +3,7 @@
 module PreferenceSections
   class GroupSignupPageSection
     def name
-      I18n.t('admin.contents.edit.group_signup_page')
+      I18n.t("admin.contents.edit.group_signup_page")
     end
 
     def preferences

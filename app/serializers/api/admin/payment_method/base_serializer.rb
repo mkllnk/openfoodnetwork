@@ -11,7 +11,7 @@ module Api
         end
 
         def tags
-          payment_method_tag_list.map{ |t| { text: t } }
+          payment_method_tag_list.map { |t| {text: t} }
         end
 
         private

@@ -14,9 +14,9 @@ class BulkInvoiceJob < ApplicationJob
 
     orders.each(&method(:generate_invoice))
 
-    ensure_directory_exists filepath
+    ensure_directory_exists(filepath)
 
-    pdf.save filepath
+    pdf.save(filepath)
 
     broadcast(filepath, options[:channel]) if options[:channel]
   end
@@ -29,11 +29,12 @@ class BulkInvoiceJob < ApplicationJob
 
   def generate_invoice(order)
     renderer_data = if OpenFoodNetwork::FeatureToggle.enabled?(:invoices, current_user)
-                      Orders::GenerateInvoiceService.new(order).generate_or_update_latest_invoice
-                      order.invoices.first.presenter
-                    else
-                      order
-                    end
+      Orders::GenerateInvoiceService.new(order).generate_or_update_latest_invoice
+      order.invoices.first.presenter
+    else
+      order
+    end
+
     invoice = renderer.render_to_string(renderer_data, current_user)
     pdf << CombinePDF.parse(invoice)
   end
@@ -41,13 +42,15 @@ class BulkInvoiceJob < ApplicationJob
   def broadcast(filepath, channel)
     file_id = filepath.split("/").last.split(".").first
 
-    cable_ready[channel].
-      inner_html(
+    cable_ready[channel]
+      .inner_html(
         selector: "#bulk_invoices_modal .modal-content",
-        html: render(partial: "spree/admin/orders/bulk/invoice_link",
-                     locals: { invoice_url: "/admin/orders/invoices/#{file_id}" })
-      ).
-      broadcast
+        html: render(
+          partial: "spree/admin/orders/bulk/invoice_link",
+          locals: {invoice_url: "/admin/orders/invoices/#{file_id}"}
+        )
+      )
+      .broadcast
   end
 
   def ensure_directory_exists(filepath)

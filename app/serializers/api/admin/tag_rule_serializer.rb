@@ -16,8 +16,11 @@ module Api
       end
 
       class FilterShippingMethodsSerializer < BaseSerializer
-        attributes :preferred_matched_shipping_methods_visibility, :preferred_shipping_method_tags,
-                   :shipping_method_tags
+        attributes(
+          :preferred_matched_shipping_methods_visibility,
+          :preferred_shipping_method_tags,
+          :shipping_method_tags
+        )
 
         def shipping_method_tags
           object.preferred_shipping_method_tags.split(",")
@@ -25,8 +28,11 @@ module Api
       end
 
       class FilterPaymentMethodsSerializer < BaseSerializer
-        attributes :preferred_matched_payment_methods_visibility, :preferred_payment_method_tags,
-                   :payment_method_tags
+        attributes(
+          :preferred_matched_payment_methods_visibility,
+          :preferred_payment_method_tags,
+          :payment_method_tags
+        )
 
         def payment_method_tags
           object.preferred_payment_method_tags.split(",")
@@ -42,9 +48,11 @@ module Api
       end
 
       class FilterOrderCyclesSerializer < BaseSerializer
-        attributes :preferred_matched_order_cycles_visibility,
-                   :preferred_exchange_tags,
-                   :exchange_tags
+        attributes(
+          :preferred_matched_order_cycles_visibility,
+          :preferred_exchange_tags,
+          :exchange_tags
+        )
 
         def exchange_tags
           object.preferred_exchange_tags.split(",")

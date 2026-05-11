@@ -1,36 +1,36 @@
 # frozen_string_literal: true
 
 RSpec.describe Admin::TermsOfServiceFilesController do
-  context "a non-admin user" do
+  context("a non-admin user") do
     let(:user) { create(:user) }
 
     before do
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
 
     it "does not allow deletion" do
-      post :destroy
-      expect(TermsOfServiceFile).not_to receive(:current)
+      post(:destroy)
+      expect(TermsOfServiceFile).not_to(receive(:current))
     end
 
     it "does not allow creation" do
-      post :create
-      expect(TermsOfServiceFile).not_to receive(:create!)
+      post(:create)
+      expect(TermsOfServiceFile).not_to(receive(:create!))
     end
   end
 
-  context "an admin user" do
+  context("an admin user") do
     let(:user) { create(:admin_user) }
 
     before do
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
 
     describe "trying to create terms of service without a file" do
       it "redirects and show an error" do
-        post :create, params: {}
-        expect(response).to redirect_to admin_terms_of_service_files_path
-        expect(flash[:error]).to eq 'Please select a file first.'
+        post(:create, params: {})
+        expect(response).to(redirect_to(admin_terms_of_service_files_path))
+        expect(flash[:error]).to(eq("Please select a file first."))
       end
     end
 
@@ -38,20 +38,20 @@ RSpec.describe Admin::TermsOfServiceFilesController do
       let(:tos_file) { double(:tos_file) }
 
       before do
-        allow(TermsOfServiceFile).to receive(:current) { tos_file }
-        allow(tos_file).to receive(:destroy!)
+        allow(TermsOfServiceFile).to(receive(:current) { tos_file })
+        allow(tos_file).to(receive(:destroy!))
       end
 
       it "deletes the file" do
-        expect(tos_file).to receive(:destroy!)
-        post :destroy
+        expect(tos_file).to(receive(:destroy!))
+        post(:destroy)
       end
     end
 
     describe "creating a TOS file" do
       it "creates the file" do
-        expect(TermsOfServiceFile).to receive(:create!)
-        post :create, params: { terms_of_service_file: double(:attachment) }
+        expect(TermsOfServiceFile).to(receive(:create!))
+        post(:create, params: {terms_of_service_file: double(:attachment)})
       end
     end
   end

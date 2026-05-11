@@ -53,16 +53,25 @@ module Reporting
         def for_orders
           chain_to_scope do
             where(
-              adjustable_type: ["Spree::Order", "Spree::Shipment", "Spree::LineItem",
-                                "Spree::Payment"]
+              adjustable_type: [
+                "Spree::Order",
+                "Spree::Shipment",
+                "Spree::LineItem",
+                "Spree::Payment"
+              ]
             )
           end
         end
 
         def for_supported_adjustments
           chain_to_scope do
-            where(originator_type: ["EnterpriseFee", "Spree::PaymentMethod",
-                                    "Spree::ShippingMethod"])
+            where(
+              originator_type: [
+                "EnterpriseFee",
+                "Spree::PaymentMethod",
+                "Spree::ShippingMethod"
+              ]
+            )
           end
         end
 
@@ -307,28 +316,20 @@ module Reporting
         end
 
         def filter_by_date(params)
-          filter_scope("spree_orders.completed_at >= ?", params.completed_at_gt) \
-            if params.completed_at_gt.present?
-          filter_scope("spree_orders.completed_at <= ?", params.completed_at_lt) \
-            if params.completed_at_lt.present?
+          filter_scope("spree_orders.completed_at >= ?", params.completed_at_gt) if params.completed_at_gt.present?
+          filter_scope("spree_orders.completed_at <= ?", params.completed_at_lt) if params.completed_at_lt.present?
         end
 
         def filter_by_distribution(params)
-          filter_scope(spree_orders: { distributor_id: params.distributor_ids }) \
-            if params.distributor_ids.present?
-          filter_scope(spree_variants: { supplier_id: params.producer_ids }) \
-            if params.producer_ids.present?
-          filter_scope(spree_orders: { order_cycle_id: params.order_cycle_ids }) \
-            if params.order_cycle_ids.present?
+          filter_scope(spree_orders: {distributor_id: params.distributor_ids}) if params.distributor_ids.present?
+          filter_scope(spree_variants: {supplier_id: params.producer_ids}) if params.producer_ids.present?
+          filter_scope(spree_orders: {order_cycle_id: params.order_cycle_ids}) if params.order_cycle_ids.present?
         end
 
         def filter_by_fee(params)
-          filter_scope(enterprise_fees: { id: params.enterprise_fee_ids }) \
-            if params.enterprise_fee_ids.present?
-          filter_scope(spree_shipping_methods: { id: params.shipping_method_ids }) \
-            if params.shipping_method_ids.present?
-          filter_scope(spree_payment_methods: { id: params.payment_method_ids }) \
-            if params.payment_method_ids.present?
+          filter_scope(enterprise_fees: {id: params.enterprise_fee_ids}) if params.enterprise_fee_ids.present?
+          filter_scope(spree_shipping_methods: {id: params.shipping_method_ids}) if params.shipping_method_ids.present?
+          filter_scope(spree_payment_methods: {id: params.payment_method_ids}) if params.payment_method_ids.present?
         end
 
         def exclude_groups_with_zero_total

@@ -11,7 +11,7 @@ module OpenFoodNetwork
       return unless inventory_enabled?
 
       variant.extend(OpenFoodNetwork::ScopeVariantToHub::ScopeVariantToHub)
-      variant.instance_variable_set :@variant_override, @variant_overrides[variant]
+      variant.instance_variable_set(:@variant_override, @variant_overrides[variant])
     end
 
     private
@@ -52,7 +52,7 @@ module OpenFoodNetwork
       #   - does not update stock_item.count_on_hand
       def move(quantity)
         if @variant_override&.stock_overridden?
-          @variant_override.move_stock! quantity
+          @variant_override.move_stock!(quantity)
         else
           super
         end

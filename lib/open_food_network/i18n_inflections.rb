@@ -59,6 +59,7 @@ module OpenFoodNetwork
           lookup[translation.downcase] = key
         end
       end
+
       lookup
     end
   end

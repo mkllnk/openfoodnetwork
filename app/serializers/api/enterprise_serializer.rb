@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/property_merge'
+require "open_food_network/property_merge"
 
 class Api::EnterpriseSerializer < ActiveModel::Serializer
   # We reference this here because otherwise the serializer complains about its absence
@@ -9,7 +9,7 @@ class Api::EnterpriseSerializer < ActiveModel::Serializer
   # rubocop:enable Lint/Void
 
   def serializable_hash
-    cached_serializer_hash.merge uncached_serializer_hash
+    cached_serializer_hash.merge(uncached_serializer_hash)
   end
 
   private

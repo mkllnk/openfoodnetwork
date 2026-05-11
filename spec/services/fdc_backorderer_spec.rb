@@ -11,7 +11,7 @@ RSpec.describe FdcBackorderer do
     OidcAccount.new(
       uid: "testdfc@protonmail.com",
       refresh_token: ENV.fetch("OPENID_REFRESH_TOKEN"),
-      updated_at: 1.day.ago,
+      updated_at: 1.day.ago
     )
   }
 
@@ -25,8 +25,8 @@ RSpec.describe FdcBackorderer do
     # Build a new order when no open one is found:
     order.order_cycle = create(:order_cycle, distributors: [order.distributor])
     backorder = subject.find_or_build_order(order)
-    expect(backorder.semanticId).to eq urls.orders_url
-    expect(backorder.lines).to eq []
+    expect(backorder.semanticId).to(eq(urls.orders_url))
+    expect(backorder.lines).to(eq([]))
 
     # Add items and place the new order:
     catalog = DfcCatalog.load(order.distributor.owner, urls.catalog_url)
@@ -38,23 +38,23 @@ RSpec.describe FdcBackorderer do
 
     # Give the Shopify app time to process and place the order.
     # That process seems to be async.
-    sleep 10 if VCR.current_cassette.recording?
+    sleep(10) if VCR.current_cassette.recording?
 
     # Without a stored semantic link, it can't look it up:
     found_backorder = subject.lookup_open_order(order)
-    expect(found_backorder).to eq nil
+    expect(found_backorder).to(eq(nil))
 
     # But with a semantic link, it works:
     order.exchange.semantic_links.create!(semantic_id: placed_order.semanticId)
     found_backorder = subject.lookup_open_order(order)
-    expect(found_backorder.semanticId).to eq placed_order.semanticId
-    expect(found_backorder.lines.count).to eq 1
-    expect(found_backorder.lines[0].quantity.to_i).to eq 3
+    expect(found_backorder.semanticId).to(eq(placed_order.semanticId))
+    expect(found_backorder.lines.count).to(eq(1))
+    expect(found_backorder.lines[0].quantity.to_i).to(eq(3))
 
     # And close the order again:
     subject.complete_order(placed_order)
     remaining_open_order = subject.find_or_build_order(order)
-    expect(remaining_open_order.semanticId).to eq urls.orders_url
+    expect(remaining_open_order.semanticId).to(eq(urls.orders_url))
   end
 
   describe "#find_or_build_order" do
@@ -65,8 +65,8 @@ RSpec.describe FdcBackorderer do
 
       backorder = subject.find_or_build_order(order)
 
-      expect(backorder.semanticId).to eq urls.orders_url
-      expect(backorder.lines).to eq []
+      expect(backorder.semanticId).to(eq(urls.orders_url))
+      expect(backorder.lines).to(eq([]))
     end
   end
 
@@ -75,22 +75,23 @@ RSpec.describe FdcBackorderer do
       catalog = DfcCatalog.load(order.distributor.owner, urls.catalog_url)
       backorder = subject.find_or_build_order(order)
 
-      expect(backorder.lines.count).to eq 0
+      expect(backorder.lines.count).to(eq(0))
 
       # Add new item to the new order:
       product = catalog.products.first
       offer = FdcOfferBroker.new(nil).offer_of(product)
       line = subject.find_or_build_order_line(backorder, offer)
 
-      expect(backorder.lines.count).to eq 1
-      expect(backorder.lines[0]).to eq line
+      expect(backorder.lines.count).to(eq(1))
+      expect(backorder.lines[0]).to(eq(line))
 
       expect {
         subject.find_or_build_order_line(backorder, offer)
-      }.not_to change { backorder.lines.count }
+      }
+        .not_to(change { backorder.lines.count })
 
       found_line = subject.find_or_build_order_line(backorder, offer)
-      expect(found_line).to eq line
+      expect(found_line).to(eq(line))
     end
   end
 
@@ -100,12 +101,12 @@ RSpec.describe FdcBackorderer do
 
       it "recognises new orders" do
         order = DataFoodConsortium::ConnectorV1::Order.new(nil)
-        expect(subject.new?(order)).to eq true
+        expect(subject.new?(order)).to(eq(true))
       end
 
       it "recognises existing orders" do
         order = DataFoodConsortium::ConnectorV1::Order.new("https://order")
-        expect(subject.new?(order)).to eq false
+        expect(subject.new?(order)).to(eq(false))
       end
     end
   end

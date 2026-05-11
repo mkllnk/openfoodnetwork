@@ -10,7 +10,8 @@ RSpec.describe Spree::Asset do
 
       expect do
         asset.touch
-      end.to change { product.reload.updated_at }
+      end
+        .to(change { product.reload.updated_at })
     end
   end
 end

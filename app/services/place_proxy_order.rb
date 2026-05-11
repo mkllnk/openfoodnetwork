@@ -54,7 +54,7 @@ class PlaceProxyOrder
 
     true
   rescue StandardError => e
-    Alert.raise(e, { proxy_order: { subscription:, proxy_order: } })
+    Alert.raise e, {proxy_order: {subscription:, proxy_order:}}
     false
   end
 
@@ -67,7 +67,7 @@ class PlaceProxyOrder
   end
 
   def empty_order?
-    order.line_items.where('quantity > 0').empty?
+    order.line_items.where("quantity > 0").empty?
   end
 
   def handle_empty_order

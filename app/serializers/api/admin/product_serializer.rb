@@ -3,14 +3,23 @@
 module Api
   module Admin
     class ProductSerializer < ActiveModel::Serializer
-      attributes :id, :name, :sku, :inherits_properties, :price, :import_date, :image_url,
-                 :thumb_url, :variants
+      attributes(
+        :id,
+        :name,
+        :sku,
+        :inherits_properties,
+        :price,
+        :import_date,
+        :image_url,
+        :thumb_url,
+        :variants
+      )
 
       def variants
         ActiveModel::ArraySerializer.new(
           object.variants,
           each_serializer: Api::Admin::VariantSerializer,
-          image: thumb_url,
+          image: thumb_url
         )
       end
 
@@ -29,7 +38,7 @@ module Api
       end
 
       def price
-        object.price.nil? ? '0.0' : object.price
+        object.price.nil? ? "0.0" : object.price
       end
     end
   end

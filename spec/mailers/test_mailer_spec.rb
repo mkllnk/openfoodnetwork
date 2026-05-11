@@ -5,21 +5,22 @@ RSpec.describe Spree::TestMailer do
   let(:user) { create(:user) }
   let(:order) { build(:order_with_distributor) }
 
-  context ":from not set explicitly" do
+  context(":from not set explicitly") do
     it "falls back to spree config" do
       message = Spree::TestMailer.test_email(user)
-      expect(message.from).to eq [Spree::Config[:mails_from]]
+      expect(message.from).to(eq([Spree::Config[:mails_from]]))
     end
   end
 
   it "confirm_email accepts a user id as an alternative to a User object" do
-    expect(Spree::User).to receive(:find).with(user.id).and_return(user)
+    expect(Spree::User).to(receive(:find).with(user.id).and_return(user))
     expect {
       Spree::TestMailer.test_email(user.id).deliver_now
-    }.not_to raise_error
+    }
+      .not_to(raise_error)
   end
 
-  context "white labelling" do
-    it_behaves_like 'email with inactive white labelling', :mail
+  context("white labelling") do
+    it_behaves_like("email with inactive white labelling", :mail)
   end
 end

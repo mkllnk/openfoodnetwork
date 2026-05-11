@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 # This module is an adapter for OFN to work with Spree 2 code.
 #

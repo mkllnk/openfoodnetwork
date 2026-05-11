@@ -24,7 +24,7 @@ class SubscriptionConfirmJob < ApplicationJob
 
     # Confirm these proxy orders
     ProxyOrder.where(id: unconfirmed_proxy_orders_ids).find_each do |proxy_order|
-      JobLogger.logger.info "Confirming Order for Proxy Order #{proxy_order.id}"
+      JobLogger.logger.info("Confirming Order for Proxy Order #{proxy_order.id}")
       confirm_order!(proxy_order.order)
     end
 
@@ -32,16 +32,23 @@ class SubscriptionConfirmJob < ApplicationJob
   end
 
   def unconfirmed_proxy_orders
-    ProxyOrder.not_canceled.where('confirmed_at IS NULL AND placed_at IS NOT NULL')
-      .joins(:order_cycle).merge(recently_closed_order_cycles)
-      .joins(:order).merge(Spree::Order.complete.not_state('canceled'))
+    ProxyOrder
+      .not_canceled
+      .where("confirmed_at IS NULL AND placed_at IS NOT NULL")
+      .joins(:order_cycle)
+      .merge(recently_closed_order_cycles)
+      .joins(:order)
+      .merge(Spree::Order.complete.not_state("canceled"))
   end
 
   def recently_closed_order_cycles
     OrderCycle.closed.where(
-      'order_cycles.orders_close_at BETWEEN (?) AND (?) ' \
-      'OR order_cycles.updated_at BETWEEN (?) AND (?)',
-      1.hour.ago, Time.zone.now, 1.hour.ago, Time.zone.now
+      "order_cycles.orders_close_at BETWEEN (?) AND (?) " \
+        "OR order_cycles.updated_at BETWEEN (?) AND (?)",
+      1.hour.ago,
+      Time.zone.now,
+      1.hour.ago,
+      Time.zone.now
     )
   end
 
@@ -88,11 +95,13 @@ class SubscriptionConfirmJob < ApplicationJob
   def authorize_payment!(order)
     return if order.subscription.payment_method.class != Spree::Gateway::StripeSCA
 
-    OrderManagement::Order::StripeScaPaymentAuthorize.new(
-      order,
-      off_session: true,
-      notify_hub: true
-    ).call!
+    OrderManagement::Order::StripeScaPaymentAuthorize
+      .new(
+        order,
+        off_session: true,
+        notify_hub: true
+      )
+      .call!
   end
 
   def send_confirmation_email(order)
@@ -106,6 +115,6 @@ class SubscriptionConfirmJob < ApplicationJob
     record_and_log_error(:failed_payment, order, error_message)
     SubscriptionMailer.failed_payment_email(order).deliver_now
   rescue StandardError => e
-    Alert.raise(e, { subscription_data: { order:, error_message: } })
+    Alert.raise e, {subscription_data: {order:, error_message:}}
   end
 end

@@ -33,6 +33,7 @@ class ContentSanitizer
     FILTERED_CHARACTERS.each do |character, sub|
       content = content.gsub(character, sub)
     end
+
     content
   end
 end

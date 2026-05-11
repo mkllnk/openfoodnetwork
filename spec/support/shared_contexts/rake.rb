@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # A shared context for all rake specs
-shared_context "rake" do
+shared_context("rake") do
   before(:all) do
     # Make sure that Rake tasks are only loaded once.
     # Otherwise we lose code coverage data.

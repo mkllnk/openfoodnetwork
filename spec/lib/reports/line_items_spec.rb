@@ -26,13 +26,13 @@ RSpec.describe Reporting::LineItems do
 
       private
 
-      attr_reader :relations, :orders_relation
+      attr_reader(:relations, :orders_relation)
     end
   end
 
   subject(:reports_line_items) { described_class.new(order_permissions, params) }
 
-  describe '#list' do
+  describe "#list" do
     let!(:order) do
       create(
         :order,
@@ -41,18 +41,19 @@ RSpec.describe Reporting::LineItems do
         shipments: [build(:shipment)]
       )
     end
+
     let!(:line_item1) { create(:line_item, order:) }
 
     let(:orders_relation) { Spree::Order.where(id: order.id) }
     let(:order_permissions) { fake_order_permissions.new([line_item1], orders_relation) }
     let(:params) { {} }
 
-    it 'returns masked data' do
+    it "returns masked data" do
       line_items = reports_line_items.list
-      expect(line_items.first.order.email).to eq("< Hidden >")
+      expect(line_items.first.order.email).to(eq("< Hidden >"))
     end
 
-    context "when filtering by product" do
+    context("when filtering by product") do
       subject(:line_items) { reports_line_items.list }
 
       let!(:line_item2) { create(:line_item, order:) }
@@ -60,19 +61,20 @@ RSpec.describe Reporting::LineItems do
       let(:order_permissions) do
         fake_order_permissions.new([line_item1, line_item2, line_item3], orders_relation)
       end
-      let(:params) { { variant_id_in: [line_item3.variant.id, line_item1.variant.id] } }
 
-      context "with an empty array" do
-        let(:params) { { variant_id_in: [""] } }
+      let(:params) { {variant_id_in: [line_item3.variant.id, line_item1.variant.id]} }
+
+      context("with an empty array") do
+        let(:params) { {variant_id_in: [""]} }
 
         it "does not filter" do
-          expect(line_items).to include(line_item1, line_item2, line_item3)
+          expect(line_items).to(include(line_item1, line_item2, line_item3))
         end
       end
 
       it "includes selected products" do
-        expect(line_items).to include(line_item1, line_item3)
-        expect(line_items).not_to include(line_item2)
+        expect(line_items).to(include(line_item1, line_item3))
+        expect(line_items).not_to(include(line_item2))
       end
     end
   end

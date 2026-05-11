@@ -32,7 +32,7 @@ module OrderManagement
       end
 
       def card_set?
-        @payment.source.is_a? Spree::CreditCard
+        @payment.source.is_a?(Spree::CreditCard)
       end
 
       def saved_credit_card

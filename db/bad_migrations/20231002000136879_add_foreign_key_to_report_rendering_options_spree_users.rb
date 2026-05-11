@@ -7,9 +7,8 @@
 # WHERE spree_users.id IS NULL
 #   AND report_rendering_options.user_id IS NOT NULL
 
-
 class AddForeignKeyToReportRenderingOptionsSpreeUsers < ActiveRecord::Migration[6.0]
   def change
-    add_foreign_key :report_rendering_options, :spree_users, column: :user_id
+    add_foreign_key(:report_rendering_options, :spree_users, column: :user_id)
   end
 end

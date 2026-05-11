@@ -1,16 +1,19 @@
 # frozen_string_literal: true
 
-require 'stripe/profile_storer'
-require 'stripe/credit_card_cloner'
-require 'stripe/authorize_response_patcher'
-require 'stripe/payment_intent_validator'
-require 'active_merchant/billing/gateways/stripe'
+require "stripe/profile_storer"
+require "stripe/credit_card_cloner"
+require "stripe/authorize_response_patcher"
+require "stripe/payment_intent_validator"
+require "active_merchant/billing/gateways/stripe"
 
 module Spree
   class Gateway
     class StripeSCA < Gateway
       VOIDABLE_STATES = [
-        "requires_payment_method", "requires_capture", "requires_confirmation", "requires_action"
+        "requires_payment_method",
+        "requires_capture",
+        "requires_confirmation",
+        "requires_action"
       ].freeze
 
       preference :enterprise_id, :integer
@@ -28,7 +31,7 @@ module Spree
       end
 
       def method_type
-        'stripe_sca'
+        "stripe_sca"
       end
 
       def provider_class
@@ -61,8 +64,7 @@ module Spree
 
       # NOTE: this method is required by Spree::Payment::Processing
       def charge_offline(money, creditcard, gateway_options)
-        customer, payment_method =
-          Stripe::CreditCardCloner.new(creditcard, stripe_account_id).find_or_clone
+        customer, payment_method = Stripe::CreditCardCloner.new(creditcard, stripe_account_id).find_or_clone
 
         options = basic_options(gateway_options).merge(customer:, off_session: true)
         provider.purchase(money, payment_method, options)
@@ -72,8 +74,7 @@ module Spree
 
       # NOTE: this method is required by Spree::Payment::Processing
       def authorize(money, creditcard, gateway_options)
-        authorize_response =
-          provider.authorize(*options_for_authorize(money, creditcard, gateway_options))
+        authorize_response = provider.authorize(*options_for_authorize(money, creditcard, gateway_options))
         Stripe::AuthorizeResponsePatcher.new(authorize_response).call!
       rescue Stripe::StripeError => e
         failed_activemerchant_billing_response(e.message)
@@ -82,7 +83,8 @@ module Spree
       # NOTE: this method is required by Spree::Payment::Processing
       def void(payment_intent_id, gateway_options)
         payment_intent_response = Stripe::PaymentIntent.retrieve(
-          payment_intent_id, stripe_account: stripe_account_id
+          payment_intent_id,
+          stripe_account: stripe_account_id
         )
         gateway_options[:stripe_account] = stripe_account_id
 
@@ -91,7 +93,9 @@ module Spree
           provider.void(payment_intent_id, gateway_options)
         else
           provider.refund(
-            payment_intent_response.amount_received, payment_intent_id, gateway_options
+            payment_intent_response.amount_received,
+            payment_intent_id,
+            gateway_options
           )
         end
       end
@@ -118,7 +122,7 @@ module Spree
       private
 
       def voidable?(payment_intent_response)
-        VOIDABLE_STATES.include? payment_intent_response.status
+        VOIDABLE_STATES.include?(payment_intent_response.status)
       end
 
       # In this gateway, what we call 'secret_key' is the 'login'
@@ -132,7 +136,8 @@ module Spree
         options[:description] = "Spree Order ID: #{gateway_options[:order_id]}"
         options[:currency] = gateway_options[:currency]
         options[:stripe_account] = stripe_account_id
-        options[:execute_threed] = true # Handle 3DS responses
+        # Handle 3DS responses
+        options[:execute_threed] = true
         options
       end
 
@@ -140,8 +145,7 @@ module Spree
         options = basic_options(gateway_options)
         options[:return_url] = gateway_options[:return_url] || payment_gateways_confirm_stripe_url
 
-        customer_id, payment_method_id =
-          Stripe::CreditCardCloner.new(creditcard, stripe_account_id).find_or_clone
+        customer_id, payment_method_id = Stripe::CreditCardCloner.new(creditcard, stripe_account_id).find_or_clone
         options[:customer] = customer_id
         [money, payment_method_id, options]
       end
@@ -159,13 +163,13 @@ module Spree
 
       def raise_if_not_in_capture_state(payment_intent_response)
         state = payment_intent_response.status
-        return if state == 'requires_capture'
+        return if state == "requires_capture"
 
         raise Stripe::StripeError, I18n.t(:invalid_payment_state, state:)
       end
 
       def fetch_payment(creditcard, gateway_options)
-        order_number = gateway_options[:order_id].split('-').first
+        order_number = gateway_options[:order_id].split("-").first
 
         Spree::Order.find_by(number: order_number).payments.merge(creditcard.payments).last
       end

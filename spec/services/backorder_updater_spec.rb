@@ -27,16 +27,18 @@ RSpec.describe BackorderUpdater do
 
     user.oidc_account = build(:testdfc_account)
 
-    beans.semantic_links << SemanticLink.new(
-      semantic_id: product_link
-    )
-    chia_seed.semantic_links << SemanticLink.new(
-      semantic_id: chia_seed_wholesale_link
-    )
+    beans.semantic_links <<
+      SemanticLink.new(
+        semantic_id: product_link
+      )
+    chia_seed.semantic_links <<
+      SemanticLink.new(
+        semantic_id: chia_seed_wholesale_link
+      )
     order.order_cycle = create(
       :simple_order_cycle,
       distributors: [distributor],
-      variants: order.variants,
+      variants: order.variants
     )
     order.save!
 
@@ -55,35 +57,41 @@ RSpec.describe BackorderUpdater do
 
       # Record the placed backorder:
       backorder = nil
-      allow_any_instance_of(FdcBackorderer).to receive(:find_order) do |*_args|
+      allow_any_instance_of(FdcBackorderer).to(receive(:find_order)) do |*_args|
         backorder
       end
-      allow_any_instance_of(FdcBackorderer).to receive(:find_open_order) do |*_args|
+
+      allow_any_instance_of(FdcBackorderer).to(receive(:find_open_order)) do |*_args|
         backorder
       end
-      allow_any_instance_of(FdcBackorderer).to receive(:send_order) do |*args|
+
+      allow_any_instance_of(FdcBackorderer).to(receive(:send_order)) do |*args|
         backorder = args[1]
       end
 
       BackorderJob.new.place_backorder(order)
 
       # We ordered a case of 12 cans: -3 + 12 = 9
-      expect(beans.on_hand).to eq 9
+      expect(beans.on_hand).to(eq(9))
 
       # Stock controlled items don't change stock in backorder:
-      expect(chia_seed.on_hand).to eq 7
+      expect(chia_seed.on_hand).to(eq(7))
 
-      expect(backorder.lines[0].quantity).to eq 1 # beans
-      expect(backorder.lines[1].quantity).to eq 5 # chia
+      # beans
+      expect(backorder.lines[0].quantity).to(eq(1))
+      # chia
+      expect(backorder.lines[1].quantity).to(eq(5))
 
       # Without any change, the backorder shouldn't get changed either:
       subject.amend_backorder(order)
 
       # Same as before:
-      expect(beans.on_hand).to eq 9
-      expect(chia_seed.on_hand).to eq 7
-      expect(backorder.lines[0].quantity).to eq 1 # beans
-      expect(backorder.lines[1].quantity).to eq 5 # chia
+      expect(beans.on_hand).to(eq(9))
+      expect(chia_seed.on_hand).to(eq(7))
+      # beans
+      expect(backorder.lines[0].quantity).to(eq(1))
+      # chia
+      expect(backorder.lines[1].quantity).to(eq(5))
 
       # We increase quantities which should be reflected in the backorder:
       beans.on_hand = -1
@@ -91,27 +99,45 @@ RSpec.describe BackorderUpdater do
       chia_item.save!
 
       expect { subject.amend_backorder(order) }
-        .to change { beans.on_hand }.from(-1).to(11)
-        .and change { backorder.lines[0].quantity }.from(1).to(2)
-        .and change { backorder.lines[1].quantity }.from(5).to(8)
+        .to(
+          change { beans.on_hand }
+            .from(-1)
+            .to(11)
+            .and(
+              change { backorder.lines[0].quantity }
+                .from(1)
+                .to(2)
+                .and(change { backorder.lines[1].quantity }.from(5).to(8))
+            )
+        )
 
       # We cancel the only order.
       expect { order.cancel! }
-        .to change { beans.reload.on_hand }.from(11).to(17)
-        .and change { chia_seed.reload.on_hand }.from(4).to(12)
+        .to(
+          change { beans.reload.on_hand }
+            .from(11)
+            .to(17)
+            .and(change { chia_seed.reload.on_hand }.from(4).to(12))
+        )
 
       # But we decreased the stock of beans outside of orders above.
       # So only the chia seeds are cancelled. The beans still need replenishing.
       expect { subject.amend_backorder(order) }
-        .to change { backorder.lines.count }.from(2).to(1)
-        .and change { beans.reload.on_hand }.by(-12)
+        .to(
+          change { backorder.lines.count }
+            .from(2)
+            .to(1)
+            .and(change { beans.reload.on_hand }.by(-12))
+        )
     end
 
     it "skips updating if there's is no backorder" do
-      allow_any_instance_of(FdcBackorderer).to receive(:find_open_order)
-        .and_return(nil)
+      allow_any_instance_of(FdcBackorderer).to(
+        receive(:find_open_order)
+          .and_return(nil)
+      )
 
-      expect { subject.amend_backorder(order) }.not_to raise_error
+      expect { subject.amend_backorder(order) }.not_to(raise_error)
     end
   end
 
@@ -121,10 +147,11 @@ RSpec.describe BackorderUpdater do
 
       # Record the placed backorder:
       backorder = nil
-      allow_any_instance_of(FdcBackorderer).to receive(:find_order) do |*_args|
+      allow_any_instance_of(FdcBackorderer).to(receive(:find_order)) do |*_args|
         backorder
       end
-      allow_any_instance_of(FdcBackorderer).to receive(:send_order) do |*args|
+
+      allow_any_instance_of(FdcBackorderer).to(receive(:send_order)) do |*args|
         backorder = args[1]
       end
 
@@ -141,19 +168,23 @@ RSpec.describe BackorderUpdater do
       orderer = FdcBackorderer.new(user, urls)
       broker = FdcOfferBroker.new(catalog)
       updated_lines = subject.update_order_lines(
-        backorder, order_cycle, variants, broker, orderer
+        backorder,
+        order_cycle,
+        variants,
+        broker,
+        orderer
       )
 
-      expect(updated_lines.count).to eq 1
+      expect(updated_lines.count).to(eq(1))
       expect(updated_lines[0].offer.offeredItem.semanticId)
-        .to eq chia_seed.semantic_links[0].semantic_id
+        .to(eq(chia_seed.semantic_links[0].semantic_id))
     end
   end
 
   describe "#distributed_linked_variants" do
     it "selects available variants with semantic links" do
       variants = subject.distributed_linked_variants(order_cycle, distributor)
-      expect(variants).to match_array [beans, chia_seed]
+      expect(variants).to(match_array([beans, chia_seed]))
     end
   end
 end

@@ -16,14 +16,13 @@ module Addressing
   end
 
   def zone
-    zone = Spree::Zone.find_or_create_by(name: ENV.fetch('CHECKOUT_ZONE'))
-    zone.members << Spree::ZoneMember.create(zoneable: country) unless
-      zone.zoneables.include?(country)
+    zone = Spree::Zone.find_or_create_by(name: ENV.fetch("CHECKOUT_ZONE"))
+    zone.members << Spree::ZoneMember.create(zoneable: country) unless zone.zoneables.include?(country)
     zone.save!
     zone
   end
 
   def country
-    Spree::Country.find_by(iso: ENV.fetch('DEFAULT_COUNTRY_CODE'))
+    Spree::Country.find_by(iso: ENV.fetch("DEFAULT_COUNTRY_CODE"))
   end
 end

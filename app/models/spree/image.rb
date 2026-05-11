@@ -11,10 +11,12 @@ module Spree
       attachment.variant :large, resize_to_limit: [600, 600]
     end
 
-    validates :attachment,
-              attached: true,
-              processable_file: true,
-              content_type: ACCEPTED_CONTENT_TYPES
+    validates(
+      :attachment,
+      attached: true,
+      processable_file: true,
+      content_type: ACCEPTED_CONTENT_TYPES
+    )
     validate :no_attachment_errors
 
     def self.default_image_url(size)
@@ -50,7 +52,7 @@ module Spree
 
       if errors.all? { |e| e.type == :content_type_invalid }
         attachment.errors.clear
-        errors.add :base, I18n.t('spree.admin.products.image_upload_error')
+        errors.add(:base, I18n.t("spree.admin.products.image_upload_error"))
       end
 
       false

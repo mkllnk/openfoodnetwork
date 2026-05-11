@@ -7,8 +7,10 @@ module RespondWith
 
   def respond_with(*resources, &)
     if self.class.mimes_for_respond_to.empty?
-      raise "In order to use respond_with, first you need to declare the formats your " \
-            "controller responds to in the class level"
+      raise(
+        "In order to use respond_with, first you need to declare the formats your " \
+          "controller responds to in the class level"
+      )
     end
 
     return unless (collector = retrieve_collector_from_mimes(&))
@@ -17,8 +19,7 @@ module RespondWith
 
     # Fix spree issues #3531 and #2210 (patch provided by leiyangyou)
     if (defined_response = collector.response) &&
-       !ApplicationController.spree_responders[self.class.to_s.to_sym]
-           .try(:[], action_name.to_sym)
+        !ApplicationController.spree_responders[self.class.to_s.to_sym].try(:[], action_name.to_sym)
 
       defined_response.call
     else

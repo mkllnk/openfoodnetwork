@@ -4,8 +4,15 @@ module Spree
   class Address < ApplicationRecord
     include AddressDisplay
 
-    searchable_attributes :firstname, :lastname, :phone, :full_name, :full_name_reversed,
-                          :full_name_with_comma, :full_name_with_comma_reversed
+    searchable_attributes(
+      :firstname,
+      :lastname,
+      :phone,
+      :full_name,
+      :full_name_reversed,
+      :full_name_with_comma,
+      :full_name_with_comma_reversed
+    )
     searchable_associations :country, :state
 
     belongs_to :country, class_name: "Spree::Country"
@@ -16,9 +23,14 @@ module Spree
 
     validates :address1, :city, :phone, presence: true
     validates :company, presence: true, unless: -> { first_name.blank? || last_name.blank? }
-    validates :firstname, :lastname, presence: true, if: -> do
-      company.blank? || company == 'unused'
-    end
+    validates(
+      :firstname,
+      :lastname,
+      presence: true,
+      if: -> do
+        company.blank? || company == "unused"
+      end
+    )
     validates :zipcode, presence: true, if: :require_zipcode?
 
     validate :state_validate
@@ -68,8 +80,7 @@ module Spree
     def same_as?(other)
       return false if other.nil?
 
-      attributes.except('id', 'updated_at', 'created_at') ==
-        other.attributes.except('id', 'updated_at', 'created_at')
+      attributes.except("id", "updated_at", "created_at") == other.attributes.except("id", "updated_at", "created_at")
     end
 
     alias same_as same_as?
@@ -79,7 +90,7 @@ module Spree
     end
 
     def clone
-      self.class.new(attributes.except('id', 'updated_at', 'created_at'))
+      self.class.new(attributes.except("id", "updated_at", "created_at"))
     end
 
     def ==(other)
@@ -87,14 +98,14 @@ module Spree
       other_attrs = other.respond_to?(:attributes) ? other.attributes : {}
 
       [self_attrs, other_attrs].each { |attrs|
-        attrs.except!('id', 'created_at', 'updated_at', 'order_id')
+        attrs.except!("id", "created_at", "updated_at", "order_id")
       }
 
       self_attrs == other_attrs
     end
 
     def empty?
-      attributes.except('id', 'created_at', 'updated_at', 'order_id', 'country_id').all? { |_, v|
+      attributes.except("id", "created_at", "updated_at", "order_id", "country_id").all? { |_, v|
         v.nil?
       }
     end
@@ -126,7 +137,7 @@ module Spree
     end
 
     def address_and_city
-      [address1, address2, city].compact_blank.join(' ')
+      [address1, address2, city].compact_blank.join(" ")
     end
 
     private
@@ -144,7 +155,8 @@ module Spree
       # Ensure associated state belongs to country
       if state.present?
         if state.country == country
-          self.state_name = nil # not required as we have a valid state and country combo
+          # not required as we have a valid state and country combo
+          self.state_name = nil
         elsif state_name.present?
           self.state = nil
         else
@@ -166,7 +178,7 @@ module Spree
       end
 
       # ensure at least one state field is populated
-      errors.add :state, :blank if state.blank? && state_name.blank?
+      errors.add(:state, :blank) if state.blank? && state_name.blank?
     end
 
     def touch_enterprise
@@ -176,7 +188,7 @@ module Spree
     end
 
     def render_address(parts)
-      parts.compact_blank.join(', ')
+      parts.compact_blank.join(", ")
     end
   end
 end

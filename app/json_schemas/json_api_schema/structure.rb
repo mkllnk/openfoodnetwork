@@ -14,8 +14,8 @@ class JsonApiSchema
             type: :object,
             properties: data_properties
           },
-          meta: { type: :object },
-          links: { type: :object }
+          meta: {type: :object},
+          links: {type: :object}
         },
         required: [:data]
       }
@@ -38,10 +38,10 @@ class JsonApiSchema
               pagination: {
                 type: :object,
                 properties: {
-                  results: { type: :integer, example: 250 },
-                  pages: { type: :integer, example: 5 },
-                  page: { type: :integer, example: 2 },
-                  per_page: { type: :integer, example: 50 },
+                  results: {type: :integer, example: 250},
+                  pages: {type: :integer, example: 5},
+                  page: {type: :integer, example: 2},
+                  per_page: {type: :integer, example: 50}
                 }
               }
             },
@@ -50,11 +50,11 @@ class JsonApiSchema
           links: {
             type: :object,
             properties: {
-              self: { type: :string },
-              first: { type: :string },
-              prev: { type: :string, nullable: true },
-              next: { type: :string, nullable: true },
-              last: { type: :string }
+              self: {type: :string},
+              first: {type: :string},
+              prev: {type: :string, nullable: true},
+              next: {type: :string, nullable: true},
+              last: {type: :string}
             }
           }
         },
@@ -64,8 +64,8 @@ class JsonApiSchema
 
     def data_properties(object_name, attributes, required, relationship_properties)
       {
-        id: { type: :string, example: "1" },
-        type: { type: :string, example: object_name },
+        id: {type: :string, example: "1"},
+        type: {type: :string, example: object_name},
         attributes: {
           type: :object,
           properties: attributes,

@@ -18,20 +18,21 @@ module Spree
         options[:partial] ||= method.to_s.singularize
         options[:form_builder_local] ||= :f
 
-        form_builder.fields_for(method, options[:object], child_index: 'NEW_RECORD') do |f|
-          render(partial: options[:partial], locals: { options[:form_builder_local] => f })
+        form_builder.fields_for(method, options[:object], child_index: "NEW_RECORD") do |f|
+          render(partial: options[:partial], locals: {options[:form_builder_local] => f})
         end
       end
 
       def generate_template(form_builder, method, options = {})
-        escape_javascript generate_html(form_builder, method, options)
+        escape_javascript(generate_html(form_builder, method, options))
       end
 
       def remove_nested(fields)
-        out = ''
+        out = ""
         out << fields.hidden_field(:_destroy) unless fields.object.new_record?
-        out << (link_to icon('icon-remove'), "#", class: 'remove')
-        out.html_safe # rubocop:disable Rails/OutputSafety
+        out << (link_to(icon("icon-remove"), "#", class: "remove"))
+        # rubocop:disable Rails/OutputSafety
+        out.html_safe
       end
     end
   end

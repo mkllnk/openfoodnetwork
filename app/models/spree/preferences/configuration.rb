@@ -46,12 +46,12 @@ module Spree
       end
 
       def preference_cache_key(name)
-        [ENV.fetch('RAILS_CACHE_ID', nil), self.class.name, name].flatten.join('::').underscore
+        [ENV.fetch("RAILS_CACHE_ID", nil), self.class.name, name].flatten.join("::").underscore
       end
 
       def reset
         preferences.each_key do |name|
-          set_preference name, preference_default(name)
+          set_preference(name, preference_default(name))
         end
       end
 
@@ -63,12 +63,12 @@ module Spree
       def set(*args)
         options = args.extract_options!
         options.each do |name, value|
-          set_preference name, value
+          set_preference(name, value)
         end
 
         return unless args.size == 2
 
-        set_preference args[0], args[1]
+        set_preference(args[0], args[1])
       end
     end
   end

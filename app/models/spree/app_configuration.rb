@@ -21,13 +21,13 @@
 # a.get :color
 # a.preferred_color
 #
-require 'spree/core/mail_settings'
+require "spree/core/mail_settings"
 
 module Spree
   class AppConfiguration < Preferences::Configuration
     # Should state/state_name be required
     preference :address_requires_state, :boolean, default: true
-    preference :admin_interface_logo, :string, default: '/default_images/ofn-logo.png'
+    preference :admin_interface_logo, :string, default: "/default_images/ofn-logo.png"
     preference :admin_products_per_page, :integer, default: 10
     # Should only be true if you don't need to track inventory
     preference :allow_backorder_shipping, :boolean, default: false
@@ -36,12 +36,12 @@ module Spree
     preference :currency_symbol_position, :string, default: "before"
     preference :currency_thousands_separator, :string, default: ","
     preference :display_currency, :boolean, default: false
-    preference :default_meta_description, :string, default: 'OFN demo site'
-    preference :default_meta_keywords, :string, default: 'ofn, demo'
-    preference :default_seo_title, :string, default: ''
+    preference :default_meta_description, :string, default: "OFN demo site"
+    preference :default_meta_keywords, :string, default: "ofn, demo"
+    preference :default_seo_title, :string, default: ""
     preference :hide_cents, :boolean, default: false
-    preference :layout, :string, default: 'darkswarm'
-    preference :logo, :string, default: '/default_images/ofn-logo.png'
+    preference :layout, :string, default: "darkswarm"
+    preference :logo, :string, default: "/default_images/ofn-logo.png"
 
     # Maximum nesting level in taxons menu
     preference :max_level_in_taxons_menu, :integer, default: 1
@@ -56,41 +56,57 @@ module Spree
     preference :show_variant_full_price, :boolean, default: false
     preference :show_products_without_price, :boolean, default: false
     preference :show_raw_product_description, :boolean, default: false
-    preference :site_name, :string, default: 'OFN Demo Site'
-    preference :site_url, :string, default: 'demo.openfoodnetwork.org'
+    preference :site_name, :string, default: "OFN Demo Site"
+    preference :site_url, :string, default: "demo.openfoodnetwork.org"
     preference :tax_using_ship_address, :boolean, default: true
     # Determines whether to track on_hand values for variants / products.
     preference :track_inventory_levels, :boolean, default: true
 
     # Preferences related to image settings
-    preference :attachment_default_url, :string,
-               default: '/spree/products/:id/:style/:basename.:extension'
-    preference :attachment_path, :string,
-               default: ':rails_root/public/spree/products/:id/:style/:basename.:extension'
-    preference :attachment_url, :string,
-               default: '/spree/products/:id/:style/:basename.:extension'
-    preference :attachment_styles, :string,
-               default: "{\"mini\":\"48x48>\",\"small\":\"100x100>\"," \
-                        "\"product\":\"240x240>\",\"large\":\"600x600>\"}"
-    preference :attachment_default_style, :string, default: 'product'
+    preference(
+      :attachment_default_url,
+      :string,
+      default: "/spree/products/:id/:style/:basename.:extension"
+    )
+    preference(
+      :attachment_path,
+      :string,
+      default: ":rails_root/public/spree/products/:id/:style/:basename.:extension"
+    )
+    preference(
+      :attachment_url,
+      :string,
+      default: "/spree/products/:id/:style/:basename.:extension"
+    )
+    preference(
+      :attachment_styles,
+      :string,
+      default: "{\"mini\":\"48x48>\",\"small\":\"100x100>\"," \
+        "\"product\":\"240x240>\",\"large\":\"600x600>\"}"
+    )
+    preference :attachment_default_style, :string, default: "product"
     preference :s3_access_key, :string
     preference :s3_bucket, :string
     preference :s3_secret, :string
     preference :s3_headers, :string, default: "{\"Cache-Control\":\"max-age=31557600\"}"
-    preference :use_s3, :boolean, default: false # Use S3 for images rather than the file system
+    # Use S3 for images rather than the file system
+    preference :use_s3, :boolean, default: false
     preference :s3_protocol, :string
     preference :s3_host_alias, :string
 
     # Default mail headers settings
-    preference :mails_from, :string, default: 'ofn@example.com'
-    preference :mail_bcc, :string, default: 'ofn@example.com'
+    preference :mails_from, :string, default: "ofn@example.com"
+    preference :mail_bcc, :string, default: "ofn@example.com"
 
     # Default smtp settings
-    preference :mail_host, :string, default: 'localhost'
-    preference :mail_domain, :string, default: 'localhost'
+    preference :mail_host, :string, default: "localhost"
+    preference :mail_domain, :string, default: "localhost"
     preference :mail_port, :integer, default: 25
-    preference :secure_connection_type, :string,
-               default: Core::MailSettings::SECURE_CONNECTION_TYPES[0]
+    preference(
+      :secure_connection_type,
+      :string,
+      default: Core::MailSettings::SECURE_CONNECTION_TYPES[0]
+    )
     preference :mail_auth_type, :string, default: Core::MailSettings::MAIL_AUTH[0]
     preference :smtp_username, :string
     preference :smtp_password, :string
@@ -128,8 +144,11 @@ module Spree
     preference :enable_localized_number?, :boolean, default: false
 
     # Enable cache
-    preference :enable_products_cache?, :boolean,
-               default: Rails.env.production? || Rails.env.staging?
+    preference(
+      :enable_products_cache?,
+      :boolean,
+      default: Rails.env.production? || Rails.env.staging?
+    )
 
     # Available units
     preference :available_units, :string, default: "g,kg,T,mL,L,kL"

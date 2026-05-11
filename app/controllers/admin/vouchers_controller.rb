@@ -15,10 +15,11 @@ module Admin
 
       if @voucher.save
         flash[:success] = I18n.t(:successfully_created, resource: Spree.t(:voucher))
-        redirect_to edit_admin_enterprise_path(@enterprise, anchor: :vouchers_panel)
+        redirect_to(edit_admin_enterprise_path(@enterprise, anchor: :vouchers_panel))
       else
         render_error
       end
+
     rescue ActiveRecord::SubclassNotFound
       @voucher.errors.add(:type)
       render_error
@@ -33,7 +34,7 @@ module Admin
 
     def render_error
       flash[:error] = @voucher.errors.full_messages.to_sentence
-      render :new
+      render(:new)
     end
 
     def load_enterprise

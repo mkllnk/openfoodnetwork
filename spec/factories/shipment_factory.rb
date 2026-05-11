@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :shipment, class: Spree::Shipment do
+  factory(:shipment, class: Spree::Shipment) do
     # keeps test shipments unique per order
     initialize_with { Spree::Shipment.find_or_create_by(order_id: order.id) }
 
-    tracking { 'U10000' }
-    number { '100' }
+    tracking { "U10000" }
+    number { "100" }
     cost { 100.00 }
-    state { 'pending' }
+    state { "pending" }
     order
     address
 
@@ -23,15 +23,15 @@ FactoryBot.define do
     end
   end
 
-  factory :shipment_with, class: Spree::Shipment do
-    tracking { 'U10000' }
-    number { '100' }
+  factory(:shipment_with, class: Spree::Shipment) do
+    tracking { "U10000" }
+    number { "100" }
     cost { 100.00 }
-    state { 'pending' }
+    state { "pending" }
     order
     address
 
-    trait :shipping_method do
+    trait(:shipping_method) do
       transient do
         shipping_method { create(:shipping_method) }
       end

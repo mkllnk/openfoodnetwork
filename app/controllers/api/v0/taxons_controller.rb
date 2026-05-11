@@ -9,37 +9,38 @@ module Api
 
       def index
         @taxons = if params[:ids]
-                    Spree::Taxon.where(id: raw_params[:ids].split(","))
-                  else
-                    Spree::Taxon.ransack(raw_params[:q]).result
-                  end
-        render json: @taxons, each_serializer: Api::TaxonSerializer
+          Spree::Taxon.where(id: raw_params[:ids].split(","))
+        else
+          Spree::Taxon.ransack(raw_params[:q]).result
+        end
+
+        render(json: @taxons, each_serializer: Api::TaxonSerializer)
       end
 
       def create
-        authorize! :create, Spree::Taxon
+        authorize!(:create, Spree::Taxon)
         @taxon = Spree::Taxon.new(taxon_params)
 
         if @taxon.save
-          render json: @taxon, serializer: Api::TaxonSerializer, status: :created
+          render(json: @taxon, serializer: Api::TaxonSerializer, status: :created)
         else
           invalid_resource!(@taxon)
         end
       end
 
       def update
-        authorize! :update, Spree::Taxon
+        authorize!(:update, Spree::Taxon)
         if taxon.update(taxon_params)
-          render json: taxon, serializer: Api::TaxonSerializer, status: :ok
+          render(json: taxon, serializer: Api::TaxonSerializer, status: :ok)
         else
           invalid_resource!(taxon)
         end
       end
 
       def destroy
-        authorize! :delete, Spree::Taxon
+        authorize!(:delete, Spree::Taxon)
         taxon.destroy
-        head :no_content
+        head(:no_content)
       end
 
       private

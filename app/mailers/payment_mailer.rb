@@ -7,17 +7,19 @@ class PaymentMailer < ApplicationMailer
     @payment = payment
     @order = @payment.order
     @hide_ofn_navigation = @payment.order.distributor.hide_ofn_navigation
-    I18n.with_locale valid_locale(@order.user) do
-      mail(to: @order.email,
-           subject: default_i18n_subject(distributor: @order.distributor.name),
-           reply_to: @order.distributor.contact.email)
+    I18n.with_locale(valid_locale(@order.user)) do
+      mail(
+        to: @order.email,
+        subject: default_i18n_subject(distributor: @order.distributor.name),
+        reply_to: @order.distributor.contact.email
+      )
     end
   end
 
   def authorization_required(payment)
     @order = payment.order
     shop_owner = @order.distributor.owner
-    I18n.with_locale valid_locale(shop_owner) do
+    I18n.with_locale(valid_locale(shop_owner)) do
       mail(to: shop_owner.email, reply_to: @order.email)
     end
   end
@@ -28,10 +30,12 @@ class PaymentMailer < ApplicationMailer
     @amount = amount
     @taler_order_status_url = taler_order_status_url
 
-    I18n.with_locale valid_locale(@order.user) do
-      mail(to: @order.email,
-           subject: default_i18n_subject(shop: @shop),
-           reply_to: @order.email)
+    I18n.with_locale(valid_locale(@order.user)) do
+      mail(
+        to: @order.email,
+        subject: default_i18n_subject(shop: @shop),
+        reply_to: @order.email
+      )
     end
   end
 end

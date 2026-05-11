@@ -7,7 +7,7 @@ module Admin
 
       respond_to do |format|
         format.html {
-          redirect_to main_app.edit_admin_matomo_settings_path
+          redirect_to(main_app.edit_admin_matomo_settings_path)
         }
       end
     end
@@ -18,7 +18,7 @@ module Admin
       params.require(:preferences).permit(
         :matomo_url,
         :matomo_site_id,
-        :matomo_tag_manager_url,
+        :matomo_tag_manager_url
       )
     end
   end

@@ -6,24 +6,28 @@ module Admin
 
     def edit
       @proxy_order.initialise_order! unless @proxy_order.order
-      redirect_to spree.edit_admin_order_path(@proxy_order.order)
+      redirect_to(spree.edit_admin_order_path(@proxy_order.order))
     end
 
     def cancel
       if @proxy_order.cancel
-        render_as_json @proxy_order
+        render_as_json(@proxy_order)
       else
-        render json: { errors: [t('.could_not_cancel_the_order')] },
-               status: :unprocessable_entity
+        render(
+          json: {errors: [t(".could_not_cancel_the_order")]},
+          status: :unprocessable_entity
+        )
       end
     end
 
     def resume
       if @proxy_order.resume
-        render_as_json @proxy_order
+        render_as_json(@proxy_order)
       else
-        render json: { errors: [t('.could_not_resume_the_order')] },
-               status: :unprocessable_entity
+        render(
+          json: {errors: [t(".could_not_resume_the_order")]},
+          status: :unprocessable_entity
+        )
       end
     end
   end

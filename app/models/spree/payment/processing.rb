@@ -24,7 +24,7 @@ module Spree
 
       def internal_purchase!
         started_processing!
-        options = { customer_id: order.customer_id, payment_id: id, order_number: order.number }
+        options = {customer_id: order.customer_id, payment_id: id, order_number: order.number}
         response = payment_method.purchase(
           (amount * 100).round,
           nil,
@@ -105,7 +105,7 @@ module Spree
               payment_method:,
               amount: credit_amount.abs * -1,
               response_code: response.authorization,
-              state: 'completed',
+              state: "completed",
               skip_source_validation: true
             )
           else
@@ -135,7 +135,7 @@ module Spree
               payment_method:,
               amount: refund_amount.abs * -1,
               response_code: response.authorization,
-              state: 'completed',
+              state: "completed",
               skip_source_validation: true
             )
           else
@@ -150,7 +150,7 @@ module Spree
         # not used in the first place.
         return gateway_error(Spree.t(:internal_payment_not_voidable)) if state != "completed"
 
-        options = { customer_id: order.customer_id, payment_id: id, order_number: order.number }
+        options = {customer_id: order.customer_id, payment_id: id, order_number: order.number}
         response = payment_method.void(
           (amount * 100).round,
           nil,
@@ -173,23 +173,31 @@ module Spree
       end
 
       def gateway_options
-        options = { email: order.email,
-                    customer: order.email,
-                    ip: order.last_ip_address,
-                    # Need to pass in a unique identifier here to make some
-                    # payment gateways happy.
-                    #
-                    # For more information, please see Spree::Payment#set_unique_identifier
-                    order_id: gateway_order_id }
+        options = {
+          email: order.email,
+          customer: order.email,
+          ip: order.last_ip_address,
+          # Need to pass in a unique identifier here to make some
+          # payment gateways happy.
+          #
+          # For more information, please see Spree::Payment#set_unique_identifier
+          order_id: gateway_order_id
+        }
 
-        options.merge!(shipping: order.ship_total * 100,
-                       tax: order.additional_tax_total * 100,
-                       subtotal: order.item_total * 100,
-                       discount: 0,
-                       currency:)
+        options.merge!(
+          shipping: order.ship_total * 100,
+          tax: order.additional_tax_total * 100,
+          subtotal: order.item_total * 100,
+          discount: 0,
+          currency:
+        )
 
-        options.merge!({ billing_address: order.bill_address.try(:active_merchant_hash),
-                         shipping_address: order.ship_address.try(:active_merchant_hash) })
+        options.merge!(
+          {
+            billing_address: order.bill_address.try(:active_merchant_hash),
+            shipping_address: order.ship_address.try(:active_merchant_hash)
+          }
+        )
         options.merge!(payment: self)
 
         options
@@ -212,15 +220,17 @@ module Spree
           invalidate!
           raise Core::GatewayError, Spree.t(:payment_method_not_supported)
         end
+
         true
       end
 
       def calculate_refund_amount(refund_amount = nil)
         refund_amount ||= if credit_allowed >= order.outstanding_balance.abs
-                            order.outstanding_balance.abs
-                          else
-                            credit_allowed.abs
-                          end
+          order.outstanding_balance.abs
+        else
+          credit_allowed.abs
+        end
+
         refund_amount.to_f
       end
 
@@ -244,17 +254,18 @@ module Spree
         if response.success?
           unless response.authorization.nil?
             self.response_code = response.authorization
-            self.avs_response = response.avs_result['code']
+            self.avs_response = response.avs_result["code"]
 
             if response.cvv_result
-              self.cvv_response_code = response.cvv_result['code']
-              self.cvv_response_message = response.cvv_result['message']
-              self.redirect_auth_url = response.cvv_result['redirect_auth_url']
+              self.cvv_response_code = response.cvv_result["code"]
+              self.cvv_response_message = response.cvv_result["message"]
+              self.redirect_auth_url = response.cvv_result["redirect_auth_url"]
               if redirect_auth_url.present?
                 return require_authorization!
               end
             end
           end
+
           __send__("#{success_state}!")
         else
           __send__(failure_state)
@@ -273,13 +284,14 @@ module Spree
       end
 
       def gateway_error(error)
-        text = if error.is_a? ActiveMerchant::Billing::Response
-                 error_text(error)
-               elsif error.is_a? ActiveMerchant::ConnectionError
-                 Spree.t(:unable_to_connect_to_gateway)
-               else
-                 error.to_s
-               end
+        text = if error.is_a?(ActiveMerchant::Billing::Response)
+          error_text(error)
+        elsif error.is_a?(ActiveMerchant::ConnectionError)
+          Spree.t(:unable_to_connect_to_gateway)
+        else
+          error.to_s
+        end
+
         logger.error(Spree.t(:gateway_error))
         logger.error("  #{error.to_yaml}")
         # TODO why is this not captured ?
@@ -287,10 +299,10 @@ module Spree
       end
 
       def error_text(error)
-        if (code = error.params.dig('error', 'code')) && I18n.exists?("stripe.error_code.#{code}")
+        if (code = error.params.dig("error", "code")) && I18n.exists?("stripe.error_code.#{code}")
           I18n.t("stripe.error_code.#{code}")
         else
-          error.params['message'] || error.params['response_reason_text'] || error.message
+          error.params["message"] || error.params["response_reason_text"] || error.message
         end
       end
 

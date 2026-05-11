@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 # Update a backorder to reflect all local orders and stock levels
 # connected to the associated order cycle.
@@ -55,21 +55,23 @@ class BackorderUpdater
   end
 
   def update_order_lines(backorder, order_cycle, variants, broker, orderer)
-    variants.map do |variant|
-      link = variant.semantic_links[0].semantic_id
-      solution = broker.best_offer(link)
+    variants
+      .map do |variant|
+        link = variant.semantic_links[0].semantic_id
+        solution = broker.best_offer(link)
 
-      next unless solution.offer
+        next unless solution.offer
 
-      line = orderer.find_or_build_order_line(backorder, solution.offer)
-      if variant.on_demand
-        adjust_stock(variant, solution, line)
-      else
-        aggregate_final_quantities(order_cycle, line, variant, solution)
+        line = orderer.find_or_build_order_line(backorder, solution.offer)
+        if variant.on_demand
+          adjust_stock(variant, solution, line)
+        else
+          aggregate_final_quantities(order_cycle, line, variant, solution)
+        end
+
+        line
       end
-
-      line
-    end.compact
+      .compact
   end
 
   def cancel_stale_lines(unprocessed_lines, managed_variants, broker)
@@ -99,7 +101,8 @@ class BackorderUpdater
     line.quantity = line.quantity.to_i
 
     if variant.on_hand.negative?
-      needed_quantity = -1 * variant.on_hand # We need to replenish it.
+      # We need to replenish it.
+      needed_quantity = -1 * variant.on_hand
 
       # The number of wholesale packs we need to order to fulfill the
       # needed quantity.
@@ -132,13 +135,17 @@ class BackorderUpdater
   def managed_linked_variants(user, order_cycle, distributor)
     # These permissions may be too complex. Here may be scope to optimise.
     permissions = OpenFoodNetwork::OrderCyclePermissions.new(user, order_cycle)
-    permissions.visible_variants_for_outgoing_exchanges_to(distributor)
-      .where.associated(:semantic_links)
+    permissions
+      .visible_variants_for_outgoing_exchanges_to(distributor)
+      .where
+      .associated(:semantic_links)
   end
 
   def distributed_linked_variants(order_cycle, distributor)
-    order_cycle.variants_distributed_by(distributor)
-      .where.associated(:semantic_links)
+    order_cycle
+      .variants_distributed_by(distributor)
+      .where
+      .associated(:semantic_links)
   end
 
   def aggregate_final_quantities(order_cycle, line, variant, transformation)

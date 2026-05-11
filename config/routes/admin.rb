@@ -1,163 +1,168 @@
-require 'sidekiq/web'
-require 'sidekiq-scheduler/web'
+require "sidekiq/web"
+require "sidekiq-scheduler/web"
 
 Openfoodnetwork::Application.routes.draw do
-  namespace :admin do
+  namespace(:admin) do
 
-    authenticated :spree_user, -> user { user.admin? } do
-      mount Flipper::UI.app(Flipper) => '/feature-toggle'
-      mount Sidekiq::Web, at: "/sidekiq"
+    authenticated(:spree_user, -> (user) { user.admin? }) do
+      mount(Flipper::UI.app(Flipper) => "/feature-toggle")
+      mount(Sidekiq::Web, at: "/sidekiq")
     end
 
-    resources :bulk_line_items
+    resources(:bulk_line_items)
 
-    resources :order_cycles do
-      post :bulk_update, on: :collection, as: :bulk_update
-      get :incoming
-      get :outgoing
-      get :checkout_options
+    resources(:order_cycles) do
+      post(:bulk_update, on: :collection, as: :bulk_update)
+      get(:incoming)
+      get(:outgoing)
+      get(:checkout_options)
 
       member do
-        get :clone
-        post :notify_producers
+        get(:clone)
+        post(:notify_producers)
       end
     end
 
-    resources :enterprises do
+    resources(:enterprises) do
       collection do
-        get :for_order_cycle
-        get :visible
-        post :bulk_update, as: :bulk_update
+        get(:for_order_cycle)
+        get(:visible)
+        post(:bulk_update, as: :bulk_update)
       end
 
       member do
-        get :welcome
-        patch :register
-        get :new_tag_rule_group
+        get(:welcome)
+        patch(:register)
+        get(:new_tag_rule_group)
       end
 
-      resources :connected_apps, only: [:create, :destroy]
+      resources(:connected_apps, only: [:create, :destroy])
 
-      resources :user_invitations, only: [:new, :create]
+      resources(:user_invitations, only: [:new, :create])
 
-      resources :producer_properties do
-        post :update_positions, on: :collection
+      resources(:producer_properties) do
+        post(:update_positions, on: :collection)
       end
 
-      resources :tag_rules, only: [:destroy, :new]
+      resources(:tag_rules, only: [:destroy, :new])
 
-      resources :vouchers, only: [:new, :create]
+      resources(:vouchers, only: [:new, :create])
     end
 
-    resources :enterprise_relationships
-    resources :enterprise_roles
+    resources(:enterprise_relationships)
+    resources(:enterprise_roles)
 
-    resources :enterprise_fees, except: :destroy do
+    resources(:enterprise_fees, except: :destroy) do
       collection do
-        get :for_order_cycle
-        post :bulk_update, :as => :bulk_update
+        get(:for_order_cycle)
+        post(:bulk_update, :as => :bulk_update)
       end
     end
 
-    resources :enterprise_groups do
-      get :move_up
-      get :move_down
+    resources(:enterprise_groups) do
+      get(:move_up)
+      get(:move_down)
     end
 
-    get '/inventory', to: 'variant_overrides#index'
+    get("/inventory", to: "variant_overrides#index")
 
-    get '/product_import', to: 'product_import#index'
-    post '/product_import', to: 'product_import#import'
-    post '/product_import/validate_data', to: 'product_import#validate_data', as: 'product_import_process_async'
-    post '/product_import/save_data', to: 'product_import#save_data', as: 'product_import_save_async'
-    post '/product_import/reset_absent', to: 'product_import#reset_absent_products', as: 'product_import_reset_async'
+    get("/product_import", to: "product_import#index")
+    post("/product_import", to: "product_import#import")
+    post("/product_import/validate_data", to: "product_import#validate_data", as: "product_import_process_async")
+    post("/product_import/save_data", to: "product_import#save_data", as: "product_import_save_async")
+    post("/product_import/reset_absent", to: "product_import#reset_absent_products", as: "product_import_reset_async")
 
-    resources :dfc_product_imports, only: [:index] do
-      post :import, on: :collection
+    resources(:dfc_product_imports, only: [:index]) do
+      post(:import, on: :collection)
     end
 
     # This might be easier to arrange once we rename the controller to plain old "products"
-    post '/products/bulk_update', to: 'products_v3#bulk_update', as: 'products_bulk_update'
-    get '/products', to: 'products_v3#index', as: 'products'
-    delete 'products_v3/:id', to: 'products_v3#destroy', as: 'product_destroy'
-    delete 'products_v3/destroy_variant/:id', to: 'products_v3#destroy_variant', as: 'destroy_variant'
-    post 'clone/:id', to: 'products_v3#clone', as: 'clone_product'
-    post 'products/create_linked_variant', to: 'products_v3#create_linked_variant', as: 'create_linked_variant'
+    post("/products/bulk_update", to: "products_v3#bulk_update", as: "products_bulk_update")
+    get("/products", to: "products_v3#index", as: "products")
+    delete("products_v3/:id", to: "products_v3#destroy", as: "product_destroy")
+    delete("products_v3/destroy_variant/:id", to: "products_v3#destroy_variant", as: "destroy_variant")
+    post("clone/:id", to: "products_v3#clone", as: "clone_product")
+    post("products/create_linked_variant", to: "products_v3#create_linked_variant", as: "create_linked_variant")
 
-    scope :ajax_search, as: :ajax_search, controller: :ajax_search do
-      get :producers
-      get :categories
-      get :tax_categories
+    scope(:ajax_search, as: :ajax_search, controller: :ajax_search) do
+      get(:producers)
+      get(:categories)
+      get(:tax_categories)
     end
 
-    resources :product_preview, only: [:show]
+    resources(:product_preview, only: [:show])
 
-    resources :variant_overrides do
-      post :bulk_update, on: :collection
-      post :bulk_reset, on: :collection
+    resources(:variant_overrides) do
+      post(:bulk_update, on: :collection)
+      post(:bulk_reset, on: :collection)
     end
 
-    resources :inventory_items, only: [:create, :update]
+    resources(:inventory_items, only: [:create, :update])
 
-    resources :customers, only: [:index, :create, :update, :destroy, :show] do
-      resources :customer_account_transaction, only: [:index]
+    resources(:customers, only: [:index, :create, :update, :destroy, :show]) do
+      resources(:customer_account_transaction, only: [:index])
     end
 
-    resources :tag_rules, only: [] do
-      get :map_by_tag, on: :collection, format: :json
-      get :variant_tag_rules, on: :collection
+    resources(:tag_rules, only: []) do
+      get(:map_by_tag, on: :collection, format: :json)
+      get(:variant_tag_rules, on: :collection)
     end
 
-    resource :contents
+    resource(:contents)
 
-    resources :column_preferences, only: [] do
-      put :bulk_update, on: :collection
+    resources(:column_preferences, only: []) do
+      put(:bulk_update, on: :collection)
     end
 
-    resource :invoice_settings, only: [:edit, :update]
+    resource(:invoice_settings, only: [:edit, :update])
 
-    resource :stripe_connect_settings, only: [:edit, :update]
+    resource(:stripe_connect_settings, only: [:edit, :update])
 
-    resource :terms_of_service_files
+    resource(:terms_of_service_files)
 
-    resource :matomo_settings, only: [:edit, :update]
+    resource(:matomo_settings, only: [:edit, :update])
 
-    resource :connected_app_settings, only: [:edit, :update]
+    resource(:connected_app_settings, only: [:edit, :update])
 
-    resources :stripe_accounts, only: [:destroy] do
-      get :connect, on: :collection
-      get :status, on: :collection
+    resources(:stripe_accounts, only: [:destroy]) do
+      get(:connect, on: :collection)
+      get(:status, on: :collection)
     end
 
-    resources :schedules, only: [:index, :create, :update, :destroy], format: :json
+    resources(:schedules, only: [:index, :create, :update, :destroy], format: :json)
 
-    resources :subscriptions, only: [:index, :new, :create, :edit, :update] do
-      put :cancel, on: :member
-      put :pause, on: :member
-      put :unpause, on: :member
+    resources(:subscriptions, only: [:index, :new, :create, :edit, :update]) do
+      put(:cancel, on: :member)
+      put(:pause, on: :member)
+      put(:unpause, on: :member)
     end
 
-    resources :oidc_settings, only: [:index, :destroy]
+    resources(:oidc_settings, only: [:index, :destroy])
 
-    resources :subscription_line_items, only: [], format: :json do
-      post :build, on: :collection
+    resources(:subscription_line_items, only: [], format: :json) do
+      post(:build, on: :collection)
     end
 
-    resources :proxy_orders, only: [:edit] do
-      put :cancel, on: :member, format: :json
-      put :resume, on: :member, format: :json
+    resources(:proxy_orders, only: [:edit]) do
+      put(:cancel, on: :member, format: :json)
+      put(:resume, on: :member, format: :json)
     end
 
-    scope :reports, as: :reports do
-      get '/', to: 'reports#index'
-      get '/search_enterprise_fees', to: 'reports#search_enterprise_fees', as: :search_enterprise_fees
-      get '/search_enterprise_fee_owners', to: 'reports#search_enterprise_fee_owners', as: :search_enterprise_fee_owners
-      get '/search_distributors', to: 'reports#search_distributors', as: :search_distributors
-      get '/search_suppliers', to: 'reports#search_suppliers', as: :search_suppliers
-      get '/search_order_cycles', to: 'reports#search_order_cycles', as: :search_order_cycles
-      get '/search_order_customers', to: 'reports#search_order_customers', as: :search_order_customers
+    scope(:reports, as: :reports) do
+      get("/", to: "reports#index")
+      get("/search_enterprise_fees", to: "reports#search_enterprise_fees", as: :search_enterprise_fees)
+      get(
+        "/search_enterprise_fee_owners",
+        to: "reports#search_enterprise_fee_owners",
+        as: :search_enterprise_fee_owners
+      )
+      get("/search_distributors", to: "reports#search_distributors", as: :search_distributors)
+      get("/search_suppliers", to: "reports#search_suppliers", as: :search_suppliers)
+      get("/search_order_cycles", to: "reports#search_order_cycles", as: :search_order_cycles)
+      get("/search_order_customers", to: "reports#search_order_customers", as: :search_order_customers)
     end
-    match '/reports/:report_type(/:report_subtype)', to: 'reports#show', via: :get, as: :report
-    match '/reports/:report_type(/:report_subtype)', to: 'reports#create', via: :post
+
+    match("/reports/:report_type(/:report_subtype)", to: "reports#show", via: :get, as: :report)
+    match("/reports/:report_type(/:report_subtype)", to: "reports#create", via: :post)
   end
 end

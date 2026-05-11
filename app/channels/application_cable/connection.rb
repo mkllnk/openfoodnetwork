@@ -15,7 +15,6 @@ module ApplicationCable
 
       # this assumes that you want to enable SR for unauthenticated users
       reject_unauthorized_connection unless current_user || session_id
-
       # if you want to disable SR for unauthenticated users,
       # comment out the line above and uncomment the line below
       # reject_unauthorized_connection unless current_user

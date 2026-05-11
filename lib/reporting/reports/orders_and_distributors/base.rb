@@ -42,8 +42,12 @@ module Reporting
         private
 
         def line_item_includes
-          [{ variant: [:supplier, :product],
-             order: [:bill_address, :payments, { distributor: :address }] }]
+          [
+            {
+              variant: [:supplier, :product],
+              order: [:bill_address, :payments, {distributor: :address}]
+            }
+          ]
         end
 
         def permissions

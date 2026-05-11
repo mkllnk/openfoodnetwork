@@ -2,7 +2,7 @@
 
 class SuppliedProductImporter < DfcBuilder
   def self.store_product(subject, enterprise)
-    return unless subject.is_a? DataFoodConsortium::ConnectorV1::SuppliedProduct
+    return unless subject.is_a?(DataFoodConsortium::ConnectorV1::SuppliedProduct)
 
     variant = import_variant(subject, enterprise)
     product = variant.product
@@ -26,16 +26,17 @@ class SuppliedProductImporter < DfcBuilder
     product = referenced_spree_product(supplied_product, supplier)
 
     if product
-      Spree::Variant.new( product:, supplier:, price: 0,).tap do |variant|
+      Spree::Variant.new(product:, supplier:, price: 0).tap do |variant|
         apply(supplied_product, variant)
       end
     else
       product = import_product(supplied_product, supplier)
       product.variants.first.tap { |variant| apply(supplied_product, variant) }
-    end.tap do |variant|
-      link = supplied_product.semanticId
-      variant.semantic_links.new(semantic_id: link) if link.present?
     end
+      .tap do |variant|
+        link = supplied_product.semanticId
+        variant.semantic_links.new(semantic_id: link) if link.present?
+      end
   end
 
   # DEPRECATION WARNING
@@ -50,31 +51,39 @@ class SuppliedProductImporter < DfcBuilder
   end
 
   def self.spree_product(supplied_product, supplier)
-    supplied_product.isVariantOf.lazy.map do |group|
-      # We may have an object or just the id here:
-      group_id = group.try(:semanticId) || group
+    supplied_product
+      .isVariantOf
+      .lazy
+      .map do |group|
+        # We may have an object or just the id here:
+        group_id = group.try(:semanticId) || group
 
-      id = begin
-        route = Rails.application.routes.recognize_path(group_id)
+        id = begin
+          route = Rails.application.routes.recognize_path(group_id)
 
-        # Check that the given URI points to us:
-        next if group_id != urls.product_group_url(route)
+          # Check that the given URI points to us:
+          next if group_id != urls.product_group_url(route)
 
-        route[:id]
-      rescue ActionController::RoutingError
-        next
+          route[:id]
+        rescue ActionController::RoutingError
+          next
+        end
+
+        supplier.supplied_products.find_by(id:)
       end
-
-      supplier.supplied_products.find_by(id:)
-    end.compact.first
+      .compact
+      .first
   end
 
   def self.spree_product_linked(supplied_product, supplier)
     semantic_ids = supplied_product.isVariantOf.map do |id_or_object|
       id_or_object.try(:semanticId) || id_or_object
     end
-    supplier.supplied_products.includes(:semantic_link)
-      .where(semantic_link: { semantic_id: semantic_ids })
+
+    supplier
+      .supplied_products
+      .includes(:semantic_link)
+      .where(semantic_link: {semantic_id: semantic_ids})
       .first
   end
 
@@ -97,18 +106,21 @@ class SuppliedProductImporter < DfcBuilder
   end
 
   def self.import_product(supplied_product, supplier)
-    Spree::Product.new(
-      name: supplied_product.name,
-      description: supplied_product.description,
-      price: 0, # will be in DFC Offer
-      supplier_id: supplier.id,
-      primary_taxon_id: taxon(supplied_product).id,
-      image: ImageBuilder.import(supplied_product.image),
-      semantic_link: semantic_link(supplied_product),
-    ).tap do |product|
-      QuantitativeValueBuilder.apply(supplied_product.quantity, product)
-      product.ensure_standard_variant
-    end
+    Spree::Product
+      .new(
+        name: supplied_product.name,
+        description: supplied_product.description,
+        # will be in DFC Offer
+        price: 0,
+        supplier_id: supplier.id,
+        primary_taxon_id: taxon(supplied_product).id,
+        image: ImageBuilder.import(supplied_product.image),
+        semantic_link: semantic_link(supplied_product)
+      )
+      .tap do |product|
+        QuantitativeValueBuilder.apply(supplied_product.quantity, product)
+        product.ensure_standard_variant
+      end
   end
 
   def self.apply(supplied_product, variant)
@@ -134,5 +146,6 @@ class SuppliedProductImporter < DfcBuilder
   def self.taxon(supplied_product)
     ProductTypeImporter.taxon(supplied_product.productType)
   end
+
   private_class_method :taxon
 end

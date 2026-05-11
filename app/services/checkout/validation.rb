@@ -8,7 +8,7 @@ module Checkout
     end
 
     def call
-      __send__ "validate_#{current_step}"
+      __send__("validate_#{current_step}")
     end
 
     private
@@ -22,7 +22,7 @@ module Checkout
     def validate_details
       return true if params[:shipping_method_id].present?
 
-      order.errors.add :shipping_method, I18n.t('checkout.errors.select_a_shipping_method')
+      order.errors.add(:shipping_method, I18n.t("checkout.errors.select_a_shipping_method"))
     end
 
     def validate_payment
@@ -31,7 +31,7 @@ module Checkout
       # No payment required, it's usually due to the order being paid by customer credit
       return true if order.outstanding_balance <= 0.00
 
-      order.errors.add :payment_method, I18n.t('checkout.errors.select_a_payment_method')
+      order.errors.add(:payment_method, I18n.t("checkout.errors.select_a_payment_method"))
     end
 
     def validate_summary

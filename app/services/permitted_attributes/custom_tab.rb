@@ -4,7 +4,8 @@ module PermittedAttributes
   class CustomTab
     def self.attributes
       [
-        :title, :content
+        :title,
+        :content
       ]
     end
   end

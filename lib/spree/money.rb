@@ -1,6 +1,6 @@
 # frozen_string_literal: false
 
-require 'money'
+require "money"
 
 module Spree
   class Money
@@ -25,9 +25,10 @@ module Spree
       @money.format(@options)
     end
 
-    def to_html(options = { html_wrap: true })
+    def to_html(options = {html_wrap: true})
       "<span style='white-space: nowrap;'>#{@money.format(@options.merge(options))}</span>"
-        .html_safe # rubocop:disable Rails/OutputSafety
+        # rubocop:disable Rails/OutputSafety
+        .html_safe
     end
 
     def ==(other)
@@ -51,11 +52,11 @@ module Spree
 
       case position.to_sym
       when :before
-        '%u%n'
+        "%u%n"
       when :after
-        '%n %u'
+        "%n %u"
       else
-        raise 'Invalid symbol position'
+        raise "Invalid symbol position"
       end
     end
   end

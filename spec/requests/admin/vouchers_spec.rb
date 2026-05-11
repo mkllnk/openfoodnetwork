@@ -6,19 +6,19 @@ RSpec.describe "/admin/enterprises/:enterprise_id/vouchers" do
 
   before do
     enterprise_user.enterprise_roles.build(enterprise:).save
-    sign_in enterprise_user
+    sign_in(enterprise_user)
   end
 
   describe "GET /admin/enterprises/:enterprise_id/vouchers/new" do
     it "loads the new voucher page" do
-      get new_admin_enterprise_voucher_path(enterprise)
+      get(new_admin_enterprise_voucher_path(enterprise))
 
-      expect(response).to render_template("admin/vouchers/new")
+      expect(response).to(render_template("admin/vouchers/new"))
     end
   end
 
   describe "POST /admin/enterprises/:enterprise_id/vouchers" do
-    subject(:create_voucher) { post admin_enterprise_vouchers_path(enterprise), params: }
+    subject(:create_voucher) { post(admin_enterprise_vouchers_path(enterprise), params:) }
 
     let(:params) do
       {
@@ -29,23 +29,24 @@ RSpec.describe "/admin/enterprises/:enterprise_id/vouchers" do
         }
       }
     end
+
     let(:code) { "new_code" }
     let(:amount) { 15 }
     let(:type) { "Vouchers::PercentageRate" }
 
-    context "with a flat rate voucher" do
+    context("with a flat rate voucher") do
       let(:type) { "Vouchers::FlatRate" }
 
       it "creates a new voucher" do
-        expect { create_voucher }.to change { Vouchers::FlatRate.count }.by(1)
+        expect { create_voucher }.to(change { Vouchers::FlatRate.count }.by(1))
 
         voucher = Vouchers::FlatRate.last
-        expect(voucher.code).to eq(code)
-        expect(voucher.amount).to eq(amount)
+        expect(voucher.code).to(eq(code))
+        expect(voucher.amount).to(eq(amount))
       end
     end
 
-    context "with a percentage rate voucher" do
+    context("with a percentage rate voucher") do
       let(:params) do
         {
           voucher: {
@@ -55,29 +56,30 @@ RSpec.describe "/admin/enterprises/:enterprise_id/vouchers" do
           }
         }
       end
+
       let(:type) { "Vouchers::PercentageRate" }
 
       it "creates a new voucher" do
-        expect { create_voucher }.to change { Vouchers::PercentageRate.count }.by(1)
+        expect { create_voucher }.to(change { Vouchers::PercentageRate.count }.by(1))
 
         voucher = Vouchers::PercentageRate.last
-        expect(voucher.code).to eq(code)
-        expect(voucher.amount).to eq(amount)
+        expect(voucher.code).to(eq(code))
+        expect(voucher.amount).to(eq(amount))
       end
     end
 
-    context "with a wrong type" do
+    context("with a wrong type") do
       let(:type) { "Random" }
 
       it "render the new page with an error" do
         create_voucher
 
-        expect(response).to render_template("admin/vouchers/new")
-        expect(flash[:error]).to eq("Type is invalid")
+        expect(response).to(render_template("admin/vouchers/new"))
+        expect(flash[:error]).to(eq("Type is invalid"))
       end
     end
 
-    context "with a code used by a deactivated voucher" do
+    context("with a code used by a deactivated voucher") do
       before do
         voucher = create(:voucher, code:, enterprise:)
         voucher.destroy
@@ -86,15 +88,15 @@ RSpec.describe "/admin/enterprises/:enterprise_id/vouchers" do
       it "render the new page with a code taken error" do
         create_voucher
 
-        expect(response).to render_template("admin/vouchers/new")
-        expect(flash[:error]).to eq("Code has already been taken")
+        expect(response).to(render_template("admin/vouchers/new"))
+        expect(flash[:error]).to(eq("Code has already been taken"))
       end
     end
 
     it "redirects to admin enterprise setting page, voucher panel" do
       create_voucher
 
-      expect(response).to redirect_to("#{edit_admin_enterprise_path(enterprise)}#vouchers_panel")
+      expect(response).to(redirect_to("#{edit_admin_enterprise_path(enterprise)}#vouchers_panel"))
     end
   end
 end

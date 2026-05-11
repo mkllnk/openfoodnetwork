@@ -75,7 +75,7 @@ class VoucherAdjustmentsService
       order: @order,
       label: "Tax #{adjustment.label}",
       mandatory: false,
-      state: 'open',
+      state: "open",
       tax_category: nil,
       included_tax: 0
     }

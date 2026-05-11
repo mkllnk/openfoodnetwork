@@ -24,24 +24,27 @@ module EnterprisesHelper
   end
 
   def editable_enterprises
-    OpenFoodNetwork::Permissions.new(spree_current_user).
-      editable_enterprises.
-      order('is_primary_producer ASC, name')
+    OpenFoodNetwork::Permissions
+      .new(spree_current_user)
+      .editable_enterprises
+      .order("is_primary_producer ASC, name")
   end
 
   def enterprises_options(enterprises)
     enterprises.map { |enterprise|
-      ["#{enterprise.name}: #{enterprise.address.address1}, #{enterprise.address.city}",
-       enterprise.id.to_i]
+      [
+        "#{enterprise.name}: #{enterprise.address.address1}, #{enterprise.address.city}",
+        enterprise.id.to_i
+      ]
     }
   end
 
   def enterprises_to_names(enterprises)
-    enterprises.map(&:name).sort.join(', ')
+    enterprises.map(&:name).sort.join(", ")
   end
 
   def enterprise_type_name(enterprise)
-    if enterprise.sells == 'none'
+    if enterprise.sells == "none"
       enterprise.producer_profile_only ? I18n.t(:profile) : I18n.t(:supplier_only)
     else
       I18n.t(:has_shopfront)
@@ -50,8 +53,10 @@ module EnterprisesHelper
 
   def enterprise_confirm_delete_message(enterprise)
     if enterprise.supplied_products.present?
-      I18n.t(:enterprise_confirm_delete_message,
-             product: pluralize(enterprise.supplied_products.count, 'product'))
+      I18n.t(
+        :enterprise_confirm_delete_message,
+        product: pluralize(enterprise.supplied_products.count, "product")
+      )
     else
       t(:are_you_sure)
     end
@@ -65,10 +70,10 @@ module EnterprisesHelper
     options = {}
     options[:data] = {
       turbo: true,
-      'turbo-method': 'delete',
+      'turbo-method': "delete",
       'turbo-confirm': enterprise_confirm_delete_message(enterprise)
     }
-    link_to_with_icon 'icon-trash', name, url, options
+    link_to_with_icon("icon-trash", name, url, options)
   end
 
   def order_changes_allowed?

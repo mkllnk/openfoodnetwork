@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
 RSpec.describe Paypal::PaymentDetailsService do
-  subject { described_class.new(order: ) }
+  subject { described_class.new(order:) }
   let(:order) { create(:order_with_totals_and_distribution, shipping_fee: 0.00) }
   let(:payment) {
-    create(:payment, state: "checkout", order:, amount: payment_amount,
-                     payment_method: paypal_payment_method)
+    create(
+      :payment,
+      state: "checkout",
+      order:,
+      amount: payment_amount,
+      payment_method: paypal_payment_method
+    )
   }
   let(:payment_amount) { order.total }
   let(:paypal_payment_method) { create(:paypal_payment_method, distributors: [order.distributor]) }
@@ -40,10 +45,10 @@ RSpec.describe Paypal::PaymentDetailsService do
       PaymentAction: "Sale"
     }
 
-    expect(subject.call).to match(payment_hash)
+    expect(subject.call).to(match(payment_hash))
   end
 
-  context "with no pending paypal payment" do
+  context("with no pending paypal payment") do
     let(:other_payment) {
       create(:payment, state: "checkout", order:, amount: payment_amount)
     }
@@ -51,11 +56,11 @@ RSpec.describe Paypal::PaymentDetailsService do
     it "returns an empty hash" do
       order.payments << other_payment
 
-      expect(subject.call).to match({})
+      expect(subject.call).to(match({}))
     end
   end
 
-  context "with no line items" do
+  context("with no line items") do
     let(:order) { create(:order, distributor: create(:distributor_enterprise)) }
 
     it "only includes the order total" do
@@ -69,11 +74,11 @@ RSpec.describe Paypal::PaymentDetailsService do
         }
       }
 
-      expect(subject.call).to match(payment_hash)
+      expect(subject.call).to(match(payment_hash))
     end
   end
 
-  context "with shipping fees" do
+  context("with shipping fees") do
     let(:order) { create(:order_with_totals_and_distribution, shipping_fee: 3.00) }
 
     it "includes shipping fees" do
@@ -102,11 +107,11 @@ RSpec.describe Paypal::PaymentDetailsService do
         PaymentAction: "Sale"
       }
 
-      expect(subject.call).to match(payment_hash)
+      expect(subject.call).to(match(payment_hash))
     end
   end
 
-  context "with taxes" do
+  context("with taxes") do
     # "order_with_taxes" will create one taxed line item, we set line_item_count to 0 to not create
     # extra line items we don't really care about
     let(:order) {
@@ -117,7 +122,8 @@ RSpec.describe Paypal::PaymentDetailsService do
         tax_rate_amount: 0.10,
         tax_rate_name: "Tax 1",
         included_in_price: false
-      ).tap(&:create_tax_charge!)
+      )
+        .tap(&:create_tax_charge!)
     }
 
     it "includes taxes" do
@@ -146,15 +152,21 @@ RSpec.describe Paypal::PaymentDetailsService do
         PaymentAction: "Sale"
       }
 
-      expect(subject.call).to match(payment_hash)
+      expect(subject.call).to(match(payment_hash))
     end
   end
 
-  context "with customer credit" do
+  context("with customer credit") do
     let(:payment_amount) { 4.00 }
 
     it "includes a discount" do
-      customer_credit = create(:payment, state: "checkout", order:, amount: 6.00, payment_method: Spree::PaymentMethod.customer_credit)
+      customer_credit = create(
+        :payment,
+        state: "checkout",
+        order:,
+        amount: 6.00,
+        payment_method: Spree::PaymentMethod.customer_credit
+      )
       order.payments << customer_credit
       order.payments << payment
 
@@ -185,11 +197,11 @@ RSpec.describe Paypal::PaymentDetailsService do
         PaymentAction: "Sale"
       }
 
-      expect(subject.call).to match(payment_hash)
+      expect(subject.call).to(match(payment_hash))
     end
   end
 
-  context "with address required" do
+  context("with address required") do
     subject { described_class.new(order:, address_required: true) }
 
     it "includes the ship address" do
@@ -229,7 +241,7 @@ RSpec.describe Paypal::PaymentDetailsService do
         PaymentAction: "Sale"
       }
 
-      expect(subject.call).to match(payment_hash)
+      expect(subject.call).to(match(payment_hash))
     end
   end
 end

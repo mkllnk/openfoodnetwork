@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'spree/localized_number'
+require "spree/localized_number"
 
 # Adjustments represent a change to the +item_total+ of an Order. Each adjustment
 # has an +amount+ that can be either positive or negative.
@@ -35,13 +35,13 @@ module Spree
     # Deletion of metadata is handled in the database.
     # So we don't need the option `dependent: :destroy` as long as
     # AdjustmentMetadata has no destroy logic itself.
-    has_one :metadata, class_name: 'AdjustmentMetadata', dependent: nil
+    has_one :metadata, class_name: "AdjustmentMetadata", dependent: nil
     has_many :adjustments, as: :adjustable, dependent: :destroy
 
     belongs_to :adjustable, polymorphic: true
     belongs_to :originator, -> { with_deleted }, polymorphic: true
     belongs_to :order, class_name: "Spree::Order"
-    belongs_to :tax_category, class_name: 'Spree::TaxCategory'
+    belongs_to :tax_category, class_name: "Spree::TaxCategory"
 
     validates :label, presence: true
     validates :amount, numericality: true
@@ -62,27 +62,30 @@ module Spree
       end
     end
 
-    scope :tax, -> { where(originator_type: 'Spree::TaxRate') }
-    scope :price, -> { where(adjustable_type: 'Spree::LineItem') }
+    scope :tax, -> { where(originator_type: "Spree::TaxRate") }
+    scope :price, -> { where(adjustable_type: "Spree::LineItem") }
     scope :optional, -> { where(mandatory: false) }
-    scope :charge, -> { where('amount >= 0') }
-    scope :credit, -> { where('amount < 0') }
+    scope :charge, -> { where("amount >= 0") }
+    scope :credit, -> { where("amount < 0") }
     scope :return_authorization, -> { where(originator_type: "Spree::ReturnAuthorization") }
     scope :voucher, -> { where(originator_type: "Voucher") }
-    scope :voucher_tax, -> {
-      voucher.joins(:metadata).where(metadata: { fee_name: "Tax", fee_type: "Voucher" })
-    }
+    scope(
+      :voucher_tax,
+      -> {
+        voucher.joins(:metadata).where(metadata: {fee_name: "Tax", fee_type: "Voucher"})
+      }
+    )
     scope :non_voucher, -> { where.not(originator_type: "Voucher") }
     scope :inclusive, -> { where(included: true) }
     scope :additional, -> { where(included: false) }
     scope :legacy_tax, -> { additional.tax.where(adjustable_type: "Spree::Order") }
 
-    scope :enterprise_fee, -> { where(originator_type: 'EnterpriseFee') }
-    scope :admin,          -> { where(originator_type: nil) }
+    scope :enterprise_fee, -> { where(originator_type: "EnterpriseFee") }
+    scope :admin, -> { where(originator_type: nil) }
 
-    scope :payment_fee,    -> { where(AdjustmentScopes::PAYMENT_FEE_SCOPE) }
-    scope :shipping,       -> { where(AdjustmentScopes::SHIPPING_SCOPE) }
-    scope :eligible,       -> { where(AdjustmentScopes::ELIGIBLE_SCOPE) }
+    scope :payment_fee, -> { where(AdjustmentScopes::PAYMENT_FEE_SCOPE) }
+    scope :shipping, -> { where(AdjustmentScopes::SHIPPING_SCOPE) }
+    scope :eligible, -> { where(AdjustmentScopes::ELIGIBLE_SCOPE) }
 
     localize_number :amount
 
@@ -90,16 +93,18 @@ module Spree
       joins(:metadata)
         .find_by(
           originator:,
-          adjustment_metadata: { enterprise_role: }
+          adjustment_metadata: {enterprise_role:}
         )
     end
 
     def self.by_originator_and_not_enterprise_role(originator, enterprise_role)
       joins(:metadata)
         .where(originator:)
-        .where.not(
-          spree_adjustments: { adjustment_metadata: { enterprise_role: } }
-        ).first
+        .where
+        .not(
+          spree_adjustments: {adjustment_metadata: {enterprise_role:}}
+        )
+        .first
     end
 
     # Update both the eligibility and amount of the adjustment. Adjustments
@@ -128,7 +133,7 @@ module Spree
         amount = originator.compute_amount(calculable || adjustable)
         update_columns(
           amount:,
-          updated_at: Time.zone.now,
+          updated_at: Time.zone.now
         )
       end
 

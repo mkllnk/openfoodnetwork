@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/address_finder'
+require "open_food_network/address_finder"
 
 # rubocop:disable Metrics/ClassLength
 module Admin
@@ -8,31 +8,39 @@ module Admin
     before_action :load_managed_shops, only: :index, if: :html_request?
     respond_to :json
 
-    respond_override update: { json: {
-      success: lambda {
-        tag_rule_mapping = TagRule.mapping_for(Enterprise.where(id: @customer.enterprise))
-        render_as_json @customer, tag_rule_mapping:
-      },
-      failure: lambda {
-                 render json: { errors: @customer.errors.full_messages },
-                        status: :unprocessable_entity
-               }
-    } }
+    respond_override(
+      update: {
+        json: {
+          success: lambda {
+            tag_rule_mapping = TagRule.mapping_for(Enterprise.where(id: @customer.enterprise))
+            render_as_json(@customer, tag_rule_mapping:)
+          },
+          failure: lambda {
+            render(
+              json: {errors: @customer.errors.full_messages},
+              status: :unprocessable_entity
+            )
+          }
+        }
+      }
+    )
 
     def index
       respond_to do |format|
         format.html
         format.json do
-          render json: @collection,
-                 each_serializer: ::Api::Admin::CustomerWithBalanceSerializer,
-                 tag_rule_mapping:,
-                 customer_tags: customer_tags_by_id
+          render(
+            json: @collection,
+            each_serializer: ::Api::Admin::CustomerWithBalanceSerializer,
+            tag_rule_mapping:,
+            customer_tags: customer_tags_by_id
+          )
         end
       end
     end
 
     def show
-      render_as_json @customer, ams_prefix: params[:ams_prefix]
+      render_as_json(@customer, ams_prefix: params[:ams_prefix])
     end
 
     def create
@@ -42,12 +50,12 @@ module Admin
         @customer.created_manually = true
         if @customer.save
           tag_rule_mapping = TagRule.mapping_for(Enterprise.where(id: @customer.enterprise))
-          render_as_json @customer, tag_rule_mapping:
+          render_as_json(@customer, tag_rule_mapping:)
         else
-          render json: { errors: @customer.errors.full_messages }, status: :bad_request
+          render(json: {errors: @customer.errors.full_messages}, status: :bad_request)
         end
       else
-        redirect_to '/unauthorized'
+        redirect_to("/unauthorized")
       end
     end
 
@@ -55,8 +63,8 @@ module Admin
     def update
       if @object.update(permitted_resource_params)
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_save }
-          format.js   { render layout: false }
+          format.html { redirect_to(location_after_save) }
+          format.js { render(layout: false) }
         end
       else
         respond_with(@object)
@@ -67,13 +75,13 @@ module Admin
     def destroy
       if @object.destroy
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_destroy }
-          format.js   { render partial: "spree/admin/shared/destroy" }
+          format.html { redirect_to(location_after_destroy) }
+          format.js { render(partial: "spree/admin/shared/destroy") }
         end
       else
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_destroy }
-          format.json { render json: { errors: @object.errors.full_messages }, status: :conflict }
+          format.html { redirect_to(location_after_destroy) }
+          format.json { render(json: {errors: @object.errors.full_messages}, status: :conflict) }
         end
       end
     end
@@ -82,15 +90,14 @@ module Admin
 
     def collection
       if json_request? && params[:enterprise_id].present?
-        CustomersWithBalanceQuery.new(customers).call.
-          includes(
-            :enterprise,
-            { bill_address: [:state, :country] },
-            { ship_address: [:state, :country] },
-            user: :credit_cards
-          )
+        CustomersWithBalanceQuery.new(customers).call.includes(
+          :enterprise,
+          {bill_address: [:state, :country]},
+          {ship_address: [:state, :country]},
+          user: :credit_cards
+        )
       else
-        Customer.where('1=0')
+        Customer.where("1=0")
       end
     end
 
@@ -104,8 +111,10 @@ module Admin
     end
 
     def managed_enterprise_id
-      @managed_enterprise_id ||= Enterprise.managed_by(spree_current_user).
-        select('enterprises.id').find_by(id: params[:enterprise_id])
+      @managed_enterprise_id ||= Enterprise
+        .managed_by(spree_current_user)
+        .select("enterprises.id")
+        .find_by(id: params[:enterprise_id])
     end
 
     def load_managed_shops
@@ -123,9 +132,14 @@ module Admin
 
     def customer_params
       params.require(:customer).permit(
-        :enterprise_id, :first_name, :last_name, :email, :code, :tag_list,
+        :enterprise_id,
+        :first_name,
+        :last_name,
+        :email,
+        :code,
+        :tag_list,
         ship_address_attributes: PermittedAttributes::Address.attributes,
-        bill_address_attributes: PermittedAttributes::Address.attributes,
+        bill_address_attributes: PermittedAttributes::Address.attributes
       )
     end
 

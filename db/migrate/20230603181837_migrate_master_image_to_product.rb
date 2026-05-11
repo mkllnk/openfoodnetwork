@@ -14,7 +14,8 @@ class MigrateMasterImageToProduct < ActiveRecord::Migration[7.0]
   end
 
   def renumber_first_image
-    ActiveRecord::Base.connection.execute(<<-SQL
+    ActiveRecord::Base.connection.execute(
+      <<-SQL
       UPDATE spree_assets
       SET position = '1'
       FROM (
@@ -25,12 +26,13 @@ class MigrateMasterImageToProduct < ActiveRecord::Migration[7.0]
       ) variant_first_image
       WHERE spree_assets.id = variant_first_image.id
       AND spree_assets.position != '1'
-    SQL
+      SQL
     )
   end
 
   def migrate_master_images
-    ActiveRecord::Base.connection.execute(<<-SQL
+    ActiveRecord::Base.connection.execute(
+      <<-SQL
       UPDATE spree_assets
       SET viewable_type = 'Spree::Product',
           viewable_id = spree_variants.product_id
@@ -40,7 +42,7 @@ class MigrateMasterImageToProduct < ActiveRecord::Migration[7.0]
         AND spree_variants.deleted_at IS NULL
         AND spree_assets.viewable_type = 'Spree::Variant'
         AND spree_assets.position = '1'
-    SQL
+      SQL
     )
   end
 end

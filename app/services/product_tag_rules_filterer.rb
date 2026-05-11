@@ -55,25 +55,27 @@ class ProductTagRulesFilterer
   def override_not_hidden_by_rule
     return "FALSE" unless overrides_to_hide.any?
 
-    "variant_overrides.id NOT IN (#{overrides_to_hide.join(',')})"
+    "variant_overrides.id NOT IN (#{overrides_to_hide.join(",")})"
   end
 
   def override_shown_by_rule
     return "FALSE" unless overrides_to_show.any?
 
-    "variant_overrides.id IN (#{overrides_to_show.join(',')})"
+    "variant_overrides.id IN (#{overrides_to_show.join(",")})"
   end
 
   def overrides_to_hide
-    @overrides_to_hide ||= VariantOverride.where(hub_id: distributor.id).
-      tagged_with(default_rule_tags + hide_rule_tags, any: true).
-      pluck(:id)
+    @overrides_to_hide ||= VariantOverride
+      .where(hub_id: distributor.id)
+      .tagged_with(default_rule_tags + hide_rule_tags, any: true)
+      .pluck(:id)
   end
 
   def overrides_to_show
-    @overrides_to_show ||= VariantOverride.where(hub_id: distributor.id).
-      tagged_with(show_rule_tags, any: true).
-      pluck(:id)
+    @overrides_to_show ||= VariantOverride
+      .where(hub_id: distributor.id)
+      .tagged_with(show_rule_tags, any: true)
+      .pluck(:id)
   end
 
   def default_rule_tags
@@ -100,12 +102,11 @@ class ProductTagRulesFilterer
 
   def customer_applicable_rules
     # Rules which apply specifically to the current customer
-    @customer_applicable_rules ||= non_default_rules.select{ |rule| customer_tagged?(rule) }
+    @customer_applicable_rules ||= non_default_rules.select { |rule| customer_tagged?(rule) }
   end
 
   def hide_rules
-    @hide_rules ||= customer_applicable_rules.
-      select{ |rule| rule.preferred_matched_variants_visibility == 'hidden' }
+    @hide_rules ||= customer_applicable_rules.select { |rule| rule.preferred_matched_variants_visibility == "hidden" }
   end
 
   def show_rules
@@ -113,7 +114,7 @@ class ProductTagRulesFilterer
   end
 
   def customer_tagged?(rule)
-    customer_tag_list.include? rule.preferred_customer_tags
+    customer_tag_list.include?(rule.preferred_customer_tags)
   end
 
   def customer_tag_list

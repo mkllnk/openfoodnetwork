@@ -3,7 +3,7 @@
 module I18nHelper
   def locale_options
     OpenFoodNetwork::I18nConfig.selectable_locales.map do |locale|
-      [t('language_name', locale:), locale]
+      [t("language_name", locale:), locale]
     end
   end
 

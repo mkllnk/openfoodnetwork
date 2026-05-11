@@ -3,15 +3,17 @@
 class AffiliateSalesQuery
   class << self
     def data(enterprises, start_date: nil, end_date: nil)
-      end_date = end_date&.end_of_day # Include the whole end date.
+      # Include the whole end date.
+      end_date = end_date&.end_of_day
 
       Spree::LineItem
         .joins(tables)
         .where(
           spree_orders: {
-            state: "complete", distributor_id: enterprises,
-            completed_at: [start_date..end_date],
-          },
+            state: "complete",
+            distributor_id: enterprises,
+            completed_at: [start_date..end_date]
+          }
         )
         .group(key_fields)
         .pluck(Arel.sql(fields))
@@ -33,7 +35,7 @@ class AffiliateSalesQuery
     # the supplier postcode. That's why we need SQL here instead of nice Rails
     # associations.
     def tables
-      <<~SQL.squish
+      <<~SQL
         JOIN spree_variants ON spree_variants.id = spree_line_items.variant_id
         JOIN spree_products ON spree_products.id = spree_variants.product_id
         JOIN enterprises AS suppliers ON suppliers.id = spree_variants.supplier_id
@@ -44,10 +46,11 @@ class AffiliateSalesQuery
         JOIN spree_addresses AS distributor_addresses ON distributor_addresses.id = distributors.address_id
         JOIN spree_countries AS distributor_countries ON distributor_countries.id = distributor_addresses.country_id
       SQL
+        .squish
     end
 
     def fields
-      <<~SQL.squish
+      <<~SQL
         COALESCE(spree_line_items.product_name, spree_products.name) AS product_name,
         COALESCE(spree_line_items.variant_name, spree_variants.display_name) AS unit_name,
         spree_variants.variant_unit AS unit_type,
@@ -61,10 +64,11 @@ class AffiliateSalesQuery
 
         SUM(spree_line_items.quantity) AS quantity_sold
       SQL
+        .squish
     end
 
     def key_fields
-      <<~SQL.squish
+      <<~SQL
         COALESCE(spree_line_items.product_name, spree_products.name),
         COALESCE(spree_line_items.variant_name, spree_variants.display_name),
         unit_type,
@@ -76,6 +80,7 @@ class AffiliateSalesQuery
         distributor_country,
         supplier_country
       SQL
+        .squish
     end
 
     # A list of column names as symbols to be used as hash keys.

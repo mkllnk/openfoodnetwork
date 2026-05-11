@@ -7,33 +7,33 @@ RSpec.describe Orders::CheckStockService do
 
   describe "#sufficient_stock?" do
     it "returns true if enough stock" do
-      expect(subject.sufficient_stock?).to be(true)
+      expect(subject.sufficient_stock?).to(be(true))
     end
 
-    context "when one or more item are out of stock" do
+    context("when one or more item are out of stock") do
       it "returns false" do
         variant = order.line_items.first.variant
         variant.update!(on_demand: false, on_hand: 0)
 
-        expect(subject.sufficient_stock?).to be(false)
+        expect(subject.sufficient_stock?).to(be(false))
       end
     end
   end
 
   describe "#update_line_items" do
-    context "with no variant out of stock" do
+    context("with no variant out of stock") do
       it "returns an empty array" do
-        expect(subject.update_line_items).to be_empty
+        expect(subject.update_line_items).to(be_empty)
       end
     end
 
-    context "with no variant with reduced stock" do
+    context("with no variant with reduced stock") do
       it "returns an empty array" do
-        expect(subject.update_line_items).to be_empty
+        expect(subject.update_line_items).to(be_empty)
       end
     end
 
-    context "with a variant out of stock" do
+    context("with a variant out of stock") do
       let(:variant) { order.line_items.first.variant }
 
       before do
@@ -43,15 +43,15 @@ RSpec.describe Orders::CheckStockService do
       it "removes the machting line item" do
         subject.update_line_items
 
-        expect(order.line_items.reload.select { |li| li.variant == variant }).to be_empty
+        expect(order.line_items.reload.select { |li| li.variant == variant }).to(be_empty)
       end
 
       it "returns an array including the out of stock variant" do
-        expect(subject.update_line_items).to eq([variant])
+        expect(subject.update_line_items).to(eq([variant]))
       end
     end
 
-    context "with a variant with reduced stock" do
+    context("with a variant with reduced stock") do
       let(:line_item) { order.line_items.last }
       let(:variant) { line_item.variant }
 
@@ -63,15 +63,15 @@ RSpec.describe Orders::CheckStockService do
       it "updates the machting line item quantity" do
         subject.update_line_items
 
-        expect(line_item.reload.quantity).to be(1)
+        expect(line_item.reload.quantity).to(be(1))
       end
 
       it "returns an array including the reduced stock variant" do
-        expect(subject.update_line_items).to eq([variant])
+        expect(subject.update_line_items).to(eq([variant]))
       end
     end
 
-    context "with a variant with reduced stock and a variant out of stock" do
+    context("with a variant with reduced stock and a variant out of stock") do
       let(:line_item_out_of_stock) { order.line_items.last }
       let(:variant_out_of_stock) { line_item_out_of_stock.variant }
       let(:line_item_reduced_stock) { order.line_items.first }
@@ -86,17 +86,17 @@ RSpec.describe Orders::CheckStockService do
       it "removes the line item matching the out of stock variant" do
         subject.update_line_items
 
-        expect(order.line_items).not_to include(line_item_out_of_stock)
+        expect(order.line_items).not_to(include(line_item_out_of_stock))
       end
 
       it "updates the line item quantity matching the reduced stock variant" do
         subject.update_line_items
 
-        expect(line_item_reduced_stock.reload.quantity).to eq(2)
+        expect(line_item_reduced_stock.reload.quantity).to(eq(2))
       end
 
       it "returns an array including the out of stock variant and thereduced stock variant" do
-        expect(subject.update_line_items).to include(variant_out_of_stock, variant_reduced_stock)
+        expect(subject.update_line_items).to(include(variant_out_of_stock, variant_reduced_stock))
       end
     end
   end

@@ -11,24 +11,24 @@ RSpec.describe SocialMediaBuilder do
       # These formats are requested by our UI:
       facebook: "www.facebook.com/user",
       instagram: "handle",
-      linkedin: "www.linkedin.com/company/name",
+      linkedin: "www.linkedin.com/company/name"
     )
   end
 
   describe ".social_media" do
     it "links to Facebook" do
       result = SocialMediaBuilder.social_media(enterprise, "facebook")
-      expect(result.url).to eq "https://www.facebook.com/user"
+      expect(result.url).to(eq("https://www.facebook.com/user"))
     end
 
     it "links to Instagram" do
       result = SocialMediaBuilder.social_media(enterprise, "instagram")
-      expect(result.url).to eq "https://www.instagram.com/handle/"
+      expect(result.url).to(eq("https://www.instagram.com/handle/"))
     end
 
     it "links to Linkedin" do
       result = SocialMediaBuilder.social_media(enterprise, "linkedin")
-      expect(result.url).to eq "https://www.linkedin.com/company/name"
+      expect(result.url).to(eq("https://www.linkedin.com/company/name"))
     end
   end
 end

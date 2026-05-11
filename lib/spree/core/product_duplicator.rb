@@ -36,6 +36,7 @@ module Spree
         mapped_variants = product.variants.index_with do |variant|
           duplicate_variant(variant)
         end
+
         duplicate_variant_links(mapped_variants)
         mapped_variants.values
       end
@@ -44,7 +45,7 @@ module Spree
         variant.dup.tap do |new_variant|
           new_variant.sku = ""
           new_variant.deleted_at = nil
-          new_variant.images = variant.images.map { |image| duplicate_image image }
+          new_variant.images = variant.images.map { |image| duplicate_image(image) }
           new_variant.price = variant.price
           new_variant.currency = variant.currency
         end
@@ -52,8 +53,10 @@ module Spree
 
       def duplicate_variant_links(mapped_variants)
         # Find any links between orig variants (links to/from another product are ignored)
-        variant_links = VariantLink.where(source_variant: [mapped_variants.keys],
-                                          target_variant: [mapped_variants.keys])
+        variant_links = VariantLink.where(
+          source_variant: [mapped_variants.keys],
+          target_variant: [mapped_variants.keys]
+        )
         # Link the new variants
         variant_links.find_each do |variant_link|
           source_variant = mapped_variants[variant_link.source_variant]

@@ -11,7 +11,7 @@ module Spree
           }
         else
           {
-            include_blank: t(:none),
+            include_blank: t(:none)
           }
         end
       end

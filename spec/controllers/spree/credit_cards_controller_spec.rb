@@ -5,54 +5,62 @@ RSpec.describe Spree::CreditCardsController do
     let(:user) { create(:user) }
 
     before do
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
 
     describe "#new_from_token" do
       let!(:token) do
-        Stripe::Token.create({
-                               card: {
-                                 number: '4242424242424242',
-                                 exp_month: 9,
-                                 exp_year: 1.year.from_now.year,
-                                 cvc: '314',
-                               },
-                             })
+        Stripe::Token.create(
+          {
+            card: {
+              number: "4242424242424242",
+              exp_month: 9,
+              exp_year: 1.year.from_now.year,
+              cvc: "314"
+            }
+          }
+        )
       end
-      context "when the request to store the customer/card with Stripe is successful" do
+
+      context("when the request to store the customer/card with Stripe is successful") do
         let(:params) do
           {
             format: :json,
             exp_month: 9,
             exp_year: 1.year.from_now.year,
             last4: 4242,
-            token: token['id'],
+            token: token["id"],
             cc_type: "visa"
           }
         end
 
         it "saves the card locally" do
           expect {
-            spree_post :new_from_token, params
-          }.to change {
-            Spree::CreditCard.count
-          }.from(0).to(1)
+            spree_post(:new_from_token, params)
+          }
+            .to(
+              change {
+                Spree::CreditCard.count
+              }
+                .from(0)
+                .to(1)
+            )
 
           card = Spree::CreditCard.last
 
           # retrieves the created card from Stripe
           stripe_card = Stripe::Customer.list_sources(
             card.gateway_customer_profile_id,
-            { object: 'card', limit: 1 },
+            {object: "card", limit: 1}
           )
 
-          payment_profile = stripe_card['data'][0]['id']
-          customer_profile = stripe_card['data'][0]['customer']
+          payment_profile = stripe_card["data"][0]["id"]
+          customer_profile = stripe_card["data"][0]["customer"]
 
-          expect(card.gateway_payment_profile_id).to eq payment_profile
-          expect(card.gateway_customer_profile_id).to eq customer_profile
-          expect(card.user_id).to eq user.id
-          expect(card.last_digits).to eq "4242"
+          expect(card.gateway_payment_profile_id).to(eq(payment_profile))
+          expect(card.gateway_customer_profile_id).to(eq(customer_profile))
+          expect(card.user_id).to(eq(user.id))
+          expect(card.last_digits).to(eq("4242"))
         end
       end
     end
@@ -64,8 +72,9 @@ RSpec.describe Spree::CreditCardsController do
 
     before do
       Stripe.api_key = "sk_test_12345"
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
+
     describe "#new_from_token" do
       let(:params) do
         {
@@ -80,69 +89,69 @@ RSpec.describe Spree::CreditCardsController do
 
       before do
         stub_request(:post, "https://api.stripe.com/v1/customers")
-          .with(body: { email: user.email, source: token })
+          .with(body: {email: user.email, source: token})
           .to_return(response_mock)
       end
 
-      context "when the request to store the customer/card with Stripe fails" do
+      context("when the request to store the customer/card with Stripe fails") do
         let(:response_mock) {
-          { status: 402, body: JSON.generate(error: { message: "Bup-bow..." }) }
+          {status: 402, body: JSON.generate(error: {message: "Bup-bow..."})}
         }
         it "doesn't save the card locally, and renders a flash error" do
-          expect{ spree_post :new_from_token, params }.not_to change { Spree::CreditCard.count }
+          expect { spree_post(:new_from_token, params) }.not_to(change { Spree::CreditCard.count })
 
           json_response = response.parsed_body
-          flash_message = "There was a problem with your payment information: %s" % 'Bup-bow...'
-          expect(json_response["flash"]["error"]).to eq flash_message
+          flash_message = "There was a problem with your payment information: %s" % "Bup-bow..."
+          expect(json_response["flash"]["error"]).to(eq(flash_message))
         end
       end
     end
 
     describe "#update card to be the default card" do
-      let(:params) { { format: :json, credit_card: { is_default: true } } }
-      context "when the specified credit card is not found" do
+      let(:params) { {format: :json, credit_card: {is_default: true}} }
+      context("when the specified credit card is not found") do
         before { params[:id] = 123 }
 
         it "renders a flash error" do
-          spree_put :update, params
+          spree_put(:update, params)
           json_response = response.parsed_body
-          expect(json_response['flash']['error']).to eq 'Card could not be updated'
+          expect(json_response["flash"]["error"]).to(eq("Card could not be updated"))
         end
       end
 
-      context "when the specified credit card is found" do
-        let!(:card) { create(:credit_card, gateway_customer_profile_id: 'cus_AZNMJ') }
+      context("when the specified credit card is found") do
+        let!(:card) { create(:credit_card, gateway_customer_profile_id: "cus_AZNMJ") }
         before { params[:id] = card.id }
 
-        context "but the card is not owned by the user" do
+        context("but the card is not owned by the user") do
           it "redirects to unauthorized" do
-            spree_put :update, params
-            expect(response).to redirect_to unauthorized_path
+            spree_put(:update, params)
+            expect(response).to(redirect_to(unauthorized_path))
           end
         end
 
-        context "and the card is owned by the user" do
+        context("and the card is owned by the user") do
           before { card.update_attribute(:user_id, user.id) }
 
-          context "when the update completes successfully" do
+          context("when the update completes successfully") do
             it "renders a serialized copy of the updated card" do
-              expect{ spree_put :update, params }.to change { card.reload.is_default }.to(true)
+              expect { spree_put(:update, params) }.to(change { card.reload.is_default }.to(true))
               json_response = response.parsed_body
-              expect(json_response['id']).to eq card.id
-              expect(json_response['is_default']).to eq true
+              expect(json_response["id"]).to(eq(card.id))
+              expect(json_response["is_default"]).to(eq(true))
             end
           end
 
-          context "when the update fails" do
-            before { params[:credit_card][:month] = 'some illegal month' }
+          context("when the update fails") do
+            before { params[:credit_card][:month] = "some illegal month" }
             it "renders an error" do
-              spree_put :update, params
+              spree_put(:update, params)
               json_response = response.parsed_body
-              expect(json_response['flash']['error']).to eq 'Card could not be updated'
+              expect(json_response["flash"]["error"]).to(eq("Card could not be updated"))
             end
           end
 
-          context "and there are existing authorizations for the user" do
+          context("and there are existing authorizations for the user") do
             let!(:customer1) { create(:customer, allow_charges: true) }
             let!(:customer2) { create(:customer, allow_charges: true) }
 
@@ -151,11 +160,11 @@ RSpec.describe Spree::CreditCardsController do
               customer2.user = card.user
               customer1.save
               customer2.save
-              expect(customer1.reload.allow_charges).to be true
-              expect(customer2.reload.allow_charges).to be true
-              spree_put :update, params
-              expect(customer1.reload.allow_charges).to be false
-              expect(customer2.reload.allow_charges).to be false
+              expect(customer1.reload.allow_charges).to(be(true))
+              expect(customer2.reload.allow_charges).to(be(true))
+              spree_put(:update, params)
+              expect(customer1.reload.allow_charges).to(be(false))
+              expect(customer2.reload.allow_charges).to(be(false))
             end
           end
         end
@@ -163,66 +172,73 @@ RSpec.describe Spree::CreditCardsController do
     end
 
     describe "#destroy" do
-      context "when the specified credit card is not found" do
-        let(:params) { { id: 123 } }
+      context("when the specified credit card is not found") do
+        let(:params) { {id: 123} }
 
         it "redirects to /account with a flash error, does not request deletion with Stripe" do
-          expect(controller).not_to receive(:destroy_at_stripe)
-          spree_delete :destroy, params
-          expect(flash[:error]).to eq 'Sorry, the card could not be removed'
-          expect(response).to have_http_status :ok
+          expect(controller).not_to(receive(:destroy_at_stripe))
+          spree_delete(:destroy, params)
+          expect(flash[:error]).to(eq("Sorry, the card could not be removed"))
+          expect(response).to(have_http_status(:ok))
         end
       end
 
-      context "when the specified credit card is found" do
-        let!(:card) { create(:credit_card, gateway_customer_profile_id: 'cus_AZNMJ') }
-        let(:params) { { id: card.id } }
+      context("when the specified credit card is found") do
+        let!(:card) { create(:credit_card, gateway_customer_profile_id: "cus_AZNMJ") }
+        let(:params) { {id: card.id} }
 
-        context "but the card is not owned by the user" do
+        context("but the card is not owned by the user") do
           it "redirects to unauthorized" do
-            spree_delete :destroy, params
-            expect(response).to redirect_to unauthorized_path
+            spree_delete(:destroy, params)
+            expect(response).to(redirect_to(unauthorized_path))
           end
         end
 
-        context "and the card is owned by the user" do
+        context("and the card is owned by the user") do
           before do
             card.update_attribute(:user_id, user.id)
 
-            stub_request(:get, "https://api.stripe.com/v1/customers/cus_AZNMJ").
-              to_return(status: 200, body: JSON.generate(id: "cus_AZNMJ"))
+            stub_request(:get, "https://api.stripe.com/v1/customers/cus_AZNMJ").to_return(
+              status: 200,
+              body: JSON.generate(id: "cus_AZNMJ")
+            )
           end
 
-          context "where the request to destroy the Stripe customer fails" do
+          context("where the request to destroy the Stripe customer fails") do
             before do
-              stub_request(:delete, "https://api.stripe.com/v1/customers/cus_AZNMJ").
-                to_return(status: 402, body: JSON.generate(error: { message: 'Bup-bow!' }))
+              stub_request(:delete, "https://api.stripe.com/v1/customers/cus_AZNMJ").to_return(
+                status: 402,
+                body: JSON.generate(error: {message: "Bup-bow!"})
+              )
             end
 
             it "doesn't delete the card" do
-              expect{ spree_delete :destroy, params }.not_to change { Spree::CreditCard.count }
-              expect(flash[:error]).to eq 'Sorry, the card could not be removed'
-              expect(response).to have_http_status :unprocessable_entity
+              expect { spree_delete(:destroy, params) }.not_to(change { Spree::CreditCard.count })
+              expect(flash[:error]).to(eq("Sorry, the card could not be removed"))
+              expect(response).to(have_http_status(:unprocessable_entity))
             end
           end
 
-          context "where the request to destroy the Stripe customer succeeds" do
+          context("where the request to destroy the Stripe customer succeeds") do
             before do
-              stub_request(:delete, "https://api.stripe.com/v1/customers/cus_AZNMJ").
-                to_return(status: 200, body: JSON.generate(deleted: true, id: "cus_AZNMJ"))
+              stub_request(:delete, "https://api.stripe.com/v1/customers/cus_AZNMJ").to_return(
+                status: 200,
+                body: JSON.generate(deleted: true, id: "cus_AZNMJ")
+              )
             end
 
             it "deletes the card and redirects to account_path" do
-              expect{ spree_delete :destroy, params }.to change { Spree::CreditCard.count }.by(-1)
+              expect { spree_delete(:destroy, params) }.to(change { Spree::CreditCard.count }.by(-1))
               expect(flash[:success])
-                .to eq "Your card has been removed (number: %s)" % "x-#{card.last_digits}"
-              expect(response).to have_http_status :ok
+                .to(eq("Your card has been removed (number: %s)" % "x-#{card.last_digits}"))
+              expect(response).to(have_http_status(:ok))
             end
 
-            context "card is the default card and there are existing authorizations for the user" do
+            context("card is the default card and there are existing authorizations for the user") do
               before do
                 card.update_attribute(:is_default, true)
               end
+
               let!(:customer1) { create(:customer, allow_charges: true) }
               let!(:customer2) { create(:customer, allow_charges: true) }
 
@@ -231,22 +247,25 @@ RSpec.describe Spree::CreditCardsController do
                 customer2.user = card.user
                 customer1.save
                 customer2.save
-                expect(customer1.reload.allow_charges).to be true
-                expect(customer2.reload.allow_charges).to be true
-                spree_delete :destroy, params
-                expect(customer1.reload.allow_charges).to be false
-                expect(customer2.reload.allow_charges).to be false
+                expect(customer1.reload.allow_charges).to(be(true))
+                expect(customer2.reload.allow_charges).to(be(true))
+                spree_delete(:destroy, params)
+                expect(customer1.reload.allow_charges).to(be(false))
+                expect(customer2.reload.allow_charges).to(be(false))
               end
 
-              context "when has any other saved cards" do
+              context("when has any other saved cards") do
                 let!(:second_card) {
-                  create(:stored_credit_card, user_id: user.id,
-                                              gateway_customer_profile_id: 'cus_AZNMJ')
+                  create(
+                    :stored_credit_card,
+                    user_id: user.id,
+                    gateway_customer_profile_id: "cus_AZNMJ"
+                  )
                 }
 
                 it "should assign the second one as the default one" do
-                  spree_delete :destroy, params
-                  expect(Spree::CreditCard.find_by(id: second_card.id).is_default).to eq true
+                  spree_delete(:destroy, params)
+                  expect(Spree::CreditCard.find_by(id: second_card.id).is_default).to(eq(true))
                 end
               end
             end

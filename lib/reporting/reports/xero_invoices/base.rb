@@ -6,11 +6,36 @@ module Reporting
       class Base < ReportTemplate
         def xero_columns
           # These are NOT to be translated, they need to be in this exact format to work with Xero
-          %w(*ContactName EmailAddress POAddressLine1 POAddressLine2 POAddressLine3 POAddressLine4
-             POCity PORegion POPostalCode POCountry *InvoiceNumber Reference *InvoiceDate *DueDate
-             InventoryItemCode *Description *Quantity *UnitAmount Discount *AccountCode *TaxType
-             TrackingName1 TrackingOption1 TrackingName2 TrackingOption2 Currency
-             BrandingTheme Paid?)
+          %w[
+            *ContactName
+            EmailAddress
+            POAddressLine1
+            POAddressLine2
+            POAddressLine3
+            POAddressLine4
+            POCity
+            PORegion
+            POPostalCode
+            POCountry
+            *InvoiceNumber
+            Reference
+            *InvoiceDate
+            *DueDate
+            InventoryItemCode
+            *Description
+            *Quantity
+            *UnitAmount
+            Discount
+            *AccountCode
+            *TaxType
+            TrackingName1
+            TrackingOption1
+            TrackingName2
+            TrackingOption2
+            Currency
+            BrandingTheme
+            Paid?
+          ]
         end
 
         def custom_headers
@@ -24,15 +49,16 @@ module Reporting
           xero_columns.each_with_index do |header, id|
             result[header.to_sym] = proc { |row| row[id] }
           end
+
           result
         end
 
         def default_params
           {
-            report_subtype: 'summary',
+            report_subtype: "summary",
             invoice_date: Time.zone.today,
             due_date: Time.zone.today + 1.month,
-            account_code: 'food sales'
+            account_code: "food sales"
           }
         end
 
@@ -45,7 +71,7 @@ module Reporting
         # Here we directly transform the ActiveRecordRelation into table_rows without using the
         # new ReportGrouper, so we can keep the old report without refactoring it
         def query_result
-          search_result = search.result.reorder('id DESC')
+          search_result = search.result.reorder("id DESC")
 
           rows = []
 
@@ -76,14 +102,16 @@ module Reporting
         end
 
         def line_item_detail_row(line_item, invoice_number, opts)
-          row(line_item.order,
-              line_item.variant.sku,
-              line_item.product_and_full_name,
-              line_item.quantity.to_s,
-              line_item.price.to_s,
-              invoice_number,
-              tax_type(line_item),
-              opts)
+          row(
+            line_item.order,
+            line_item.variant.sku,
+            line_item.product_and_full_name,
+            line_item.quantity.to_s,
+            line_item.price.to_s,
+            invoice_number,
+            tax_type(line_item),
+            opts
+          )
         end
 
         def adjustment_detail_rows(order, invoice_number, opts)
@@ -93,14 +121,16 @@ module Reporting
         end
 
         def adjustment_detail_row(adjustment, invoice_number, opts)
-          row(adjustment_order(adjustment),
-              '',
-              adjustment.label,
-              1,
-              adjustment.amount,
-              invoice_number,
-              tax_type(adjustment),
-              opts)
+          row(
+            adjustment_order(adjustment),
+            "",
+            adjustment.label,
+            1,
+            adjustment.amount,
+            invoice_number,
+            tax_type(adjustment),
+            opts
+          )
         end
 
         def summary_rows_for_order(order, invoice_number, opts)
@@ -116,77 +146,132 @@ module Reporting
         end
 
         def produce_summary_rows(order, invoice_number, opts)
-          [summary_row(order, I18n.t(:report_header_total_untaxable_produce),
-                       total_untaxable_products(order), invoice_number,
-                       I18n.t(:report_header_gst_free_income), opts),
-           summary_row(order, I18n.t(:report_header_total_taxable_produce),
-                       total_taxable_products(order), invoice_number,
-                       I18n.t(:report_header_gst_on_income), opts)]
+          [
+            summary_row(
+              order,
+              I18n.t(:report_header_total_untaxable_produce),
+              total_untaxable_products(order),
+              invoice_number,
+              I18n.t(:report_header_gst_free_income),
+              opts
+            ),
+            summary_row(
+              order,
+              I18n.t(:report_header_total_taxable_produce),
+              total_taxable_products(order),
+              invoice_number,
+              I18n.t(:report_header_gst_on_income),
+              opts
+            )
+          ]
         end
 
         def fee_summary_rows(order, invoice_number, opts)
-          [summary_row(order, I18n.t(:report_header_total_untaxable_fees),
-                       total_untaxable_fees(order), invoice_number,
-                       I18n.t(:report_header_gst_free_income), opts),
-           summary_row(order, I18n.t(:report_header_total_taxable_fees), total_taxable_fees(order),
-                       invoice_number, I18n.t(:report_header_gst_on_income), opts)]
+          [
+            summary_row(
+              order,
+              I18n.t(:report_header_total_untaxable_fees),
+              total_untaxable_fees(order),
+              invoice_number,
+              I18n.t(:report_header_gst_free_income),
+              opts
+            ),
+            summary_row(
+              order,
+              I18n.t(:report_header_total_taxable_fees),
+              total_taxable_fees(order),
+              invoice_number,
+              I18n.t(:report_header_gst_on_income),
+              opts
+            )
+          ]
         end
 
         def shipping_summary_rows(order, invoice_number, opts)
-          [summary_row(order, I18n.t(:report_header_delivery_shipping_cost), total_shipping(order),
-                       invoice_number, tax_on_shipping_s(order), opts)]
+          [
+            summary_row(
+              order,
+              I18n.t(:report_header_delivery_shipping_cost),
+              total_shipping(order),
+              invoice_number,
+              tax_on_shipping_s(order),
+              opts
+            )
+          ]
         end
 
         def payment_summary_rows(order, invoice_number, opts)
-          [summary_row(order, I18n.t(:report_header_transaction_fee), total_transaction(order),
-                       invoice_number, I18n.t(:report_header_gst_free_income), opts)]
+          [
+            summary_row(
+              order,
+              I18n.t(:report_header_transaction_fee),
+              total_transaction(order),
+              invoice_number,
+              I18n.t(:report_header_gst_free_income),
+              opts
+            )
+          ]
         end
 
         def admin_adjustment_summary_rows(order, invoice_number, opts)
-          [summary_row(order, I18n.t(:report_header_total_untaxable_admin),
-                       total_untaxable_admin_adjustments(order), invoice_number,
-                       I18n.t(:report_header_gst_free_income), opts),
-           summary_row(order, I18n.t(:report_header_total_taxable_admin),
-                       total_taxable_admin_adjustments(order), invoice_number,
-                       I18n.t(:report_header_gst_on_income), opts)]
+          [
+            summary_row(
+              order,
+              I18n.t(:report_header_total_untaxable_admin),
+              total_untaxable_admin_adjustments(order),
+              invoice_number,
+              I18n.t(:report_header_gst_free_income),
+              opts
+            ),
+            summary_row(
+              order,
+              I18n.t(:report_header_total_taxable_admin),
+              total_taxable_admin_adjustments(order),
+              invoice_number,
+              I18n.t(:report_header_gst_on_income),
+              opts
+            )
+          ]
         end
 
         def summary_row(order, description, amount, invoice_number, tax_type, opts = {})
-          row order, '', description, '1', amount, invoice_number, tax_type, opts
+          row(order, "", description, "1", amount, invoice_number, tax_type, opts)
         end
 
         # rubocop:disable Metrics/AbcSize
         def row(order, sku, description, quantity, amount, invoice_number, tax_type, opts = {})
           return nil if amount == 0
 
-          [order.bill_address&.full_name,
-           order.email,
-           order.bill_address&.address1,
-           order.bill_address&.address2,
-           '',
-           '',
-           order.bill_address&.city,
-           order.bill_address&.state.to_s,
-           order.bill_address&.zipcode,
-           order.bill_address&.country&.name,
-           invoice_number,
-           order.number,
-           opts[:invoice_date].to_date.to_s,
-           opts[:due_date].to_date.to_s,
-           sku,
-           description,
-           quantity,
-           amount,
-           '',
-           opts[:account_code],
-           tax_type,
-           '',
-           '',
-           '',
-           '',
-           CurrentConfig.get(:currency),
-           '',
-           order.paid? ? I18n.t(:y) : I18n.t(:n)]
+          [
+            order.bill_address&.full_name,
+            order.email,
+            order.bill_address&.address1,
+            order.bill_address&.address2,
+            "",
+            "",
+            order.bill_address&.city,
+            order.bill_address&.state.to_s,
+            order.bill_address&.zipcode,
+            order.bill_address&.country&.name,
+            invoice_number,
+            order.number,
+            opts[:invoice_date].to_date.to_s,
+            opts[:due_date].to_date.to_s,
+            sku,
+            description,
+            quantity,
+            amount,
+            "",
+            opts[:account_code],
+            tax_type,
+            "",
+            "",
+            "",
+            "",
+            CurrentConfig.get(:currency),
+            "",
+            order.paid? ? I18n.t(:y) : I18n.t(:n)
+          ]
         end
         # rubocop:enable Metrics/AbcSize
 
@@ -215,13 +300,24 @@ module Reporting
         end
 
         def total_untaxable_fees(order)
-          order.all_adjustments.enterprise_fee.where(tax_category: nil)
-            .map(&:amount).compact.sum
+          order
+            .all_adjustments
+            .enterprise_fee
+            .where(tax_category: nil)
+            .map(&:amount)
+            .compact
+            .sum
         end
 
         def total_taxable_fees(order)
-          order.all_adjustments.enterprise_fee.where.not(tax_category: nil)
-            .map(&:amount).compact.sum
+          order
+            .all_adjustments
+            .enterprise_fee
+            .where
+            .not(tax_category: nil)
+            .map(&:amount)
+            .compact
+            .sum
         end
 
         def total_shipping(order)
@@ -233,8 +329,9 @@ module Reporting
         end
 
         def tax_on_shipping_s(order)
-          tax_on_shipping = order.shipments
-            .map{ |shipment| shipment.additional_tax_total + shipment.included_tax_total }
+          tax_on_shipping = order
+            .shipments
+            .map { |shipment| shipment.additional_tax_total + shipment.included_tax_total }
             .sum(&:to_f)
             .round(2)
             .positive?
@@ -254,7 +351,7 @@ module Reporting
         end
 
         def detail?
-          params[:report_subtype] == 'detailed'
+          params[:report_subtype] == "detailed"
         end
 
         def tax_type(taxable)

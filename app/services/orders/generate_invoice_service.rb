@@ -34,7 +34,7 @@ module Orders
     end
 
     def total_invoices_created_by_distributor
-      Invoice.joins(:order).where(order: { distributor: order.distributor }).count
+      Invoice.joins(:order).where(order: {distributor: order.distributor}).count
     end
   end
 end

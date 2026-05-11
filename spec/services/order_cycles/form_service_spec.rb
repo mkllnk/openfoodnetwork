@@ -7,23 +7,25 @@ RSpec.describe OrderCycles::FormService do
       let(:order_cycle) { OrderCycle.new }
       let(:form) { OrderCycles::FormService.new(order_cycle, params, shop.owner) }
 
-      context "when creation is successful" do
-        let(:params) { { name: "Test Order Cycle", coordinator_id: shop.id } }
+      context("when creation is successful") do
+        let(:params) { {name: "Test Order Cycle", coordinator_id: shop.id} }
 
         it "returns true" do
           expect do
-            expect(form.save).to be true
-          end.to change { OrderCycle.count }.by(1)
+            expect(form.save).to(be(true))
+          end
+            .to(change { OrderCycle.count }.by(1))
         end
       end
 
-      context "when creation fails" do
-        let(:params) { { name: "Test Order Cycle" } }
+      context("when creation fails") do
+        let(:params) { {name: "Test Order Cycle"} }
 
         it "returns false" do
           expect do
-            expect(form.save).to be false
-          end.not_to change { OrderCycle.count }
+            expect(form.save).to(be(false))
+          end
+            .not_to(change { OrderCycle.count })
         end
       end
     end
@@ -33,34 +35,36 @@ RSpec.describe OrderCycles::FormService do
       let(:order_cycle) { create(:simple_order_cycle, name: "Old Name") }
       let(:form) { OrderCycles::FormService.new(order_cycle, params, shop.owner) }
 
-      context "when update is successful" do
-        let(:params) { { name: "Test Order Cycle", coordinator_id: shop.id } }
+      context("when update is successful") do
+        let(:params) { {name: "Test Order Cycle", coordinator_id: shop.id} }
 
         it "returns true" do
           expect do
-            expect(form.save).to be true
-          end.to change { order_cycle.reload.name }.to("Test Order Cycle")
+            expect(form.save).to(be(true))
+          end
+            .to(change { order_cycle.reload.name }.to("Test Order Cycle"))
         end
       end
 
-      context "when updating fails" do
-        let(:params) { { name: nil } }
+      context("when updating fails") do
+        let(:params) { {name: nil} }
 
         it "returns false" do
           expect do
-            expect(form.save).to be false
-          end.not_to change{ order_cycle.reload.name }
+            expect(form.save).to(be(false))
+          end
+            .not_to(change { order_cycle.reload.name })
         end
       end
 
-      context "when schedules are present but updating something other than the :schedule_ids" do
-        let(:params) { { name: "New Order Cycle Name" } }
+      context("when schedules are present but updating something other than the :schedule_ids") do
+        let(:params) { {name: "New Order Cycle Name"} }
         before { create(:schedule, order_cycles: [order_cycle]) }
 
         it "doesn't delete the schedules" do
-          expect(order_cycle.schedules).to be_present
+          expect(order_cycle.schedules).to(be_present)
           form.save
-          expect(order_cycle.schedules).to be_present
+          expect(order_cycle.schedules).to(be_present)
         end
       end
     end
@@ -71,63 +75,63 @@ RSpec.describe OrderCycles::FormService do
     let!(:managed_coordinator) { create(:enterprise, owner: user) }
     let!(:managed_enterprise) { create(:enterprise, owner: user) }
     let!(:coordinated_order_cycle) {
-      create(:simple_order_cycle, coordinator: managed_coordinator )
+      create(:simple_order_cycle, coordinator: managed_coordinator)
     }
     let!(:coordinated_order_cycle2) {
-      create(:simple_order_cycle, coordinator: managed_enterprise )
+      create(:simple_order_cycle, coordinator: managed_enterprise)
     }
     let!(:uncoordinated_order_cycle) {
-      create(:simple_order_cycle, coordinator: create(:enterprise) )
+      create(:simple_order_cycle, coordinator: create(:enterprise))
     }
-    let!(:coordinated_schedule) { create(:schedule, order_cycles: [coordinated_order_cycle] ) }
-    let!(:coordinated_schedule2) { create(:schedule, order_cycles: [coordinated_order_cycle2] ) }
-    let!(:uncoordinated_schedule) { create(:schedule, order_cycles: [uncoordinated_order_cycle] ) }
+    let!(:coordinated_schedule) { create(:schedule, order_cycles: [coordinated_order_cycle]) }
+    let!(:coordinated_schedule2) { create(:schedule, order_cycles: [coordinated_order_cycle2]) }
+    let!(:uncoordinated_schedule) { create(:schedule, order_cycles: [uncoordinated_order_cycle]) }
 
-    context "where I manage the order_cycle's coordinator" do
+    context("where I manage the order_cycle's coordinator") do
       let(:form) { OrderCycles::FormService.new(coordinated_order_cycle, params, user) }
       let(:syncer_mock) {
         instance_double(OrderManagement::Subscriptions::ProxyOrderSyncer, sync!: true)
       }
 
       before do
-        allow(OrderManagement::Subscriptions::ProxyOrderSyncer).to receive(:new) { syncer_mock }
+        allow(OrderManagement::Subscriptions::ProxyOrderSyncer).to(receive(:new) { syncer_mock })
       end
 
-      context "and I add an schedule that I own, and remove another that I own" do
-        let(:params) { { schedule_ids: [coordinated_schedule2.id] } }
+      context("and I add an schedule that I own, and remove another that I own") do
+        let(:params) { {schedule_ids: [coordinated_schedule2.id]} }
 
         it "associates the order cycle to the schedule" do
-          expect(form.save).to be true
-          expect(coordinated_order_cycle.reload.schedules).to include coordinated_schedule2
-          expect(coordinated_order_cycle.reload.schedules).not_to include coordinated_schedule
-          expect(syncer_mock).to have_received(:sync!)
+          expect(form.save).to(be(true))
+          expect(coordinated_order_cycle.reload.schedules).to(include(coordinated_schedule2))
+          expect(coordinated_order_cycle.reload.schedules).not_to(include(coordinated_schedule))
+          expect(syncer_mock).to(have_received(:sync!))
         end
       end
 
-      context "and I add a schedule that I don't own" do
-        let(:params) { { schedule_ids: [coordinated_schedule.id, uncoordinated_schedule.id] } }
+      context("and I add a schedule that I don't own") do
+        let(:params) { {schedule_ids: [coordinated_schedule.id, uncoordinated_schedule.id]} }
 
         it "ignores the schedule that I don't own" do
-          expect(form.save).to be true
-          expect(coordinated_order_cycle.reload.schedules).to include coordinated_schedule
-          expect(coordinated_order_cycle.reload.schedules).not_to include uncoordinated_schedule
-          expect(syncer_mock).not_to have_received(:sync!)
+          expect(form.save).to(be(true))
+          expect(coordinated_order_cycle.reload.schedules).to(include(coordinated_schedule))
+          expect(coordinated_order_cycle.reload.schedules).not_to(include(uncoordinated_schedule))
+          expect(syncer_mock).not_to(have_received(:sync!))
         end
       end
 
-      context "when I make no changes to the schedule ids" do
-        let(:params) { { schedule_ids: [coordinated_schedule.id] } }
+      context("when I make no changes to the schedule ids") do
+        let(:params) { {schedule_ids: [coordinated_schedule.id]} }
 
         it "ignores the schedule that I don't own" do
-          expect(form.save).to be true
-          expect(coordinated_order_cycle.reload.schedules).to include coordinated_schedule
-          expect(syncer_mock).not_to have_received(:sync!)
+          expect(form.save).to(be(true))
+          expect(coordinated_order_cycle.reload.schedules).to(include(coordinated_schedule))
+          expect(syncer_mock).not_to(have_received(:sync!))
         end
       end
     end
   end
 
-  context "distributor order cycle" do
+  context("distributor order cycle") do
     let(:order_cycle) { create(:distributor_order_cycle) }
     let(:distributor) { order_cycle.coordinator }
     let(:supplier) { create(:supplier_enterprise) }
@@ -137,69 +141,82 @@ RSpec.describe OrderCycles::FormService do
     let(:distributor_payment_method) { payment_method.distributor_payment_methods.first }
     let(:distributor_shipping_method) { shipping_method.distributor_shipping_methods.first }
     let(:variant) { create(:variant, supplier:) }
-    let(:params) { { name: 'Some new name' } }
+    let(:params) { {name: "Some new name"} }
     let(:form) { OrderCycles::FormService.new(order_cycle, params, user) }
     let(:outgoing_exchange_params) do
       {
         enterprise_id: distributor.id,
         incoming: false,
         active: true,
-        variants: { variant.id => true },
+        variants: {variant.id => true},
         pickup_time: "Saturday morning",
         enterprise_fee_ids: []
       }
     end
 
-    context "basic update i.e. without exchanges or payment/shipping methods" do
+    context("basic update i.e. without exchanges or payment/shipping methods") do
       it do
-        expect(form.save).to be true
-        expect(order_cycle.name).to eq 'Some new name'
+        expect(form.save).to(be(true))
+        expect(order_cycle.name).to(eq("Some new name"))
       end
     end
 
-    context "updating basics, incoming exchanges, outcoming exchanges, payment_methods
-             and shipping methods simultaneously" do
+    context(
+      "updating basics, incoming exchanges, outcoming exchanges, payment_methods
+             and shipping methods simultaneously"
+    ) do
       before do
         params.merge!(
-          incoming_exchanges: [{
-            enterprise_id: supplier.id,
-            incoming: true,
-            active: true,
-            variants: { variant.id => true },
-            receival_instructions: "Friday evening",
-            enterprise_fee_ids: []
-          }],
+          incoming_exchanges: [
+            {
+              enterprise_id: supplier.id,
+              incoming: true,
+              active: true,
+              variants: {variant.id => true},
+              receival_instructions: "Friday evening",
+              enterprise_fee_ids: []
+            }
+          ],
           outgoing_exchanges: [outgoing_exchange_params],
           selected_distributor_payment_method_ids: [distributor_payment_method.id],
           selected_distributor_shipping_method_ids: [distributor_shipping_method.id]
         )
       end
 
-      it "saves everything i.e. the basics, incoming and outgoing exchanges, payment methods and
-          shipping methods" do
-        expect(form.save).to be true
-        expect(order_cycle.name).to eq 'Some new name'
-        expect(order_cycle.cached_incoming_exchanges.count).to eq 1
-        expect(order_cycle.cached_outgoing_exchanges.count).to eq 1
-        expect(order_cycle.distributor_payment_methods).to eq [distributor_payment_method]
-        expect(order_cycle.distributor_shipping_methods).to eq [distributor_shipping_method]
+      it(
+        "saves everything i.e. the basics, incoming and outgoing exchanges, payment methods and
+          shipping methods"
+      ) do
+        expect(form.save).to(be(true))
+        expect(order_cycle.name).to(eq("Some new name"))
+        expect(order_cycle.cached_incoming_exchanges.count).to(eq(1))
+        expect(order_cycle.cached_outgoing_exchanges.count).to(eq(1))
+        expect(order_cycle.distributor_payment_methods).to(eq([distributor_payment_method]))
+        expect(order_cycle.distributor_shipping_methods).to(eq([distributor_shipping_method]))
       end
     end
 
-    context "updating outgoing exchanges and shipping methods simultaneously but the payment
+    context(
+      "updating outgoing exchanges and shipping methods simultaneously but the payment
              and shipping methods don't belong to the new or any existing order cycle
-             distributor" do
+             distributor"
+    ) do
       let(:other_distributor_payment_method) do
         create(
           :payment_method,
           distributors: [create(:distributor_enterprise)]
-        ).distributor_payment_methods.first
+        )
+          .distributor_payment_methods
+          .first
       end
+
       let(:other_distributor_shipping_method) do
         create(
           :shipping_method,
           distributors: [create(:distributor_enterprise)]
-        ).distributor_shipping_methods.first
+        )
+          .distributor_shipping_methods
+          .first
       end
 
       before do
@@ -211,263 +228,317 @@ RSpec.describe OrderCycles::FormService do
       end
 
       it "saves the outgoing exchange but ignores the shipping method" do
-        expect(form.save).to be true
-        expect(order_cycle.distributors).to eq [distributor]
-        expect(order_cycle.distributor_payment_methods).to be_empty
-        expect(order_cycle.distributor_shipping_methods).to be_empty
+        expect(form.save).to(be(true))
+        expect(order_cycle.distributors).to(eq([distributor]))
+        expect(order_cycle.distributor_payment_methods).to(be_empty)
+        expect(order_cycle.distributor_shipping_methods).to(be_empty)
       end
     end
 
-    context "updating payment methods" do
-      context "and it's valid" do
-        let!(:distributor){ create(:distributor_enterprise) }
-        let!(:payment_method){ create(:payment_method, distributors: [distributor]) }
-        let!(:payment_method2){ create(:payment_method, distributors: [distributor]) }
-        let!(:distributor_payment_method){
+    context("updating payment methods") do
+      context("and it's valid") do
+        let!(:distributor) { create(:distributor_enterprise) }
+        let!(:payment_method) { create(:payment_method, distributors: [distributor]) }
+        let!(:payment_method2) { create(:payment_method, distributors: [distributor]) }
+        let!(:distributor_payment_method) {
           distributor.distributor_payment_methods.second_to_last.id
         }
-        let!(:distributor_payment_method2){ distributor.distributor_payment_methods.last.id }
-        let!(:supplier){ create(:supplier_enterprise) }
+        let!(:distributor_payment_method2) { distributor.distributor_payment_methods.last.id }
+        let!(:supplier) { create(:supplier_enterprise) }
 
-        context "the submitter is a coordinator" do
+        context("the submitter is a coordinator") do
           it "saves the changes" do
             order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_payment_method_ids: [distributor_payment_method] },
+              {selected_distributor_payment_method_ids: [distributor_payment_method]},
               order_cycle.coordinator.users.first
             )
 
-            expect{ form.save }.to change{ order_cycle.distributor_payment_methods.pluck(:id).sort }
-              .from([distributor_payment_method, distributor_payment_method2])
-              .to([distributor_payment_method].sort)
+            expect { form.save }.to(
+              change { order_cycle.distributor_payment_methods.pluck(:id).sort }
+                .from([distributor_payment_method, distributor_payment_method2])
+                .to([distributor_payment_method].sort)
+            )
           end
         end
 
-        context "submitter is a supplier" do
+        context("submitter is a supplier") do
           it "doesn't save the changes" do
-            order_cycle = create(:distributor_order_cycle, distributors: [distributor],
-                                                           suppliers: [supplier])
+            order_cycle = create(
+              :distributor_order_cycle,
+              distributors: [distributor],
+              suppliers: [supplier]
+            )
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_payment_method_ids: [distributor_payment_method] },
+              {selected_distributor_payment_method_ids: [distributor_payment_method]},
               supplier.users.first
             )
 
-            expect{ form.save }.not_to change{ order_cycle.distributor_payment_methods.pluck(:id) }
+            expect { form.save }.not_to(change { order_cycle.distributor_payment_methods.pluck(:id) })
           end
         end
 
-        context "submitter is an admin" do
+        context("submitter is an admin") do
           it "saves the changes" do
             order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_payment_method_ids: [distributor_payment_method2] },
+              {selected_distributor_payment_method_ids: [distributor_payment_method2]},
               create(:admin_user)
             )
 
-            expect{ form.save }.to change{ order_cycle.distributor_payment_methods.pluck(:id).sort }
-              .from([distributor_payment_method, distributor_payment_method2])
-              .to([distributor_payment_method2])
+            expect { form.save }.to(
+              change { order_cycle.distributor_payment_methods.pluck(:id).sort }
+                .from([distributor_payment_method, distributor_payment_method2])
+                .to([distributor_payment_method2])
+            )
           end
         end
 
-        context "submitter is a distributor" do
-          context "can update his own payment methods" do
+        context("submitter is a distributor") do
+          context("can update his own payment methods") do
             it "saves the changes" do
               order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
               form = OrderCycles::FormService.new(
                 order_cycle,
-                { selected_distributor_payment_method_ids: [distributor_payment_method] },
+                {selected_distributor_payment_method_ids: [distributor_payment_method]},
                 distributor.users.first
               )
 
-              expect{ form.save }.to change{
-                                       order_cycle.distributor_payment_methods.pluck(:id).sort
-                                     }
-                .from([distributor_payment_method, distributor_payment_method2])
-                .to([distributor_payment_method])
+              expect { form.save }.to(
+                change {
+                  order_cycle.distributor_payment_methods.pluck(:id).sort
+                }
+                  .from([distributor_payment_method, distributor_payment_method2])
+                  .to([distributor_payment_method])
+              )
             end
           end
-          context "can't update other distributors' payment methods" do
-            let(:distributor2){ create(:distributor_enterprise) }
+
+          context("can't update other distributors' payment methods") do
+            let(:distributor2) { create(:distributor_enterprise) }
             it "doesn't save the changes" do
-              order_cycle = create(:distributor_order_cycle,
-                                   distributors: [distributor, distributor2])
+              order_cycle = create(
+                :distributor_order_cycle,
+                distributors: [distributor, distributor2]
+              )
 
               form = OrderCycles::FormService.new(
                 order_cycle,
-                { selected_distributor_payment_method_ids: [distributor_payment_method] },
+                {selected_distributor_payment_method_ids: [distributor_payment_method]},
                 distributor2.users.first
               )
 
-              expect{ form.save }.not_to change{
-                                           order_cycle.distributor_payment_methods.pluck(:id)
-                                         }
+              expect { form.save }.not_to(
+                change {
+                  order_cycle.distributor_payment_methods.pluck(:id)
+                }
+              )
             end
           end
         end
       end
 
-      context "with a payment method which doesn't belong to any distributor on the order cycle" do
+      context("with a payment method which doesn't belong to any distributor on the order cycle") do
         it "ignores it" do
           distributor_i = create(:distributor_enterprise)
           distributor_ii = create(:distributor_enterprise)
           distributor_payment_method_i = create(
             :payment_method,
             distributors: [distributor_i]
-          ).distributor_payment_methods.first
+          )
+            .distributor_payment_methods
+            .first
           distributor_payment_method_ii = create(
             :payment_method,
             distributors: [distributor_ii]
-          ).distributor_payment_methods.first
-          order_cycle = create(:distributor_order_cycle,
-                               distributors: [distributor_i])
+          )
+            .distributor_payment_methods
+            .first
+          order_cycle = create(
+            :distributor_order_cycle,
+            distributors: [distributor_i]
+          )
 
           form = OrderCycles::FormService.new(
             order_cycle,
-            { selected_distributor_payment_method_ids: [distributor_payment_method_ii.id] },
+            {selected_distributor_payment_method_ids: [distributor_payment_method_ii.id]},
             order_cycle.coordinator.users.first
           )
 
-          expect{ form.save }.not_to change{
-            order_cycle.distributor_payment_methods.pluck(:id)
-          }.from([distributor_payment_method_i.id])
+          expect { form.save }.not_to(
+            change {
+              order_cycle.distributor_payment_methods.pluck(:id)
+            }
+              .from([distributor_payment_method_i.id])
+          )
         end
       end
     end
 
-    context "updating shipping methods" do
-      context "and it's valid" do
-        let!(:distributor){ create(:distributor_enterprise) }
-        let!(:shipping_method){ create(:shipping_method, distributors: [distributor]) }
-        let!(:shipping_method2){ create(:shipping_method, distributors: [distributor]) }
-        let!(:distributor_shipping_method){ distributor.distributor_shipping_methods.first.id }
-        let!(:distributor_shipping_method2){ distributor.distributor_shipping_methods.second.id }
+    context("updating shipping methods") do
+      context("and it's valid") do
+        let!(:distributor) { create(:distributor_enterprise) }
+        let!(:shipping_method) { create(:shipping_method, distributors: [distributor]) }
+        let!(:shipping_method2) { create(:shipping_method, distributors: [distributor]) }
+        let!(:distributor_shipping_method) { distributor.distributor_shipping_methods.first.id }
+        let!(:distributor_shipping_method2) { distributor.distributor_shipping_methods.second.id }
 
-        let(:supplier){ create(:supplier_enterprise) }
-        context "the submitter is a coordinator" do
+        let(:supplier) { create(:supplier_enterprise) }
+        context("the submitter is a coordinator") do
           it "saves the changes" do
             order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_shipping_method_ids: [distributor_shipping_method] },
+              {selected_distributor_shipping_method_ids: [distributor_shipping_method]},
               order_cycle.coordinator.users.first
             )
 
-            expect{ form.save }.to change{
-                                     order_cycle.distributor_shipping_methods.pluck(:id).sort
-                                   }
-              .from([distributor_shipping_method, distributor_shipping_method2])
-              .to([distributor_shipping_method])
+            expect { form.save }.to(
+              change {
+                order_cycle.distributor_shipping_methods.pluck(:id).sort
+              }
+                .from([distributor_shipping_method, distributor_shipping_method2])
+                .to([distributor_shipping_method])
+            )
           end
         end
-        context "submitter is a supplier" do
+
+        context("submitter is a supplier") do
           it "doesn't save the changes" do
-            order_cycle = create(:distributor_order_cycle, distributors: [distributor],
-                                                           suppliers: [supplier])
+            order_cycle = create(
+              :distributor_order_cycle,
+              distributors: [distributor],
+              suppliers: [supplier]
+            )
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_shipping_method_ids: [distributor_shipping_method] },
+              {selected_distributor_shipping_method_ids: [distributor_shipping_method]},
               supplier.users.first
             )
 
-            expect{ form.save }.not_to change{
-              order_cycle.distributor_shipping_methods.pluck(:id).sort
-            }.from([distributor_shipping_method, distributor_shipping_method2])
+            expect { form.save }.not_to(
+              change {
+                order_cycle.distributor_shipping_methods.pluck(:id).sort
+              }
+                .from([distributor_shipping_method, distributor_shipping_method2])
+            )
           end
         end
-        context "submitter is an admin" do
+
+        context("submitter is an admin") do
           it "saves the changes" do
             order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
             form = OrderCycles::FormService.new(
               order_cycle,
-              { selected_distributor_shipping_method_ids: [distributor_shipping_method] },
+              {selected_distributor_shipping_method_ids: [distributor_shipping_method]},
               create(:admin_user)
             )
 
-            expect{ form.save }.to change{
-                                     order_cycle.distributor_shipping_methods.pluck(:id).sort
-                                   }
-              .from([distributor_shipping_method, distributor_shipping_method2])
-              .to([distributor_shipping_method])
+            expect { form.save }.to(
+              change {
+                order_cycle.distributor_shipping_methods.pluck(:id).sort
+              }
+                .from([distributor_shipping_method, distributor_shipping_method2])
+                .to([distributor_shipping_method])
+            )
           end
         end
-        context "submitter is a distributor" do
-          context "can update his own shipping methods" do
+
+        context("submitter is a distributor") do
+          context("can update his own shipping methods") do
             it "saves the changes" do
               order_cycle = create(:distributor_order_cycle, distributors: [distributor])
 
               form = OrderCycles::FormService.new(
                 order_cycle,
-                { selected_distributor_shipping_method_ids: [distributor_shipping_method] },
+                {selected_distributor_shipping_method_ids: [distributor_shipping_method]},
                 distributor.users.first
               )
 
-              expect{ form.save }.to change{
-                order_cycle.distributor_shipping_methods.pluck(:id).sort
-              }.from([distributor_shipping_method, distributor_shipping_method2])
-                .to([distributor_shipping_method])
+              expect { form.save }.to(
+                change {
+                  order_cycle.distributor_shipping_methods.pluck(:id).sort
+                }
+                  .from([distributor_shipping_method, distributor_shipping_method2])
+                  .to([distributor_shipping_method])
+              )
             end
           end
-          context "can't update other distributors' shipping methods" do
-            let!(:distributor2){ create(:distributor_enterprise) }
-            let!(:shipping_method3){ create(:shipping_method, distributors: [distributor2]) }
-            let!(:distributor_shipping_method3){
+
+          context("can't update other distributors' shipping methods") do
+            let!(:distributor2) { create(:distributor_enterprise) }
+            let!(:shipping_method3) { create(:shipping_method, distributors: [distributor2]) }
+            let!(:distributor_shipping_method3) {
               distributor2.distributor_shipping_methods.first.id
             }
             it "doesn't save the changes" do
-              order_cycle = create(:distributor_order_cycle,
-                                   distributors: [distributor, distributor2])
+              order_cycle = create(
+                :distributor_order_cycle,
+                distributors: [distributor, distributor2]
+              )
 
               form = OrderCycles::FormService.new(
                 order_cycle,
-                { selected_distributor_shipping_method_ids: [distributor_shipping_method] },
+                {selected_distributor_shipping_method_ids: [distributor_shipping_method]},
                 distributor2.users.first
               )
 
-              expect{ form.save }.not_to change{
-                order_cycle.distributor_shipping_methods.pluck(:id).sort
-              }.from [
-                distributor_shipping_method, distributor_shipping_method2,
-                distributor_shipping_method3
-              ]
+              expect { form.save }.not_to(
+                change {
+                  order_cycle.distributor_shipping_methods.pluck(:id).sort
+                }
+                  .from(
+                    [
+                      distributor_shipping_method,
+                      distributor_shipping_method2,
+                      distributor_shipping_method3
+                    ]
+                  )
+              )
             end
           end
         end
       end
 
-      context "with a shipping method which doesn't belong to any distributor on the order cycle" do
+      context("with a shipping method which doesn't belong to any distributor on the order cycle") do
         it "ignores it" do
           distributor_i = create(:distributor_enterprise)
           distributor_ii = create(:distributor_enterprise)
           distributor_shipping_method_i = create(
             :shipping_method,
             distributors: [distributor_i]
-          ).distributor_shipping_methods.first
+          )
+            .distributor_shipping_methods
+            .first
           distributor_shipping_method_ii = create(
             :shipping_method,
             distributors: [distributor_ii]
-          ).distributor_shipping_methods.first
-          order_cycle = create(:distributor_order_cycle,
-                               distributors: [distributor_i])
+          )
+            .distributor_shipping_methods
+            .first
+          order_cycle = create(
+            :distributor_order_cycle,
+            distributors: [distributor_i]
+          )
 
           form = OrderCycles::FormService.new(
             order_cycle,
-            { selected_distributor_shipping_method_ids: [distributor_shipping_method_ii.id] },
+            {selected_distributor_shipping_method_ids: [distributor_shipping_method_ii.id]},
             order_cycle.coordinator.users.first
           )
 
-          expect(form.save).to be true
-          expect(order_cycle.distributor_shipping_methods).to eq [distributor_shipping_method_i]
+          expect(form.save).to(be(true))
+          expect(order_cycle.distributor_shipping_methods).to(eq([distributor_shipping_method_i]))
         end
       end
     end

@@ -5,7 +5,7 @@ class UpdateWeightCalculators < ActiveRecord::Migration[4.2]
     )
 
     Calculator::Weight.all.each { |calculator|
-      calculator.preferred_unit_from_list = 'kg'
+      calculator.preferred_unit_from_list = "kg"
       Rails.cache.delete("/calculator/weight/per_kg/#{calculator.id}")
       calculator.save
     }

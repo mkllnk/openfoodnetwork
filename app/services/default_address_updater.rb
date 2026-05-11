@@ -23,8 +23,15 @@ class DefaultAddressUpdater
 
   attr_reader :order
 
-  delegate :save_ship_address, :save_bill_address, :customer, :user,
-           :bill_address_id, :ship_address_id, to: :order
+  delegate(
+    :save_ship_address,
+    :save_bill_address,
+    :customer,
+    :user,
+    :bill_address_id,
+    :ship_address_id,
+    to: :order
+  )
 
   def assign_bill_addresses
     return if save_bill_address == "0"

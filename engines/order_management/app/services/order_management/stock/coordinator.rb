@@ -37,6 +37,7 @@ module OrderManagement
         packages.each do |package|
           package.shipping_rates = estimator.shipping_rates(package)
         end
+
         packages
       end
 

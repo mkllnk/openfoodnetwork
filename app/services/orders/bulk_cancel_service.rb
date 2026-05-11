@@ -11,11 +11,14 @@ module Orders
 
     def call
       # rubocop:disable Rails/FindEach # .each returns an array, .find_each returns nil
-      editable_orders.where(id: @order_ids).each do |order|
-        order.send_cancellation_email = @send_cancellation_email
-        order.restock_items = @restock_items
-        order.cancel
-      end.tap { |orders| AmendBackorderJob.schedule_bulk_update_for(orders) }
+      editable_orders
+        .where(id: @order_ids)
+        .each do |order|
+          order.send_cancellation_email = @send_cancellation_email
+          order.restock_items = @restock_items
+          order.cancel
+        end
+        .tap { |orders| AmendBackorderJob.schedule_bulk_update_for(orders) }
       # rubocop:enable Rails/FindEach
     end
 

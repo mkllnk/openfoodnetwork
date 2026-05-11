@@ -18,16 +18,16 @@ module LinkHelper
         content_tag("a", name, **html_options)
       end
     elsif block_given?
-      link_to options, html_options, &block
+      link_to(options, html_options, &block)
     else
-      link_to name, options, html_options
+      link_to(name, options, html_options)
     end
   end
 
   def link_to_service(baseurl, name, html_options = {}, &)
     return if name.blank?
 
-    html_options = html_options.merge target: '_blank'
+    html_options = html_options.merge(target: "_blank")
     link_to(ext_url(baseurl, name), html_options, &)
   end
 
@@ -43,7 +43,7 @@ module LinkHelper
     if feature?(:open_in_same_tab, spree_current_user)
       {}
     else
-      { target: "_blank" }
+      {target: "_blank"}
     end
   end
 end

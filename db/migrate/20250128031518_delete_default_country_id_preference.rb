@@ -2,9 +2,12 @@
 
 class DeleteDefaultCountryIdPreference < ActiveRecord::Migration[7.0]
   def up
-    execute <<~SQL.squish
-      DELETE FROM spree_preferences
-      WHERE key = '/spree/app_configuration/default_country_id '
-    SQL
+    execute(
+      <<~SQL
+        DELETE FROM spree_preferences
+        WHERE key = '/spree/app_configuration/default_country_id '
+      SQL
+        .squish
+    )
   end
 end

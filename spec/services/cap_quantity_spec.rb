@@ -22,10 +22,10 @@ RSpec.describe CapQuantity do
       order.line_items << line_item3
     end
 
-    context "when all items are available from the order cycle" do
+    context("when all items are available from the order cycle") do
       before { [variant1, variant2, variant3].each { |v| ex.variants << v } }
 
-      context "and insufficient stock exists to fulfil the order for some items" do
+      context("and insufficient stock exists to fulfil the order for some items") do
         before do
           variant1.update_attribute(:on_hand, 5)
           variant2.update_attribute(:on_hand, 2)
@@ -35,20 +35,23 @@ RSpec.describe CapQuantity do
         it "caps quantity at the stock level for stock-limited items, and reports the change" do
           changes = CapQuantity.new.call(order)
 
-          expect(line_item1.reload.quantity).to be 3 # not capped
-          expect(line_item2.reload.quantity).to be 2 # capped
-          expect(line_item3.reload.quantity).to be 0 # capped
-          expect(changes[line_item1.id]).to be nil
-          expect(changes[line_item2.id]).to be 3
-          expect(changes[line_item3.id]).to be 3
+          # not capped
+          expect(line_item1.reload.quantity).to(be(3))
+          # capped
+          expect(line_item2.reload.quantity).to(be(2))
+          # capped
+          expect(line_item3.reload.quantity).to(be(0))
+          expect(changes[line_item1.id]).to(be(nil))
+          expect(changes[line_item2.id]).to(be(3))
+          expect(changes[line_item3.id]).to(be(3))
         end
       end
     end
 
-    context "and some items are not available from the order cycle" do
+    context("and some items are not available from the order cycle") do
       before { [variant2, variant3].each { |v| ex.variants << v } }
 
-      context "and insufficient stock exists to fulfil the order for some items" do
+      context("and insufficient stock exists to fulfil the order for some items") do
         before do
           variant1.update_attribute(:on_hand, 5)
           variant2.update_attribute(:on_hand, 2)
@@ -58,50 +61,60 @@ RSpec.describe CapQuantity do
         it "sets quantity to 0 for unavailable items, and reports the change" do
           changes = CapQuantity.new.call(order)
 
-          expect(line_item1.reload.quantity).to be 0 # unavailable
-          expect(line_item2.reload.quantity).to be 2 # capped
-          expect(line_item3.reload.quantity).to be 0 # capped
-          expect(changes[line_item1.id]).to be 3
-          expect(changes[line_item2.id]).to be 3
-          expect(changes[line_item3.id]).to be 3
+          # unavailable
+          expect(line_item1.reload.quantity).to(be(0))
+          # capped
+          expect(line_item2.reload.quantity).to(be(2))
+          # capped
+          expect(line_item3.reload.quantity).to(be(0))
+          expect(changes[line_item1.id]).to(be(3))
+          expect(changes[line_item2.id]).to(be(3))
+          expect(changes[line_item3.id]).to(be(3))
         end
 
-        context "and the order has been placed" do
+        context("and the order has been placed") do
           before do
-            allow(order).to receive(:ensure_available_shipping_rates) { true }
-            allow(order).to receive(:process_each_payment) { true }
+            allow(order).to(receive(:ensure_available_shipping_rates) { true })
+            allow(order).to(receive(:process_each_payment) { true })
 
             order.create_proposed_shipments
           end
 
           it "removes the unavailable items from the shipment" do
             expect { CapQuantity.new.call(order) }
-              .to change { order.reload.shipment.manifest.size }.from(2).to(1)
+              .to(change { order.reload.shipment.manifest.size }.from(2).to(1))
           end
         end
       end
     end
 
-    context "when no items are available" do
+    context("when no items are available") do
       it "sets quantity to 0 for unavailable items, and reports the change" do
         changes = {}
 
         expect {
           changes = CapQuantity.new.call(order)
           [line_item1, line_item2, line_item3].each(&:reload)
-        }.to change { line_item1.quantity }.to(0)
-          .and change { line_item2.quantity }.to(0)
-          .and change { line_item3.quantity }.to(0)
+        }
+          .to(
+            change { line_item1.quantity }
+              .to(0)
+              .and(
+                change { line_item2.quantity }
+                  .to(0)
+                  .and(change { line_item3.quantity }.to(0))
+              )
+          )
 
-        expect(changes[line_item1.id]).to eq 3
-        expect(changes[line_item2.id]).to eq 3
-        expect(changes[line_item3.id]).to eq 3
+        expect(changes[line_item1.id]).to(eq(3))
+        expect(changes[line_item2.id]).to(eq(3))
+        expect(changes[line_item3.id]).to(eq(3))
       end
 
-      context "and the order has been placed" do
+      context("and the order has been placed") do
         before do
-          allow(order).to receive(:ensure_available_shipping_rates) { true }
-          allow(order).to receive(:process_each_payment) { true }
+          allow(order).to(receive(:ensure_available_shipping_rates) { true })
+          allow(order).to(receive(:process_each_payment) { true })
 
           order.create_proposed_shipments
         end
@@ -110,7 +123,8 @@ RSpec.describe CapQuantity do
           expect {
             CapQuantity.new.call(order)
             order.reload
-          }.to change { order.shipment }.to(nil)
+          }
+            .to(change { order.shipment }.to(nil))
         end
       end
     end

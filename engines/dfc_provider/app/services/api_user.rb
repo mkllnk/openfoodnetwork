@@ -3,32 +3,31 @@
 # Authorised user or client using the API
 class ApiUser
   PLATFORMS = {
-    'cqcm-dev' => {
+    "cqcm-dev" => {
       id: "https://api.proxy-dev.cqcm.startinblox.com/profile",
       webhook: "/djangoldp-dfc/webhook/",
-      tokens: "https://kc.cqcm.startinblox.com/realms/startinblox/protocol/openid-connect/token",
+      tokens: "https://kc.cqcm.startinblox.com/realms/startinblox/protocol/openid-connect/token"
     },
-    'cqcm-stg' => {
+    "cqcm-stg" => {
       id: "https://api.proxy-stg.cqcm.startinblox.com/profile",
       webhook: "/djangoldp-dfc/webhook/",
-      tokens: "https://kc.cqcm.startinblox.com/realms/startinblox/protocol/openid-connect/token",
+      tokens: "https://kc.cqcm.startinblox.com/realms/startinblox/protocol/openid-connect/token"
     },
-    'cqcm' => {
+    "cqcm" => {
       id: "https://carte.cqcm.coop/profile",
       webhook: "/djangoldp-dfc/webhook/",
-      tokens: "https://authentification.cqcm.coop/realms/cqcm/protocol/openid-connect/token",
+      tokens: "https://authentification.cqcm.coop/realms/cqcm/protocol/openid-connect/token"
     },
-    'lf-dev' => {
+    "lf-dev" => {
       id: "https://www.litefarm.org/profile",
       webhook: "/djangoldp-dfc/webhook/",
-      tokens: "https://login.fooddatacollaboration.org.uk/realms/dev/protocol/openid-connect/token",
+      tokens: "https://login.fooddatacollaboration.org.uk/realms/dev/protocol/openid-connect/token"
     },
-    'mo-dev' => {
+    "mo-dev" => {
       id: "https://market.organic/profile",
       webhook: "/api/webhooks/ofn",
-      tokens: "https://login.fooddatacollaboration.org.uk/realms/dev/protocol/openid-connect/token",
-    },
-
+      tokens: "https://login.fooddatacollaboration.org.uk/realms/dev/protocol/openid-connect/token"
+    }
   }.freeze
   CLIENT_MAP = PLATFORMS.keys.index_by { |key| PLATFORMS.dig(key, :id) }.freeze
 

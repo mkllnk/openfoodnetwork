@@ -2,8 +2,13 @@
 
 module Spree
   class Taxon < ApplicationRecord
-    has_many :variants, class_name: "Spree::Variant", foreign_key: "primary_taxon_id",
-                        inverse_of: :primary_taxon, dependent: :restrict_with_error
+    has_many(
+      :variants,
+      class_name: "Spree::Variant",
+      foreign_key: "primary_taxon_id",
+      inverse_of: :primary_taxon,
+      dependent: :restrict_with_error
+    )
 
     has_many :products, through: :variants, dependent: nil
 
@@ -30,14 +35,14 @@ module Spree
     def self.supplied_taxons(enterprise_ids = nil)
       taxons = Spree::Taxon.joins(variants: :supplier)
 
-      taxons = taxons.where(enterprises: { id: enterprise_ids }) if enterprise_ids.present?
+      taxons = taxons.where(enterprises: {id: enterprise_ids}) if enterprise_ids.present?
 
       taxons
-        .pluck('spree_taxons.id, enterprises.id AS enterprise_id')
+        .pluck("spree_taxons.id, enterprises.id AS enterprise_id")
         .each_with_object({}) do |(taxon_id, enterprise_id), collection|
-        collection[enterprise_id.to_i] ||= Set.new
-        collection[enterprise_id.to_i] << taxon_id
-      end
+          collection[enterprise_id.to_i] ||= Set.new
+          collection[enterprise_id.to_i] << taxon_id
+        end
     end
 
     # Find all the taxons of distributed products for each enterprise, indexed by enterprise.
@@ -48,7 +53,9 @@ module Spree
     #
     # Optionally, specify some enterprise_ids to scope the results
     def self.distributed_taxons(which_taxons = :all, enterprise_ids = nil)
-      ents_and_vars = ExchangeVariant.joins(exchange: :order_cycle).merge(Exchange.outgoing)
+      ents_and_vars = ExchangeVariant
+        .joins(exchange: :order_cycle)
+        .merge(Exchange.outgoing)
         .select("DISTINCT variant_id, receiver_id AS enterprise_id")
 
       ents_and_vars = ents_and_vars.merge(OrderCycle.active) if which_taxons == :current
@@ -56,12 +63,14 @@ module Spree
       taxons = Spree::Taxon
         .select("DISTINCT spree_taxons.id, ents_and_vars.enterprise_id")
         .joins(:variants)
-        .joins("
+        .joins(
+          "
           INNER JOIN (#{ents_and_vars.to_sql}) AS ents_and_vars
-          ON spree_variants.id = ents_and_vars.variant_id")
+          ON spree_variants.id = ents_and_vars.variant_id"
+        )
 
       if enterprise_ids.present?
-        taxons = taxons.where(ents_and_vars: { enterprise_id: enterprise_ids })
+        taxons = taxons.where(ents_and_vars: {enterprise_id: enterprise_ids})
       end
 
       taxons.each_with_object({}) do |t, ts|

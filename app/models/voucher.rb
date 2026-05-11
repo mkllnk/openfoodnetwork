@@ -9,10 +9,12 @@ class Voucher < ApplicationRecord
 
   # We want to keep the association with the adjustment when a voucher is "destroyed" as we use
   # the soft delete functionality to activate/deactivate vouchers
-  has_many :adjustments,
-           as: :originator,
-           class_name: 'Spree::Adjustment',
-           dependent: nil
+  has_many(
+    :adjustments,
+    as: :originator,
+    class_name: "Spree::Adjustment",
+    dependent: nil
+  )
 
   validates :code, presence: true
 
@@ -44,14 +46,14 @@ class Voucher < ApplicationRecord
 
   # The following method must be overriden in a concrete voucher.
   def display_value
-    raise NotImplementedError, 'please use concrete voucher'
+    raise NotImplementedError, "please use concrete voucher"
   end
 
   def compute_amount(_order)
-    raise NotImplementedError, 'please use concrete voucher'
+    raise NotImplementedError, "please use concrete voucher"
   end
 
   def rate(_order)
-    raise NotImplementedError, 'please use concrete voucher'
+    raise NotImplementedError, "please use concrete voucher"
   end
 end

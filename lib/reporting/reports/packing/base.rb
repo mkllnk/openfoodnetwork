@@ -9,36 +9,42 @@ module Reporting
         end
 
         def report_query
-          Queries::QueryBuilder.new(Spree::LineItem).
-            scoped_to_orders(visible_orders_relation).
-            scoped_to_line_items(ransacked_line_items_relation).
-            with_managed_orders(managed_orders_relation).
-            joins_order_and_distributor.
-            joins_order_customer.
-            joins_order_bill_address.
-            joins_variant.
-            joins_variant_product.
-            joins_variant_supplier.
-            joins_variant_shipping_category.
-            joins_selected_shipping_methods.
-            selecting(select_fields).
-            ordered_by(ordering_fields)
+          Queries::QueryBuilder
+            .new(Spree::LineItem)
+            .scoped_to_orders(visible_orders_relation)
+            .scoped_to_line_items(ransacked_line_items_relation)
+            .with_managed_orders(managed_orders_relation)
+            .joins_order_and_distributor
+            .joins_order_customer
+            .joins_order_bill_address
+            .joins_variant
+            .joins_variant_product
+            .joins_variant_supplier
+            .joins_variant_shipping_category
+            .joins_selected_shipping_methods
+            .selecting(select_fields)
+            .ordered_by(ordering_fields)
         end
 
         def columns_format
-          { quantity: :quantity }
+          {quantity: :quantity}
         end
 
         def default_params
           # Prevent breaking change in this report by hidding new columns by default
-          { fields_to_hide: ["phone", "price", "shipment_state", "shipping_method"],
-            q: {  order_completed_at_gt: 1.month.ago.beginning_of_day,
-                  order_completed_at_lt: 1.day.from_now.beginning_of_day } }
+          {
+            fields_to_hide: ["phone", "price", "shipment_state", "shipping_method"],
+            q: {
+              order_completed_at_gt: 1.month.ago.beginning_of_day,
+              order_completed_at_lt: 1.day.from_now.beginning_of_day
+            }
+          }
         end
 
         private
 
-        def select_fields # rubocop:disable Metrics/AbcSize
+        # rubocop:disable Metrics/AbcSize
+        def select_fields
           lambda do
             {
               hub: distributor_alias[:name],
@@ -57,7 +63,7 @@ module Reporting
               price: (line_item_table[:quantity] * line_item_table[:price]),
               shipment_state: order_table[:shipment_state],
               shipping_method: shipping_method_table[:name],
-              temp_controlled: shipping_category_table[:temperature_controlled],
+              temp_controlled: shipping_category_table[:temperature_controlled]
             }
           end
         end

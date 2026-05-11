@@ -13,8 +13,11 @@ module Spree
 
       it "creates and updates a return authorization" do
         # Create return authorization
-        spree_post :create, order_id: order.number,
-                            return_authorization: { amount: "20.2", reason: "broken" }
+        spree_post(
+          :create,
+          order_id: order.number,
+          return_authorization: {amount: "20.2", reason: "broken"}
+        )
 
         expect(response).to redirect_to spree.admin_order_return_authorizations_url(order.number)
         return_authorization = order.return_authorizations.first
@@ -22,9 +25,12 @@ module Spree
         expect(return_authorization.reason.to_s).to eq "broken"
 
         # Update return authorization
-        spree_put :update, order_id: order.number,
-                           id: return_authorization.id,
-                           return_authorization: { amount: "10.2", reason: "half broken" }
+        spree_put(
+          :update,
+          order_id: order.number,
+          id: return_authorization.id,
+          return_authorization: {amount: "10.2", reason: "half broken"}
+        )
 
         expect(response).to redirect_to spree.admin_order_return_authorizations_url(order.number)
         return_authorization.reload
@@ -36,9 +42,10 @@ module Spree
         let!(:return_authorization) { create(:return_authorization, order:) }
 
         it "deletes a return authorization" do
-          expect{
+          expect {
             spree_delete :destroy, id: return_authorization.id, order_id: order.number
-          }.to change { order.return_authorizations.without_deleted.count }.by(-1)
+          }
+            .to change { order.return_authorizations.without_deleted.count }.by(-1)
 
           expect(response).to redirect_to spree.admin_order_return_authorizations_url(order.number)
         end

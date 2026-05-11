@@ -36,14 +36,15 @@ module Spree
 
       def can_credit?(payment)
         return false unless payment.completed?
-        return false unless payment.order.payment_state == 'credit_owed'
+        return false unless payment.order.payment_state == "credit_owed"
 
         payment.credit_allowed.positive?
       end
 
       # Name of the view to display during checkout
       def method_type
-        "check" # empty view
+        # empty view
+        "check"
       end
 
       def external_gateway?
@@ -81,7 +82,8 @@ module Spree
       end
 
       def credit(money, response_code, gateway_options)
-        amount = money / 100 # called with cents
+        # called with cents
+        amount = money / 100
         payment = gateway_options[:payment]
         taler_order = taler_order(id: response_code)
         status = taler_order.fetch("order_status")
@@ -132,7 +134,7 @@ module Spree
         taler_order.create(
           amount: taler_amount,
           summary: I18n.t("payment_method_taler.order_summary"),
-          fulfillment_url:,
+          fulfillment_url:
         )
       end
 
@@ -140,7 +142,7 @@ module Spree
         @taler_order ||= ::Taler::Order.new(
           backend_url: preferred_instance_url,
           password: preferred_password,
-          id:,
+          id:
         )
       end
 

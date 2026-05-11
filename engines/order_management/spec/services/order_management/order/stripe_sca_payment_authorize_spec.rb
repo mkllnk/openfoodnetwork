@@ -18,7 +18,7 @@ module OrderManagement
         end
 
         context "when the payment already requires 3D Secure authorization" do
-          let(:payment) { create(:payment, amount: 10, state: 'requires_authorization') }
+          let(:payment) { create(:payment, amount: 10, state: "requires_authorization") }
           before { allow(order).to receive(:pending_payments).once { [payment] } }
 
           it "returns the payment without authorizing because it has already been authorized" do
@@ -71,10 +71,12 @@ module OrderManagement
               before do
                 allow(PaymentMailer).to receive(:authorize_payment) { mail_mock }
                 allow(PaymentMailer).to receive(:authorization_required) { mail_mock }
-                allow(payment).to receive(:authorize!) {
-                  payment.state = "requires_authorization"
-                  payment.redirect_auth_url = "https://stripe.com/redirect"
-                }
+                allow(payment).to(
+                  receive(:authorize!) {
+                    payment.state = "requires_authorization"
+                    payment.redirect_auth_url = "https://stripe.com/redirect"
+                  }
+                )
               end
 
               it "doesn't send emails by default" do

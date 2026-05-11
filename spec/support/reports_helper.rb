@@ -2,20 +2,20 @@
 
 module ReportsHelper
   def run_report
-    click_on "Go"
+    click_on("Go")
 
-    expect(page).to have_button "Go", disabled: true
-    expect(page).to have_selector ".loading"
+    expect(page).to(have_button("Go", disabled: true))
+    expect(page).to(have_selector(".loading"))
 
     perform_enqueued_jobs(only: ReportJob)
 
-    expect(page).not_to have_selector ".loading"
-    expect(page).to have_button "Go", disabled: false
+    expect(page).not_to(have_selector(".loading"))
+    expect(page).to(have_button("Go", disabled: false))
   end
 
   def generate_report
     run_report
-    click_on "Download Report"
+    click_on("Download Report")
     wait_for_download
   end
 

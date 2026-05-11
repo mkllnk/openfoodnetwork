@@ -2,10 +2,22 @@
 
 module Api
   class OrderSerializer < ActiveModel::Serializer
-    attributes :number, :completed_at, :total, :state, :shipment_state, :payment_state,
-               :outstanding_balance, :payments, :path, :cancel_path,
-               :changes_allowed, :changes_allowed_until, :item_count,
-               :shop_id
+    attributes(
+      :number,
+      :completed_at,
+      :total,
+      :state,
+      :shipment_state,
+      :payment_state,
+      :outstanding_balance,
+      :payments,
+      :path,
+      :cancel_path,
+      :changes_allowed,
+      :changes_allowed_until,
+      :item_count,
+      :shop_id
+    )
 
     has_many :payments, serializer: Api::PaymentSerializer
 
@@ -16,7 +28,7 @@ module Api
     end
 
     def payments
-      object.payments.joins(:payment_method).where(state: %w(completed pending))
+      object.payments.joins(:payment_method).where(state: %w[completed pending])
     end
 
     def shop_id

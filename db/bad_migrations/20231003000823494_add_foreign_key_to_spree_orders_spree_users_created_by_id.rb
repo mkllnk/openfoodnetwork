@@ -7,9 +7,8 @@
 # WHERE spree_users.id IS NULL
 #   AND spree_orders.created_by_id IS NOT NULL
 
-
 class AddForeignKeyToSpreeOrdersSpreeUsersCreatedById < ActiveRecord::Migration[6.0]
   def change
-    add_foreign_key :spree_orders, :spree_users, column: :created_by_id
+    add_foreign_key(:spree_orders, :spree_users, column: :created_by_id)
   end
 end

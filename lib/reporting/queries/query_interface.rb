@@ -28,7 +28,7 @@ module Reporting
       end
 
       def association(base_class, association, alias_node = nil, join_type = InnerJoin)
-        options = alias_node.present? ? { aliases: [alias_node] } : {}
+        options = alias_node.present? ? {aliases: [alias_node]} : {}
 
         Arel.sql(base_class.join_association(association, join_type, options).first.to_sql)
       end
@@ -58,15 +58,19 @@ module Reporting
       end
 
       def boolean_blank(field, true_string = I18n.t(:yes), false_string = I18n.t(:no))
-        Case.new(sql_grouping(grouping_fields)).when(0).
-          then(pretty_boolean(field, true_string, false_string).maximum).
-          else(empty_string)
+        Case
+          .new(sql_grouping(grouping_fields))
+          .when(0)
+          .then(pretty_boolean(field, true_string, false_string).maximum)
+          .else(empty_string)
       end
 
       def pretty_boolean(field, true_string, false_string)
-        Case.new(field).when(true).
-          then(Arel.sql("'#{true_string}'")).
-          else(Arel.sql("'#{false_string}'"))
+        Case
+          .new(field)
+          .when(true)
+          .then(Arel.sql("'#{true_string}'"))
+          .else(Arel.sql("'#{false_string}'"))
       end
 
       def cast(field, type)
@@ -86,7 +90,8 @@ module Reporting
       end
 
       def empty_string
-        raw("''") # rubocop:disable Rails/OutputSafety
+        # rubocop:disable Rails/OutputSafety
+        raw("''")
       end
 
       def sql_concat(*args)

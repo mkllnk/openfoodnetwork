@@ -6,9 +6,21 @@ module Reporting
       class Supplier < Base
         def table_columns
           Struct.new(:keys).new(
-            [:hub, :supplier, :customer_code, :first_name, :last_name, :phone,
-             :product, :variant, :quantity, :price, :temp_controlled, :shipment_state,
-             :shipping_method]
+            [
+              :hub,
+              :supplier,
+              :customer_code,
+              :first_name,
+              :last_name,
+              :phone,
+              :product,
+              :variant,
+              :quantity,
+              :price,
+              :temp_controlled,
+              :shipment_state,
+              :shipping_method
+            ]
           )
         end
 
@@ -22,22 +34,22 @@ module Reporting
             {
               group_by: :hub,
               header: true,
-              header_class: "h1 with-background text-center",
+              header_class: "h1 with-background text-center"
             },
             {
               group_by: :supplier,
               header: true,
               summary_row:,
-              summary_row_label: I18n.t('admin.reports.total_by_supplier').upcase
+              summary_row_label: I18n.t("admin.reports.total_by_supplier").upcase
             },
             {
               group_by: proc { |_item, row| row_header(row) },
               header: true,
-              header_class: 'h4',
+              header_class: "h4",
               fields_used_in_header: [:first_name, :last_name, :customer_code, :phone],
               summary_row:,
               summary_row_class: "",
-              summary_row_label: I18n.t('admin.reports.total_by_customer')
+              summary_row_label: I18n.t("admin.reports.total_by_customer")
             }
           ]
         end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'stripe/payment_intent_validator'
+require "stripe/payment_intent_validator"
 
 RSpec.describe Stripe::PaymentIntentValidator do
   # These are test payment method IDs, recognised by Stripe for testing purposes.
@@ -58,14 +58,18 @@ RSpec.describe Stripe::PaymentIntentValidator do
     },
     "pm_card_visa_chargeDeclinedVelocityLimitExceeded" => {
       type: "Exceeding velocity limit decline",
-      message: %(Your card was declined for making repeated attempts too frequently
-        or exceeding its amount limit.).squish
+      message: "Your card was declined for making repeated attempts too frequently
+        or exceeding its amount limit."
+        .squish
     }
   }.freeze
 
   let(:payment_method) {
-    create(:stripe_sca_payment_method, distributor_ids: [create(:distributor_enterprise).id],
-                                       preferred_enterprise_id: create(:enterprise).id)
+    create(
+      :stripe_sca_payment_method,
+      distributor_ids: [create(:distributor_enterprise).id],
+      preferred_enterprise_id: create(:enterprise).id
+    )
   }
 
   let(:year_valid) { Time.zone.now.year.next }
@@ -74,72 +78,94 @@ RSpec.describe Stripe::PaymentIntentValidator do
     let!(:user) { create(:user, email: "apple.customer@example.com") }
     let(:credit_card) { create(:credit_card, user:) }
     let(:payment) {
-      create(:payment, amount: payment_intent.amount, payment_method:,
-                       response_code: payment_intent.id, source: credit_card)
+      create(
+        :payment,
+        amount: payment_intent.amount,
+        payment_method:,
+        response_code: payment_intent.id,
+        source: credit_card
+      )
     }
     let(:validator) { Stripe::PaymentIntentValidator.new(payment) }
 
     describe "as a guest" do
-      context "when payment intent is valid" do
+      context("when payment intent is valid") do
         self::VALID_NON_3DS_TEST_PAYMENT_METHODS.each do |payment_method_id, card_type|
-          context "from #{card_type}" do
+          context("from #{card_type}") do
             let!(:payment_intent) do
-              Stripe::PaymentIntent.create({
-                                             amount: 100,
-                                             currency: 'eur',
-                                             payment_method: payment_method_id,
-                                             payment_method_types: ['card'],
-                                             capture_method: 'manual',
-                                           })
+              Stripe::PaymentIntent.create(
+                {
+                  amount: 100,
+                  currency: "eur",
+                  payment_method: payment_method_id,
+                  payment_method_types: ["card"],
+                  capture_method: "manual"
+                }
+              )
             end
 
             before do
               Stripe::PaymentIntent.confirm(payment_intent.id)
             end
+
             it "returns payment intent id" do
               result = validator.call
-              expect(result.id).to eq(payment_intent.id)
+              expect(result.id).to(eq(payment_intent.id))
             end
 
             it "captures the payment" do
-              expect(Stripe::PaymentIntent.retrieve(
-                payment_intent.id
-              ).status).to eq("requires_capture")
+              expect(
+                Stripe::PaymentIntent
+                  .retrieve(
+                    payment_intent.id
+                  )
+                  .status
+              )
+                .to(eq("requires_capture"))
 
               Stripe::PaymentIntent.capture(payment_intent.id)
 
-              expect(Stripe::PaymentIntent.retrieve(
-                payment_intent.id
-              ).status).to eq("succeeded")
+              expect(
+                Stripe::PaymentIntent
+                  .retrieve(
+                    payment_intent.id
+                  )
+                  .status
+              )
+                .to(eq("succeeded"))
             end
           end
         end
 
         self::VALID_3DS_TEST_PAYMENT_METHODS.each_key do |payment_method_id|
-          xcontext "from 3D card #{payment_method_id}" do
+          xcontext("from 3D card #{payment_method_id}") do
             pending("updating spec to handle 3D2S cards")
 
-            it "is correctly handled"
+            it("is correctly handled")
           end
         end
       end
 
-      context "when payment intent is invalid" do
+      context("when payment intent is invalid") do
         self::INVALID_TEST_PAYMENT_METHODS.each do |payment_method_id, error|
-          context "from #{error[:type]}" do
+          context("from #{error[:type]}") do
             let(:payment_intent) do
-              Stripe::PaymentIntent.create({
-                                             amount: 100,
-                                             currency: 'eur',
-                                             payment_method: payment_method_id,
-                                             payment_method_types: ['card'],
-                                             capture_method: 'manual',
-                                           })
+              Stripe::PaymentIntent.create(
+                {
+                  amount: 100,
+                  currency: "eur",
+                  payment_method: payment_method_id,
+                  payment_method_types: ["card"],
+                  capture_method: "manual"
+                }
+              )
             end
+
             it "raises Stripe error with payment intent last_payment_error as message" do
               expect {
                 Stripe::PaymentIntent.confirm(payment_intent.id)
-              }.to raise_error Stripe::StripeError, error[:message]
+              }
+                .to(raise_error(Stripe::StripeError, error[:message]))
             end
           end
         end
@@ -147,85 +173,107 @@ RSpec.describe Stripe::PaymentIntentValidator do
     end
 
     describe "as a Stripe customer" do
-      context "when payment intent is valid" do
+      context("when payment intent is valid") do
         let(:customer_id) { customer.id }
         let(:customer) do
-          Stripe::Customer.create({
-                                    name: 'Apple Customer',
-                                    email: 'applecustomer@example.com',
-                                  })
+          Stripe::Customer.create(
+            {
+              name: "Apple Customer",
+              email: "applecustomer@example.com"
+            }
+          )
         end
 
         self::VALID_NON_3DS_TEST_PAYMENT_METHODS.each do |payment_method_id, card_type|
-          context "from #{card_type}" do
+          context("from #{card_type}") do
             let!(:payment_intent) do
-              Stripe::PaymentIntent.create({
-                                             amount: 100,
-                                             currency: 'eur',
-                                             payment_method: payment_method_id,
-                                             payment_method_types: ['card'],
-                                             capture_method: 'manual',
-                                             customer: customer.id,
-                                             setup_future_usage: "off_session"
-                                           })
+              Stripe::PaymentIntent.create(
+                {
+                  amount: 100,
+                  currency: "eur",
+                  payment_method: payment_method_id,
+                  payment_method_types: ["card"],
+                  capture_method: "manual",
+                  customer: customer.id,
+                  setup_future_usage: "off_session"
+                }
+              )
             end
 
             before do
               Stripe::PaymentIntent.confirm(payment_intent.id)
             end
+
             it "returns payment intent id" do
               result = validator.call
-              expect(result.id).to eq(payment_intent.id)
+              expect(result.id).to(eq(payment_intent.id))
             end
 
             it "captures the payment" do
-              expect(Stripe::PaymentIntent.retrieve(
-                payment_intent.id
-              ).status).to eq("requires_capture")
+              expect(
+                Stripe::PaymentIntent
+                  .retrieve(
+                    payment_intent.id
+                  )
+                  .status
+              )
+                .to(eq("requires_capture"))
 
               Stripe::PaymentIntent.capture(payment_intent.id)
 
-              expect(Stripe::PaymentIntent.retrieve(
-                payment_intent.id
-              ).status).to eq("succeeded")
+              expect(
+                Stripe::PaymentIntent
+                  .retrieve(
+                    payment_intent.id
+                  )
+                  .status
+              )
+                .to(eq("succeeded"))
             end
           end
         end
 
         self::VALID_3DS_TEST_PAYMENT_METHODS.each_key do |payment_method_id|
-          xcontext "from 3D card #{payment_method_id}" do
+          xcontext("from 3D card #{payment_method_id}") do
             pending("updating spec to handle 3D2S cards")
 
-            it "is correctly handled"
+            it("is correctly handled")
           end
         end
       end
-      context "when payment intent is invalid" do
+
+      context("when payment intent is invalid") do
         let(:customer_id) { customer.id }
         let(:customer) do
-          Stripe::Customer.create({
-                                    name: 'Apple Customer',
-                                    email: 'applecustomer@example.com',
-                                  })
+          Stripe::Customer.create(
+            {
+              name: "Apple Customer",
+              email: "applecustomer@example.com"
+            }
+          )
         end
 
         self::INVALID_TEST_PAYMENT_METHODS.each do |payment_method_id, error|
-          context "from #{error[:type]}" do
+          context("from #{error[:type]}") do
             let(:payment_intent) do
-              Stripe::PaymentIntent.create({
-                                             amount: 100,
-                                             currency: 'eur',
-                                             payment_method: payment_method_id,
-                                             payment_method_types: ['card'],
-                                             capture_method: 'manual',
-                                             customer: customer.id,
-                                             setup_future_usage: "off_session"
-                                           })
+              Stripe::PaymentIntent.create(
+                {
+                  amount: 100,
+                  currency: "eur",
+                  payment_method: payment_method_id,
+                  payment_method_types: ["card"],
+                  capture_method: "manual",
+                  customer: customer.id,
+                  setup_future_usage: "off_session"
+                }
+              )
             end
+
             it "raises Stripe error with payment intent last_payment_error as message" do
               expect {
                 Stripe::PaymentIntent.confirm(payment_intent.id)
-              }.to raise_error Stripe::StripeError, error[:message]
+              }
+                .to(raise_error(Stripe::StripeError, error[:message]))
             end
           end
         end

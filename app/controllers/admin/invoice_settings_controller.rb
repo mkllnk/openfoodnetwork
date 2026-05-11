@@ -7,7 +7,7 @@ module Admin
 
       respond_to do |format|
         format.html {
-          redirect_to main_app.edit_admin_invoice_settings_path
+          redirect_to(main_app.edit_admin_invoice_settings_path)
         }
       end
     end
@@ -18,7 +18,7 @@ module Admin
       params.require(:preferences).permit(
         :enable_invoices?,
         :invoice_style2?,
-        :enterprise_number_required_on_invoices?,
+        :enterprise_number_required_on_invoices?
       )
     end
   end

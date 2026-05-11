@@ -18,6 +18,7 @@ module PermalinkGenerator
         p.slice!(/^#{requested}/)
         p.match(/^\d+$/).to_s.to_i
       end
+
       options = (1..used_indices.length + 1).to_a - used_indices
       requested + options.first.to_s
     end

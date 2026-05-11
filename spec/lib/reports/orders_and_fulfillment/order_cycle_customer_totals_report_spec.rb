@@ -5,9 +5,9 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
   let!(:customer) { create(:customer, enterprise: distributor, user:, code: "JHN") }
   let(:user) { create(:user, email: "john@example.net") }
   let(:current_user) { distributor.owner }
-  let(:params) { { display_summary_row: true, q: search_params } }
+  let(:params) { {display_summary_row: true, q: search_params} }
   let(:search_params) {
-    { completed_at_gt: 1.week.before(order_date), completed_at_lt: 1.week.after(order_date) }
+    {completed_at_gt: 1.week.before(order_date), completed_at_lt: 1.week.after(order_date)}
   }
   let(:report) { described_class.new(current_user, params) }
   let(:order_date) { Date.parse("2022-05-26") }
@@ -16,7 +16,7 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
     report.table_rows
   end
 
-  context "viewing the report" do
+  context("viewing the report") do
     let!(:order) do
       create(
         :completed_order_with_totals,
@@ -25,54 +25,57 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
         user: customer.user,
         customer:,
         distributor:,
-        completed_at: order_date,
-      ).tap do |order|
-        order.line_items[0].variant.supplier.update(name: "Apple Farmer")
-        order.line_items[0].update(product_name: "Apples")
-        order.line_items[0].variant.update(sku: "APP")
-      end
+        completed_at: order_date
+      )
+        .tap do |order|
+          order.line_items[0].variant.supplier.update(name: "Apple Farmer")
+          order.line_items[0].update(product_name: "Apples")
+          order.line_items[0].variant.update(sku: "APP")
+        end
     end
+
     let(:comparison_report) do
       Rails.root.join(report_file_name).read
     end
+
     let(:report_file_name) do
       "spec/fixtures/reports/orders_and_fulfillment/order_cycle_customer_totals_report.csv"
     end
 
-    context 'csv format' do
-      let(:params) { { report_format: 'csv', display_summary_row: false, q: search_params } }
+    context("csv format") do
+      let(:params) { {report_format: "csv", display_summary_row: false, q: search_params} }
 
       it "generates the report" do
-        expect(report_table.length).to eq(1)
+        expect(report_table.length).to(eq(1))
 
-        expect(report.render_as(:csv)).to eq comparison_report
+        expect(report.render_as(:csv)).to(eq(comparison_report))
       end
     end
 
     it "has a line item row" do
       distributor_name_field = report_table.first[0]
-      expect(distributor_name_field).to eq distributor.name
+      expect(distributor_name_field).to(eq(distributor.name))
 
       customer_name_field = report_table.first[1]
-      expect(customer_name_field).to eq order.bill_address.full_name
+      expect(customer_name_field).to(eq(order.bill_address.full_name))
     end
 
-    it 'includes the order number and date in item rows' do
-      expect(report.rows.first.order_number).to eq order.number
-      expect(report.rows.first.date).to eq order.completed_at.strftime("%F %T")
+    it "includes the order number and date in item rows" do
+      expect(report.rows.first.order_number).to(eq(order.number))
+      expect(report.rows.first.date).to(eq(order.completed_at.strftime("%F %T")))
     end
 
-    it 'includes the summary row' do
-      expect(report.rows.second.quantity).to eq "TOTAL"
-      expect(report.rows.second.date).to eq order.completed_at.strftime("%F %T")
+    it "includes the summary row" do
+      expect(report.rows.second.quantity).to(eq("TOTAL"))
+      expect(report.rows.second.date).to(eq(order.completed_at.strftime("%F %T")))
     end
 
-    context "shipment state" do
+    context("shipment state") do
       # by default, shipment state is hidden, so make fields_to_hide empty for this test
-      let(:params) { { q: search_params, fields_to_hide: [] } }
+      let(:params) { {q: search_params, fields_to_hide: []} }
 
-      it 'includes the shipment state' do
-        expect(report.rows.first.shipment_state).to eq order.shipment_state
+      it "includes the shipment state" do
+        expect(report.rows.first.shipment_state).to(eq(order.shipment_state))
       end
     end
 
@@ -80,21 +83,21 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
       # related to https://github.com/openfoodfoundation/openfoodnetwork/issues/13270
       # not sure how we got DEPRECATION WARNING: Rails 7.0 has deprecated Enumerable.sum
       # but these scenarios might be related
-      shared_examples "the report is successfully generated" do |test_case, type|
+      shared_examples("the report is successfully generated") do |test_case, type|
         it "if column final_weight_volume is #{test_case}" do
           order.line_items[0].update!(final_weight_volume: type)
-          expect(report_table.length).to eq(2)
+          expect(report_table.length).to(eq(2))
         end
       end
 
-      it_behaves_like "the report is successfully generated", "nil", nil
-      it_behaves_like "the report is successfully generated", "an empty value", ""
-      it_behaves_like "the report is successfully generated", "a white space", " "
-      it_behaves_like "the report is successfully generated", "a string", "kilograms"
+      it_behaves_like("the report is successfully generated", "nil", nil)
+      it_behaves_like("the report is successfully generated", "an empty value", "")
+      it_behaves_like("the report is successfully generated", "a white space", " ")
+      it_behaves_like("the report is successfully generated", "a string", "kilograms")
     end
   end
 
-  context "loading shipping methods" do
+  context("loading shipping methods") do
     let!(:shipping_method1) {
       create(:shipping_method, distributors: [distributor], name: "First")
     }
@@ -107,9 +110,11 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
     let!(:order) do
       create(
         :completed_order_with_totals,
-        line_items_count: 1, user: customer.user,
-        customer:, distributor:,
-        completed_at: order_date,
+        line_items_count: 1,
+        user: customer.user,
+        customer:,
+        distributor:,
+        completed_at: order_date
       )
     end
 
@@ -119,44 +124,48 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
     end
 
     it "displays the correct shipping_method" do
-      expect(report.rows.first.shipping).to eq shipping_method2.name
+      expect(report.rows.first.shipping).to(eq(shipping_method2.name))
     end
   end
 
-  context "displaying payment fees" do
-    context "with both failed and completed payments present" do
+  context("displaying payment fees") do
+    context("with both failed and completed payments present") do
       let!(:order) {
         create(
           :order_ready_to_ship,
           user: customer.user,
-          customer:, distributor:,
-          completed_at: order_date,
+          customer:,
+          distributor:,
+          completed_at: order_date
         )
       }
       let(:completed_payment) { order.payments.completed.first }
       let!(:failed_payment) { create(:payment, order:, state: "failed") }
 
       before do
-        completed_payment.adjustment.update amount: 123.00
-        failed_payment.adjustment.update amount: 456.00, eligible: false, state: "finalized"
+        completed_payment.adjustment.update(amount: 123.00)
+        failed_payment.adjustment.update(amount: 456.00, eligible: false, state: "finalized")
       end
 
       it "shows the correct payment fee amount for the order" do
-        expect(report.rows.last.pay_fee_price).to eq completed_payment.adjustment.amount
+        expect(report.rows.last.pay_fee_price).to(eq(completed_payment.adjustment.amount))
       end
     end
   end
 
-  context 'when a variant override applies', feature: :inventory do
+  context("when a variant override applies", feature: :inventory) do
     let!(:order) do
       create(
         :completed_order_with_totals,
-        line_items_count: 1, user: customer.user,
-        customer:, distributor:,
-        completed_at: order_date,
+        line_items_count: 1,
+        user: customer.user,
+        customer:,
+        distributor:,
+        completed_at: order_date
       )
     end
-    let(:overidden_sku) { 'magical_sku' }
+
+    let(:overidden_sku) { "magical_sku" }
 
     before do
       create(
@@ -167,13 +176,13 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
       )
     end
 
-    it 'uses the sku from the variant override' do
-      expect(report.rows.first.sku).to eq overidden_sku
+    it "uses the sku from the variant override" do
+      expect(report.rows.first.sku).to(eq(overidden_sku))
     end
   end
 
-  describe '#default_params' do
-    it 'should return expected expected_params' do
+  describe "#default_params" do
+    it "should return expected expected_params" do
       expected_params = {
         fields_to_hide: %i[
           final_weight_volume
@@ -187,7 +196,7 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotal
         }
       }
 
-      expect(report.default_params).to eq(expected_params)
+      expect(report.default_params).to(eq(expected_params))
     end
   end
 end

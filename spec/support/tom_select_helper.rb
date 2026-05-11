@@ -4,8 +4,13 @@ module TomSelectHelper
   def tomselect_multiselect(value, options)
     tomselect_wrapper = page.find_field(options[:from]).sibling(".ts-wrapper")
     tomselect_wrapper.find(".ts-control").click
-    tomselect_wrapper.find(:css, ".ts-dropdown.multi .ts-dropdown-content .option",
-                           text: value).click
+    tomselect_wrapper
+      .find(
+        :css,
+        ".ts-dropdown.multi .ts-dropdown-content .option",
+        text: value
+      )
+      .click
     # Close the dropdown
     page.find("body").click
   end
@@ -15,8 +20,8 @@ module TomSelectHelper
     tomselect_wrapper = page.find_field(selector).sibling(".ts-wrapper")
     tomselect_wrapper.find(".ts-control").click
     # Use send_keys as setting the value directly doesn't trigger the search
-    tomselect_wrapper.find(:css, '.ts-dropdown input.dropdown-input').send_keys(with)
-    tomselect_wrapper.find(:css, '.ts-dropdown div.create').click
+    tomselect_wrapper.find(:css, ".ts-dropdown input.dropdown-input").send_keys(with)
+    tomselect_wrapper.find(:css, ".ts-dropdown div.create").click
   end
 
   # Searches for and selects an option in a TomSelect dropdown with search functionality.
@@ -49,30 +54,36 @@ module TomSelectHelper
 
   def open_tomselect_to_validate!(page, field_name)
     tomselect_wrapper = page.find_field(field_name).sibling(".ts-wrapper")
-    tomselect_wrapper.find(".ts-control").click # open the dropdown
+    # open the dropdown
+    tomselect_wrapper.find(".ts-control").click
 
     raise "Please pass the block for expectations" unless block_given?
 
     # execute block containing expectations
     yield
 
-    tomselect_wrapper.find(
-      ".ts-dropdown .ts-dropdown-content .option.active",
-    ).click # close the dropdown by selecting the already selected value
+    tomselect_wrapper
+      .find(
+        ".ts-dropdown .ts-dropdown-content .option.active"
+      )
+      # close the dropdown by selecting the already selected value
+      .click
   end
 
   def expect_tomselect_selected_options(from, *options)
     tomselect_control = page
       .find("[name='#{from}']")
       .sibling(".ts-wrapper")
-      .find('.ts-control')
+      .find(".ts-control")
 
     within(tomselect_control) do
       # options in case of we want to expect multiselect options
       options.each do |option|
-        expect(page).to have_css(
-          "div[data-ts-item]",
-          text: option
+        expect(page).to(
+          have_css(
+            "div[data-ts-item]",
+            text: option
+          )
         )
       end
     end
@@ -91,16 +102,19 @@ module TomSelectHelper
   #   )
   def expect_tomselect_existing_with_selected_options(from:, existing_options:, selected_options:)
     tomselect_wrapper = page.find_field(from).sibling(".ts-wrapper")
-    tomselect_control = tomselect_wrapper.find('.ts-control')
+    tomselect_control = tomselect_wrapper.find(".ts-control")
 
-    tomselect_control.click # open the dropdown (would work for remote vs non-remote dropdowns)
+    # open the dropdown (would work for remote vs non-remote dropdowns)
+    tomselect_control.click
 
     # validate existing options are present in the dropdown
     within(tomselect_wrapper) do
       existing_options.each do |option|
-        expect(page).to have_css(
-          ".ts-dropdown .ts-dropdown-content .option",
-          text: option
+        expect(page).to(
+          have_css(
+            ".ts-dropdown .ts-dropdown-content .option",
+            text: option
+          )
         )
       end
     end
@@ -108,9 +122,11 @@ module TomSelectHelper
     # validate selected options are selected in the dropdown
     within(tomselect_wrapper) do
       selected_options.each do |option|
-        expect(page).to have_css(
-          "div[data-ts-item]",
-          text: option
+        expect(page).to(
+          have_css(
+            "div[data-ts-item]",
+            text: option
+          )
         )
       end
     end
@@ -122,7 +138,7 @@ module TomSelectHelper
   def expect_tomselect_loading_completion(tomselect_wrapper, options)
     return unless options[:remote_search]
 
-    expect(tomselect_wrapper).to have_css(".spinner")
-    expect(tomselect_wrapper).not_to have_css(".spinner")
+    expect(tomselect_wrapper).to(have_css(".spinner"))
+    expect(tomselect_wrapper).not_to(have_css(".spinner"))
   end
 end

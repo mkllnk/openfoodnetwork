@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe "/admin/products/:product_id/images" do
-  include AuthenticationHelper
+  include(AuthenticationHelper)
 
   let!(:product) { create(:product) }
 
@@ -9,12 +9,12 @@ RSpec.describe "/admin/products/:product_id/images" do
     login_as_admin
   end
 
-  shared_examples "updating images" do |expected_http_status_code|
+  shared_examples("updating images") do |expected_http_status_code|
     let(:params) do
       {
         image: {
           attachment: fixture_file_upload("logo.png", "image/png"),
-          viewable_id: product.id,
+          viewable_id: product.id
         }
       }
     end
@@ -23,22 +23,23 @@ RSpec.describe "/admin/products/:product_id/images" do
       expect {
         subject
         product.reload
-      }.to change{ product.image&.attachment&.filename.to_s }
+      }
+        .to(change { product.image&.attachment&.filename.to_s })
 
-      expect(response.status).to eq expected_http_status_code
+      expect(response.status).to(eq(expected_http_status_code))
       if expected_http_status_code == 302
-        expect(response.location).to end_with spree.admin_product_images_path(product)
+        expect(response.location).to(end_with(spree.admin_product_images_path(product)))
       end
 
-      expect(product.image.url(:product)).to end_with "logo.png"
+      expect(product.image.url(:product)).to(end_with("logo.png"))
     end
 
-    context "with wrong type of file" do
+    context("with wrong type of file") do
       let(:params) do
         {
           image: {
             attachment: fixture_file_upload("sample_file_120_products.csv", "text/csv"),
-            viewable_id: product.id,
+            viewable_id: product.id
           }
         }
       end
@@ -47,9 +48,10 @@ RSpec.describe "/admin/products/:product_id/images" do
         expect {
           subject
           product.reload
-        }.not_to change{ product.image&.attachment&.filename.to_s }
+        }
+          .not_to(change { product.image&.attachment&.filename.to_s })
 
-        expect(response.body).to include "Attachment has an invalid content type"
+        expect(response.body).to(include("Attachment has an invalid content type"))
       end
     end
   end
@@ -57,13 +59,13 @@ RSpec.describe "/admin/products/:product_id/images" do
   describe "POST /admin/products/:product_id/images" do
     subject { post(spree.admin_product_images_path(product), params:) }
 
-    it_behaves_like "updating images", 302
+    it_behaves_like("updating images", 302)
   end
 
   describe "POST /admin/products/:product_id/images with turbo" do
     subject { post(spree.admin_product_images_path(product), params:, as: :turbo_stream) }
 
-    it_behaves_like "updating images", 200
+    it_behaves_like("updating images", 200)
   end
 
   describe "PATCH /admin/products/:product_id/images/:id" do
@@ -72,7 +74,7 @@ RSpec.describe "/admin/products/:product_id/images" do
       patch(spree.admin_product_image_path(product, product.image), params:)
     }
 
-    it_behaves_like "updating images", 302
+    it_behaves_like("updating images", 302)
   end
 
   describe "PATCH /admin/products/:product_id/images/:id with turbo" do
@@ -81,6 +83,6 @@ RSpec.describe "/admin/products/:product_id/images" do
       patch(spree.admin_product_image_path(product, product.image), params:, as: :turbo_stream)
     }
 
-    it_behaves_like "updating images", 200
+    it_behaves_like("updating images", 200)
   end
 end

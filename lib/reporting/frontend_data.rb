@@ -21,28 +21,33 @@ module Reporting
     end
 
     def suppliers_of_products_distributed_by(distributors)
-      supplier_ids = Spree::Variant.joins(exchange_variants: { exchange: :order_cycle }).
-        where(exchanges: { incoming: false, receiver: distributors } )
+      supplier_ids = Spree::Variant
+        .joins(exchange_variants: {exchange: :order_cycle})
+        .where(exchanges: {incoming: false, receiver: distributors})
         .select("spree_variants.supplier_id")
 
       Enterprise.where(id: supplier_ids)
     end
 
     def orders_distributors
-      @orders_distributors ||= permissions.visible_enterprises_for_order_reports
-        .is_distributor.select("enterprises.id, enterprises.name")
+      @orders_distributors ||= permissions
+        .visible_enterprises_for_order_reports
+        .is_distributor
+        .select("enterprises.id, enterprises.name")
     end
 
     def orders_suppliers
-      @orders_suppliers ||= permissions.visible_enterprises_for_order_reports
-        .is_primary_producer.select("enterprises.id, enterprises.name")
+      @orders_suppliers ||= permissions
+        .visible_enterprises_for_order_reports
+        .is_primary_producer
+        .select("enterprises.id, enterprises.name")
     end
 
     def order_cycles
-      @order_cycles ||= OrderCycle.
-        active_or_complete.
-        visible_by(current_user).
-        order('order_cycles.orders_close_at DESC')
+      @order_cycles ||= OrderCycle
+        .active_or_complete
+        .visible_by(current_user)
+        .order("order_cycles.orders_close_at DESC")
     end
 
     def order_customers

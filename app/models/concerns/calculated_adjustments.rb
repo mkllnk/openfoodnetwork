@@ -5,7 +5,7 @@ require "active_support/concern"
 module CalculatedAdjustments
   extend ActiveSupport::Concern
 
-  CALCULATORS = %w{
+  CALCULATORS = %w[
     Calculator::DefaultTax
     Calculator::FlatPercentItemTotal
     Calculator::FlatPercentPerItem
@@ -15,7 +15,8 @@ module CalculatedAdjustments
     Calculator::PerItem
     Calculator::PriceSack
     Calculator::Weight
-  }.freeze
+  ]
+    .freeze
 
   included do
     has_one :calculator, as: :calculable, class_name: "Spree::Calculator", dependent: :destroy
@@ -31,7 +32,7 @@ module CalculatedAdjustments
     private
 
     def model_name_without_spree_namespace
-      to_s.tableize.gsub('/', '_').sub('spree_', '')
+      to_s.tableize.gsub("/", "_").sub("spree_", "")
     end
 
     def spree_calculators
@@ -85,7 +86,7 @@ module CalculatedAdjustments
 
   def order_object_for(target)
     # Temporary method for adjustments transition.
-    if target.is_a? Spree::Order
+    if target.is_a?(Spree::Order)
       target
     elsif target.respond_to?(:order)
       target.order

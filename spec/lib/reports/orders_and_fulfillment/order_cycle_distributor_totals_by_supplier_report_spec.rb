@@ -11,7 +11,7 @@ module Reporting
         end
 
         let(:current_user) { distributor.owner }
-        let(:params) { { display_summary_row: true } }
+        let(:params) { {display_summary_row: true} }
         let(:report) do
           OrderCycleDistributorTotalsBySupplier.new(current_user, params)
         end

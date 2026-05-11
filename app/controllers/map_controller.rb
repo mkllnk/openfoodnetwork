@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class MapController < BaseController
-  layout 'darkswarm'
+  layout "darkswarm"
 
-  def index; end
+  def index
+  end
 end

@@ -3,7 +3,7 @@
 module PreferenceSections
   class HeaderSection
     def name
-      I18n.t('admin.contents.edit.header')
+      I18n.t("admin.contents.edit.header")
     end
 
     def preferences

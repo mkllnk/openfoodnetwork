@@ -24,7 +24,7 @@ module Catalog
 
         return relation if excluded_items_ids.blank?
 
-        relation.where.not(spree_variants: { id: excluded_items_ids })
+        relation.where.not(spree_variants: {id: excluded_items_ids})
       end
 
       def reset_variants_on_hand_and_on_demand(variants)
@@ -32,6 +32,7 @@ module Catalog
         variants.each do |variant|
           updated_records_count += 1 if reset_variant_on_hand_and_on_demand(variant)
         end
+
         updated_records_count
       end
 

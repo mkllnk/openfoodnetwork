@@ -6,19 +6,19 @@ module Api
       respond_to :json
 
       def destroy
-        authorize! :destroy, enterprise_fee
+        authorize!(:destroy, enterprise_fee)
 
         if enterprise_fee.destroy
-          head :no_content
+          head(:no_content)
         else
-          render plain: enterprise_fee.errors.full_messages.first, status: :forbidden
+          render(plain: enterprise_fee.errors.full_messages.first, status: :forbidden)
         end
       end
 
       private
 
       def enterprise_fee
-        @enterprise_fee ||= EnterpriseFee.find_by id: params[:id]
+        @enterprise_fee ||= EnterpriseFee.find_by(id: params[:id])
       end
     end
   end

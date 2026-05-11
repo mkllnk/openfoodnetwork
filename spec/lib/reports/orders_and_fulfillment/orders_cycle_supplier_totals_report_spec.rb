@@ -6,11 +6,13 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
   let!(:order) do
     create(:completed_order_with_totals, line_items_count: 1, distributor:)
   end
+
   let!(:supplier) do
     order.line_items.first.variant.supplier
   end
+
   let(:current_user) { distributor.owner }
-  let(:params) { { display_summary_row: false, fields_to_hide: [] } }
+  let(:params) { {display_summary_row: false, fields_to_hide: []} }
   let(:report) do
     described_class.new(current_user, params)
   end
@@ -27,66 +29,87 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
   let(:variant) { item.variant }
 
   it "generates the report" do
-    expect(report_table.length).to eq(1)
+    expect(report_table.length).to(eq(1))
   end
 
   describe "total_units column" do
     it "contains a sum of total items" do
-      variant.update!(variant_unit: "items", variant_unit_name: "bottle", unit_value: 6) # six-pack
-      item.update!(final_weight_volume: nil) # reset unit information
+      # six-pack
+      variant.update!(variant_unit: "items", variant_unit_name: "bottle", unit_value: 6)
+      # reset unit information
+      item.update!(final_weight_volume: nil)
       item.update!(quantity: 3)
 
-      expect(table_headers[4]).to eq "Total Units"
-      expect(report_table[0][4]).to eq 18 # = 3 * 6, three six-packs
+      expect(table_headers[4]).to(eq("Total Units"))
+      # = 3 * 6, three six-packs
+      expect(report_table[0][4]).to(eq(18))
     end
 
     it "contains a sum of total weight" do
-      variant.update!(variant_unit: "weight", unit_value: 200) # grams
-      item.update!(final_weight_volume: nil) # reset unit information
+      # grams
+      variant.update!(variant_unit: "weight", unit_value: 200)
+      # reset unit information
+      item.update!(final_weight_volume: nil)
       item.update!(quantity: 3)
 
-      expect(table_headers[4]).to eq "Total Units"
-      expect(report_table[0][4]).to eq 0.6 # kg (= 3 * 0.2kg)
+      expect(table_headers[4]).to(eq("Total Units"))
+      # kg (= 3 * 0.2kg)
+      expect(report_table[0][4]).to(eq(0.6))
     end
 
     it "is blank when line items miss a unit" do
       # This is not possible with the current code but was possible years ago.
       # So I'm using `update_columns` to save invalid data.
       # We still have lots of that data in our databases though.
-      variant.update_columns(variant_unit: "items", variant_unit_name: "container",
-                             unit_value: nil, unit_description: "vacuum")
-      item.update!(final_weight_volume: nil) # reset unit information
+      variant.update_columns(
+        variant_unit: "items",
+        variant_unit_name: "container",
+        unit_value: nil,
+        unit_description: "vacuum"
+      )
+      # reset unit information
+      item.update!(final_weight_volume: nil)
 
-      expect(table_headers[4]).to eq "Total Units"
-      expect(report_table[0][4]).to eq " "
+      expect(table_headers[4]).to(eq("Total Units"))
+      expect(report_table[0][4]).to(eq(" "))
     end
 
     it "is summarised" do
-      expect(report).to receive(:display_summary_row?).and_return(true)
+      expect(report).to(receive(:display_summary_row?).and_return(true))
       # assures product appears first on report table
       variant.product.update!(name: "Alpha-Product #000")
-      variant.update!(variant_unit: "weight", unit_value: 200) # grams
-      item.update!(final_weight_volume: nil) # reset unit information
+      # grams
+      variant.update!(variant_unit: "weight", unit_value: 200)
+      # reset unit information
+      item.update!(final_weight_volume: nil)
       item.update!(quantity: 3)
 
       # And a second item to add up with:
       item2 = create(:line_item, order:)
 
-      expect(table_headers[4]).to eq "Total Units"
-      expect(report_table[0][4]).to eq 0.6 # kg (= 3 * 0.2kg)
-      expect(report_table[1][4]).to eq 0.001 # 1 gram default value
-      expect(report_table[2][4]).to eq 0.601 # summary
+      expect(table_headers[4]).to(eq("Total Units"))
+      # kg (= 3 * 0.2kg)
+      expect(report_table[0][4]).to(eq(0.6))
+      # 1 gram default value
+      expect(report_table[1][4]).to(eq(0.001))
+      # summary
+      expect(report_table[2][4]).to(eq(0.601))
     end
 
     it "is blank in summary when one line item misses a unit and another not" do
-      expect(report).to receive(:display_summary_row?).and_return(true)
+      expect(report).to(receive(:display_summary_row?).and_return(true))
 
       # This is not possible with the current code but was possible years ago.
       # So I'm using `update_columns` to save invalid data.
       # We still have lots of that data in our databases though.
-      variant.update_columns(variant_unit: "items", variant_unit_name: "container",
-                             unit_value: nil, unit_description: "vacuum")
-      item.update!(final_weight_volume: nil) # reset unit information
+      variant.update_columns(
+        variant_unit: "items",
+        variant_unit_name: "container",
+        unit_value: nil,
+        unit_description: "vacuum"
+      )
+      # reset unit information
+      item.update!(final_weight_volume: nil)
 
       # This second line item will have a default a bigint value.
       order.line_items << create(:line_item)
@@ -97,14 +120,16 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
 
       # Generating the report used to raise:
       # > TypeError: no implicit conversion of BigDecimal into String
-      expect(table_headers[4]).to eq "Total Units"
-      expect(report_table[0][4]).to eq " "
-      expect(report_table[1][4]).to eq 0.001 # 1 gram default value
-      expect(report_table[2][4]).to eq " " # summary
+      expect(table_headers[4]).to(eq("Total Units"))
+      expect(report_table[0][4]).to(eq(" "))
+      # 1 gram default value
+      expect(report_table[1][4]).to(eq(0.001))
+      # summary
+      expect(report_table[2][4]).to(eq(" "))
     end
   end
 
-  context "with a VAT/GST-free supplier" do
+  context("with a VAT/GST-free supplier") do
     let(:tax_category) { create(:tax_category) }
 
     before do
@@ -119,9 +144,9 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
       supplier_vat_status_field = report_table.first[-2]
       product_tax_category_field = report_table.first[-1]
 
-      expect(supplier_name_field).to eq supplier.name
-      expect(supplier_vat_status_field).to eq "No"
-      expect(product_tax_category_field).to eq product_tax_category_name
+      expect(supplier_name_field).to(eq(supplier.name))
+      expect(supplier_vat_status_field).to(eq("No"))
+      expect(product_tax_category_field).to(eq(product_tax_category_name))
     end
 
     it "has a variant row when product doesn't belong to a tax category" do
@@ -131,13 +156,13 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
       supplier_vat_status_field = report_table.first[-2]
       product_tax_category_field = report_table.first[-1]
 
-      expect(supplier_name_field).to eq supplier.name
-      expect(supplier_vat_status_field).to eq "No"
-      expect(product_tax_category_field).to eq "none"
+      expect(supplier_name_field).to(eq(supplier.name))
+      expect(supplier_vat_status_field).to(eq("No"))
+      expect(product_tax_category_field).to(eq("none"))
     end
   end
 
-  context "with a VAT/GST-enabled supplier" do
+  context("with a VAT/GST-enabled supplier") do
     let(:tax_category) { create(:tax_category) }
 
     before(:each) do
@@ -152,9 +177,9 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
       supplier_vat_status_field = report_table.first[-2]
       product_tax_category_field = report_table.first[-1]
 
-      expect(supplier_name_field).to eq supplier.name
-      expect(supplier_vat_status_field).to eq "Yes"
-      expect(product_tax_category_field).to eq product_tax_category_name
+      expect(supplier_name_field).to(eq(supplier.name))
+      expect(supplier_vat_status_field).to(eq("Yes"))
+      expect(product_tax_category_field).to(eq(product_tax_category_name))
     end
 
     it "has a variant row when product doesn't belong to a tax category" do
@@ -164,9 +189,9 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
       supplier_vat_status_field = report_table.first[-2]
       product_tax_category_field = report_table.first[-1]
 
-      expect(supplier_name_field).to eq supplier.name
-      expect(supplier_vat_status_field).to eq "Yes"
-      expect(product_tax_category_field).to eq "none"
+      expect(supplier_name_field).to(eq(supplier.name))
+      expect(supplier_vat_status_field).to(eq("Yes"))
+      expect(product_tax_category_field).to(eq("none"))
     end
   end
 
@@ -175,8 +200,8 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
     last_column_title = table_headers[-3]
     first_row_last_column_value = report_table.first[-3]
 
-    expect(last_column_title).to eq "SKU"
-    expect(first_row_last_column_value).to eq variant_sku
+    expect(last_column_title).to(eq("SKU"))
+    expect(first_row_last_column_value).to(eq(variant_sku))
   end
 
   it "doesn't update product name in report" do
@@ -184,15 +209,15 @@ RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotal
     last_column_title = table_headers[-3]
     first_row_last_column_value = report_table.first[-3]
 
-    expect(last_column_title).to eq "SKU"
-    expect(first_row_last_column_value).to eq variant_sku
+    expect(last_column_title).to(eq("SKU"))
+    expect(first_row_last_column_value).to(eq(variant_sku))
 
-    expect(report_table.first[1]).to eq(variant.product.name)
+    expect(report_table.first[1]).to(eq(variant.product.name))
     product_name = variant.product.name
     variant.product.update(name: "#{product_name} Updated")
 
     new_report = described_class.new(current_user, params)
 
-    expect(new_report.table_rows.first[1]).to eq(product_name)
+    expect(new_report.table_rows.first[1]).to(eq(product_name))
   end
 end

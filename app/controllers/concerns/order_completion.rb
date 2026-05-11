@@ -41,7 +41,7 @@ module OrderCompletion
     main_app.order_path(@order, order_token: @order.token)
   end
 
-  def order_failed_route(step: 'details')
+  def order_failed_route(step: "details")
     main_app.checkout_step_path(step:)
   end
 
@@ -52,27 +52,28 @@ module OrderCompletion
   def order_invalid!
     Alert.raise_with_record("Notice: invalid order loaded during checkout", @order)
 
-    flash[:error] = t('checkout.order_not_loaded')
-    redirect_to main_app.shop_path
+    flash[:error] = t("checkout.order_not_loaded")
+    redirect_to(main_app.shop_path)
   end
 
   def process_payment_completion!
     unless @order.process_payments!
       payment_failed
-      return redirect_to order_failed_route(step: 'payment')
+      return redirect_to(order_failed_route(step: "payment"))
     end
 
     if Orders::WorkflowService.new(@order).next && @order.complete?
       processing_succeeded
-      redirect_to order_completion_route
+      redirect_to(order_completion_route)
     else
       processing_failed
-      redirect_to order_failed_route
+      redirect_to(order_failed_route)
     end
+
   rescue Spree::Core::GatewayError => e
     gateway_error(e)
     processing_failed
-    redirect_to order_failed_route
+    redirect_to(order_failed_route)
   end
 
   def processing_succeeded
@@ -92,7 +93,7 @@ module OrderCompletion
   def notify_failure(error = RuntimeError.new(order_processing_error))
     return if flash.present?
 
-    Rails.logger.error "OrderCompletion#notify_failure: #{error}"
+    Rails.logger.error("OrderCompletion#notify_failure: #{error}")
     Alert.raise_with_record(error, @order)
     flash[:error] = order_processing_error
   end
@@ -104,7 +105,7 @@ module OrderCompletion
   end
 
   def gateway_error(error)
-    Rails.logger.error "OrderCompletion#gateway_error: #{error}"
+    Rails.logger.error("OrderCompletion#gateway_error: #{error}")
     Alert.raise_with_record(error, @order)
     flash[:error] = t(:spree_gateway_error_flash_for_checkout, error: error.message)
   end

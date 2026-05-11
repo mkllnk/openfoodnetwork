@@ -24,18 +24,21 @@ module Reporting
         report.formatted_rules.pluck(:fields_used_in_header).flatten.compact_blank
       else
         []
-      end.concat(params_fields_to_hide)
+      end
+        .concat(params_fields_to_hide)
     end
 
     def fields_to_show
       fields_in_headers = if report.display_header_row?
-                            report.formatted_rules
-                              .pluck(:fields_used_in_header)
-                              .flatten
-                              .compact_blank
-                          else
-                            []
-                          end
+        report
+          .formatted_rules
+          .pluck(:fields_used_in_header)
+          .flatten
+          .compact_blank
+      else
+        []
+      end
+
       params_fields_to_show - fields_in_headers - fields_to_hide
     end
 
@@ -43,7 +46,7 @@ module Reporting
 
     def translate_header(key)
       # Quite some headers use currency interpolation, so providing it by default
-      default_params = { currency: currency_symbol, currency_symbol: }
+      default_params = {currency: currency_symbol, currency_symbol:}
       report.custom_headers[key] || I18n.t("report_header_#{key}", **default_params)
     end
 

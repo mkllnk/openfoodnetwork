@@ -10,8 +10,8 @@ RSpec.describe Vine::ApiService do
   let(:token) { "some.jwt.token" }
 
   before do
-    allow(ENV).to receive(:fetch).and_call_original
-    allow(ENV).to receive(:fetch).with("VINE_API_URL").and_return(vine_api_url)
+    allow(ENV).to(receive(:fetch).and_call_original)
+    allow(ENV).to(receive(:fetch).with("VINE_API_URL").and_return(vine_api_url))
   end
 
   describe "#my_team" do
@@ -22,9 +22,13 @@ RSpec.describe Vine::ApiService do
 
       vine_api.my_team
 
-      expect(a_request(
-               :get, "https://vine-staging.openfoodnetwork.org.au/api/v1/my-team"
-             )).to have_been_made
+      expect(
+        a_request(
+          :get,
+          "https://vine-staging.openfoodnetwork.org.au/api/v1/my-team"
+        )
+      )
+        .to(have_been_made)
     end
 
     it "sends the VINE api key via a header" do
@@ -44,21 +48,21 @@ RSpec.describe Vine::ApiService do
       expect_request_with_jwt_token(:get, "https://vine-staging.openfoodnetwork.org.au/api/v1/my-team")
     end
 
-    context "when a request succeed", :vcr do
+    context("when a request succeed", :vcr) do
       it "returns the response" do
         response = vine_api.my_team
 
-        expect(response.success?).to be(true)
-        expect(response.body).not_to be_empty
+        expect(response.success?).to(be(true))
+        expect(response.body).not_to(be_empty)
       end
     end
 
-    context "when a request fails" do
+    context("when a request fails") do
       it "logs the error" do
         stub_request(:get, my_team_url).to_return(body: "error", status: 401)
 
-        expect(Rails.logger).to receive(:error).with(match("Vine::ApiService#my_team")).twice
-        expect { vine_api.my_team }.to raise_error(Faraday::UnauthorizedError)
+        expect(Rails.logger).to(receive(:error).with(match("Vine::ApiService#my_team")).twice)
+        expect { vine_api.my_team }.to(raise_error(Faraday::UnauthorizedError))
       end
     end
   end
@@ -71,9 +75,14 @@ RSpec.describe Vine::ApiService do
       stub_request(:post, voucher_validation_url).to_return(status: 200)
       vine_api.voucher_validation(voucher_short_code)
 
-      expect(a_request(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
-      ).with(body: { type: "voucher_code", value: voucher_short_code } )).to have_been_made
+      expect(
+        a_request(
+          :post,
+          "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
+        )
+          .with(body: {type: "voucher_code", value: voucher_short_code})
+      )
+        .to(have_been_made)
     end
 
     it "sends the VINE api key via a header" do
@@ -82,7 +91,8 @@ RSpec.describe Vine::ApiService do
       vine_api.voucher_validation(voucher_short_code)
 
       expect_request_with_api_key(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
+        :post,
+        "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
       )
     end
 
@@ -93,29 +103,35 @@ RSpec.describe Vine::ApiService do
       vine_api.voucher_validation(voucher_short_code)
 
       expect_request_with_jwt_token(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
+        :post,
+        "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-validation"
       )
     end
 
-    context "when a request succeed", :vcr do
+    context("when a request succeed", :vcr) do
       it "returns the response" do
         response = vine_api.voucher_validation(voucher_short_code)
 
-        expect(response.success?).to be(true)
-        expect(response.body).not_to be_empty
+        expect(response.success?).to(be(true))
+        expect(response.body).not_to(be_empty)
       end
     end
 
-    context "when a request fails" do
+    context("when a request fails") do
       it "logs the error" do
         stub_request(:post, voucher_validation_url).to_return(body: "error", status: 401)
 
-        expect(Rails.logger).to receive(:error).with(
-          match("Vine::ApiService#voucher_validation")
-        ).twice
+        expect(Rails.logger).to(
+          receive(:error)
+            .with(
+              match("Vine::ApiService#voucher_validation")
+            )
+            .twice
+        )
         expect {
           vine_api.voucher_validation(voucher_short_code)
-        }.to raise_error(Faraday::UnauthorizedError)
+        }
+          .to(raise_error(Faraday::UnauthorizedError))
       end
     end
   end
@@ -124,15 +140,21 @@ RSpec.describe Vine::ApiService do
     let(:voucher_redemptions_url) { "#{vine_api_url}/voucher-redemptions" }
     let(:voucher_id) { "quia" }
     let(:voucher_set_id) { "natus" }
-    let(:amount) { 500 } # $5.00
+    # $5.00
+    let(:amount) { 500 }
 
     it "send a POST request to the voucher redemptions VINE api endpoint" do
       stub_request(:post, voucher_redemptions_url).to_return(status: 200)
       vine_api.voucher_redemptions(voucher_id, voucher_set_id, amount)
 
-      expect(a_request(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
-      ).with(body: { voucher_id:, voucher_set_id:, amount: })).to have_been_made
+      expect(
+        a_request(
+          :post,
+          "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
+        )
+          .with(body: {voucher_id:, voucher_set_id:, amount:})
+      )
+        .to(have_been_made)
     end
 
     it "sends the VINE api key via a header" do
@@ -141,7 +163,8 @@ RSpec.describe Vine::ApiService do
       vine_api.voucher_redemptions(voucher_id, voucher_set_id, amount)
 
       expect_request_with_api_key(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
+        :post,
+        "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
       )
     end
 
@@ -152,45 +175,52 @@ RSpec.describe Vine::ApiService do
       vine_api.voucher_redemptions(voucher_id, voucher_set_id, amount)
 
       expect_request_with_jwt_token(
-        :post, "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
+        :post,
+        "https://vine-staging.openfoodnetwork.org.au/api/v1/voucher-redemptions"
       )
     end
 
-    context "when a request succeed", :vcr do
+    context("when a request succeed", :vcr) do
       it "returns the response" do
         response = vine_api.voucher_redemptions(voucher_id, voucher_set_id, amount)
 
-        expect(response.success?).to be(true)
-        expect(response.body).not_to be_empty
+        expect(response.success?).to(be(true))
+        expect(response.body).not_to(be_empty)
       end
     end
 
-    context "when a request fails" do
+    context("when a request fails") do
       it "logs the error" do
         stub_request(:post, voucher_redemptions_url).to_return(body: "error", status: 401)
 
-        expect(Rails.logger).to receive(:error).with(
-          match("Vine::ApiService#voucher_redemptions")
-        ).twice.and_call_original
+        expect(Rails.logger).to(
+          receive(:error)
+            .with(
+              match("Vine::ApiService#voucher_redemptions")
+            )
+            .twice
+            .and_call_original
+        )
 
         expect {
           vine_api.voucher_redemptions(voucher_id, voucher_set_id, amount)
-        }.to raise_error(Faraday::UnauthorizedError)
+        }
+          .to(raise_error(Faraday::UnauthorizedError))
       end
     end
   end
 
   def expect_request_with_api_key(method, url)
-    expect(a_request(method, url).with( headers: { Authorization: "Bearer #{vine_api_key}" }))
-      .to have_been_made
+    expect(a_request(method, url).with(headers: {Authorization: "Bearer #{vine_api_key}"}))
+      .to(have_been_made)
   end
 
   def expect_request_with_jwt_token(method, url)
-    expect(a_request(method, url).with( headers: { 'X-Authorization': "JWT #{token}" }))
-      .to have_been_made
+    expect(a_request(method, url).with(headers: {'X-Authorization': "JWT #{token}"}))
+      .to(have_been_made)
   end
 
   def mock_jwt_service
-    allow(jwt_service).to receive(:generate_token).and_return(token)
+    allow(jwt_service).to(receive(:generate_token).and_return(token))
   end
 end

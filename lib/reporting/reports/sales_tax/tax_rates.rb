@@ -10,9 +10,12 @@ module Reporting
             order_number: proc { |order| order_number_column(order).html_safe },
             total_excl_vat: proc { |order| order.total - order.total_tax }
           }
-          add_key_for_each_rate(result, proc { |rate|
-            proc { |order| Orders::FetchTaxAdjustmentsService.new(order).totals.fetch(rate, 0) }
-          })
+          add_key_for_each_rate(
+            result,
+            proc { |rate|
+              proc { |order| Orders::FetchTaxAdjustmentsService.new(order).totals.fetch(rate, 0) }
+            }
+          )
           other = {
             total_tax: proc { |order| order.total_tax },
             total_incl_vat: proc { |order| order.total }
@@ -23,9 +26,12 @@ module Reporting
 
         def custom_headers
           result = {}
-          add_key_for_each_rate(result, proc { |rate|
-            "%.1f%% (%s)" % [rate.amount.to_f * 100, currency_symbol]
-          })
+          add_key_for_each_rate(
+            result,
+            proc { |rate|
+              "%.1f%% (%s)" % [rate.amount.to_f * 100, currency_symbol]
+            }
+          )
           result
         end
 

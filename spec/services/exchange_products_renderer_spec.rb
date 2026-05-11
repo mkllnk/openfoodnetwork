@@ -12,8 +12,10 @@ RSpec.describe ExchangeProductsRenderer do
       it "loads products" do
         products = renderer.exchange_products(true, exchange.sender)
 
-        expect(products.first.variants.first.supplier.name).to eq(
-          exchange.variants.first.supplier.name
+        expect(products.first.variants.first.supplier.name).to(
+          eq(
+            exchange.variants.first.supplier.name
+          )
         )
       end
 
@@ -21,7 +23,7 @@ RSpec.describe ExchangeProductsRenderer do
         products = renderer.exchange_products(true, exchange.sender)
         sorted_products_names = products.map(&:name).sort
 
-        expect(products.map(&:name)).to eq(sorted_products_names)
+        expect(products.map(&:name)).to(eq(sorted_products_names))
       end
     end
 
@@ -31,38 +33,44 @@ RSpec.describe ExchangeProductsRenderer do
       it "loads products" do
         products = renderer.exchange_products(false, exchange.receiver)
 
-        suppliers = [exchange.variants[0].supplier.name,
-                     exchange.variants[1].supplier.name]
-        expect(suppliers).to include products.first.variants.first.supplier.name
-        expect(suppliers).to include products.second.variants.first.supplier.name
+        suppliers = [
+          exchange.variants[0].supplier.name,
+          exchange.variants[1].supplier.name
+        ]
+        expect(suppliers).to(include(products.first.variants.first.supplier.name))
+        expect(suppliers).to(include(products.second.variants.first.supplier.name))
       end
 
       it "loads products in order" do
         products = renderer.exchange_products(false, exchange.receiver)
         sorted_products_names = products.map(&:name).sort
 
-        expect(products.map(&:name)).to eq(sorted_products_names)
+        expect(products.map(&:name)).to(eq(sorted_products_names))
       end
 
-      context "showing products from coordinator inventory only" do
+      context("showing products from coordinator inventory only") do
         before {
-          order_cycle.update prefers_product_selection_from_coordinator_inventory_only: true
+          order_cycle.update(prefers_product_selection_from_coordinator_inventory_only: true)
         }
 
         it "loads no products if there are no products from the coordinator inventory" do
           products = renderer.exchange_products(false, exchange.receiver)
 
-          expect(products).to be_empty
+          expect(products).to(be_empty)
         end
 
         it "loads products from the coordinator inventory" do
           # Add variant already in the exchange to the coordinator's inventory
-          exchange.variants.first.inventory_items = [create(:inventory_item,
-                                                            enterprise: order_cycle.coordinator)]
+          exchange.variants.first.inventory_items = [
+            create(
+              :inventory_item,
+              enterprise: order_cycle.coordinator
+            )
+          ]
 
           products = renderer.exchange_products(false, exchange.receiver)
 
-          expect(products).to eq [exchange.variants.first.product]
+          expect(products).to(eq([exchange.variants.first.product]))
         end
       end
     end
@@ -75,21 +83,27 @@ RSpec.describe ExchangeProductsRenderer do
         variants = renderer.exchange_variants(true, exchange.sender)
 
         expect(variants.first.supplier.name)
-          .to eq exchange.variants.first.supplier.name
+          .to(eq(exchange.variants.first.supplier.name))
       end
 
       describe "when OC is showing only the coordinators inventory" do
         let(:exchange_with_visible_variant) { order_cycle.exchanges.incoming.last }
         let(:exchange_with_hidden_variant) { order_cycle.exchanges.incoming.first }
         let!(:visible_inventory_item) {
-          create(:inventory_item, enterprise: order_cycle.coordinator,
-                                  variant: exchange_with_visible_variant.variants.first,
-                                  visible: true)
+          create(
+            :inventory_item,
+            enterprise: order_cycle.coordinator,
+            variant: exchange_with_visible_variant.variants.first,
+            visible: true
+          )
         }
         let!(:hidden_inventory_item) {
-          create(:inventory_item, enterprise: order_cycle.coordinator,
-                                  variant: exchange_with_hidden_variant.variants.first,
-                                  visible: false)
+          create(
+            :inventory_item,
+            enterprise: order_cycle.coordinator,
+            variant: exchange_with_hidden_variant.variants.first,
+            visible: false
+          )
         }
 
         before do
@@ -99,13 +113,13 @@ RSpec.describe ExchangeProductsRenderer do
         it "renders visible inventory variants" do
           variants = renderer.exchange_variants(true, exchange_with_visible_variant.sender)
 
-          expect(variants.size).to eq 1
+          expect(variants.size).to(eq(1))
         end
 
         it "does not render hidden inventory variants" do
           variants = renderer.exchange_variants(true, exchange_with_hidden_variant.sender)
 
-          expect(variants.size).to eq 0
+          expect(variants.size).to(eq(0))
         end
       end
     end

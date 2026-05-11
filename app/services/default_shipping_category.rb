@@ -3,7 +3,7 @@
 # Encapsulates the concept of default stock location in creation of a product or a shipping method.
 
 class DefaultShippingCategory
-  NAME = 'Default'
+  NAME = "Default"
 
   def self.create!
     Spree::ShippingCategory.create!(name: NAME)

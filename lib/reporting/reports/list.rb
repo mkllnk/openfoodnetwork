@@ -24,7 +24,7 @@ module Reporting
           xero_invoices: xero_report_types,
           packing: packing_report_types,
           revenues_by_hub: [],
-          suppliers: suppliers_report_types,
+          suppliers: suppliers_report_types
         }
       end
     end

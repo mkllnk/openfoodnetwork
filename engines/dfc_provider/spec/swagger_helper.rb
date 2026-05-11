@@ -6,11 +6,11 @@ require_relative "spec_helper"
 RSpec.configure do |config|
   # Override swagger docs to generate only this file:
   config.openapi_specs = {
-    'dfc.yaml' => {
-      openapi: '3.0.1',
+    "dfc.yaml" => {
+      openapi: "3.0.1",
       info: {
-        title: 'OFN DFC API',
-        version: 'v0.1.7'
+        title: "OFN DFC API",
+        version: "v0.1.7"
       },
       description: <<~HTML,
         <p>
@@ -35,28 +35,28 @@ RSpec.configure do |config|
           ofn_api_token: {
             type: :apiKey,
             in: :header,
-            name: 'X-Api-Token',
+            name: "X-Api-Token",
             description: "API token of an authorized OFN user"
           },
           ofn_session: {
             type: :apiKey,
             in: :cookie,
-            name: '_ofn_session_id',
+            name: "_ofn_session_id",
             description: <<~HTML
               Session cookie of a logged in user. It allows only read access due to CSRF protection.
             HTML
-          },
+          }
         }
       },
       security: [
-        { oidc_token: [] },
-        { ofn_api_token: [] },
-        { ofn_session: [] },
+        {oidc_token: []},
+        {ofn_api_token: []},
+        {ofn_session: []}
       ],
       paths: {},
       servers: [
-        { url: "/" },
+        {url: "/"}
       ]
-    },
+    }
   }
 end

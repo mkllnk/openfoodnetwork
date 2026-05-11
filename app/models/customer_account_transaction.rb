@@ -29,10 +29,10 @@ class CustomerAccountTransaction < ApplicationRecord
       last_transaction = self.class.where(customer: customer).last
 
       self.balance = if last_transaction.present?
-                       last_transaction.balance + amount
-                     else
-                       amount
-                     end
+        last_transaction.balance + amount
+      else
+        amount
+      end
     end
   end
 end

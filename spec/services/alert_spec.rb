@@ -20,64 +20,85 @@ RSpec.describe Alert do
   end
 
   it "notifies Bugsnag" do
-    expect(Bugsnag).to receive(:notify).with("hey")
+    expect(Bugsnag).to(receive(:notify).with("hey"))
 
-    Alert.raise("hey")
+    Alert.raise "hey"
   end
 
   it "adds context" do
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      :order, { number: "ABC123" }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        :order,
+        {number: "ABC123"}
+      )
     )
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      :env, { referer: "example.com" }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        :env,
+        {referer: "example.com"}
+      )
     )
 
     Alert.raise(
       "hey",
-      { order: { number: "ABC123" }, env: { referer: "example.com" } }
+      {order: {number: "ABC123"}, env: {referer: "example.com"}}
     )
   end
 
   it "adds context given as keyword argument" do
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      :thing, { data: "ABC123" }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        :thing,
+        {data: "ABC123"}
+      )
     )
 
-    Alert.raise("hey", thing: "ABC123")
+    Alert.raise "hey", thing: "ABC123"
   end
 
   it "adds simple values as context" do
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      :metadata, { data: "ABC123" }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        :metadata,
+        {data: "ABC123"}
+      )
     )
 
-    Alert.raise("hey", "ABC123")
+    Alert.raise "hey", "ABC123"
   end
 
   it "is compatible with Bugsnag API" do
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      :order, { number: "ABC123" }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        :order,
+        {number: "ABC123"}
+      )
     )
 
-    Alert.raise("hey") do |payload|
-      payload.add_metadata(:order, { number: "ABC123" })
+    Alert.raise "hey" do |payload|
+      payload.add_metadata(:order, {number: "ABC123"})
     end
   end
 
   it "sends ActiveRecord objects" do
     order = Spree::Order.new(number: "ABC123")
 
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      "Spree::Order", hash_including("number" => "ABC123")
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        "Spree::Order",
+        hash_including("number" => "ABC123")
+      )
     )
 
     Alert.raise_with_record("Wrong order", order)
   end
 
   it "notifies Bugsnag when ActiveRecord object is missing" do
-    expect_any_instance_of(Bugsnag::Report).to receive(:add_metadata).with(
-      "NilClass", { record_was_nil: true }
+    expect_any_instance_of(Bugsnag::Report).to(
+      receive(:add_metadata).with(
+        "NilClass",
+        {record_was_nil: true}
+      )
     )
     Alert.raise_with_record("Wrong order", nil)
   end
@@ -88,7 +109,7 @@ RSpec.describe Alert do
     # data.
     Alert.raise(
       "Testing Bugsnag from RSpec",
-      { RSpec: { file: __FILE__ }, env: { BUGSNAG: ENV.fetch("BUGSNAG", nil) } }
+      {RSpec: {file: __FILE__}, env: {BUGSNAG: ENV.fetch("BUGSNAG", nil)}}
     )
   end
 end

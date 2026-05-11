@@ -14,7 +14,7 @@ module SampleData
         :create_variant_overrides
       ]
       enterprises.each do |enterprise|
-        log "#{enterprise.name} permits everybody to do everything."
+        log("#{enterprise.name} permits everybody to do everything.")
         enterprise_permits_to(enterprise, enterprises, all_permissions)
       end
     end
@@ -23,14 +23,16 @@ module SampleData
 
     def enterprise_permits_to(enterprise, receivers, permissions)
       receivers.each do |receiver|
-        EnterpriseRelationship.where(
-          parent_id: enterprise,
-          child_id: receiver
-        ).first_or_create!(
-          parent: enterprise,
-          child: receiver,
-          permissions_list: permissions
-        )
+        EnterpriseRelationship
+          .where(
+            parent_id: enterprise,
+            child_id: receiver
+          )
+          .first_or_create!(
+            parent: enterprise,
+            child: receiver,
+            permissions_list: permissions
+          )
       end
     end
   end

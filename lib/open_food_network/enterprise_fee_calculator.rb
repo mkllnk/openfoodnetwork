@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/enterprise_fee_applicator'
+require "open_food_network/enterprise_fee_applicator"
 
 module OpenFoodNetwork
   class EnterpriseFeeCalculator
@@ -13,31 +13,34 @@ module OpenFoodNetwork
       load_enterprise_fees unless @indexed_enterprise_fees
 
       indexed_enterprise_fees_for(variant).sum do |enterprise_fee|
-        calculate_fee_for variant, enterprise_fee
+        calculate_fee_for(variant, enterprise_fee)
       end
     end
 
     def indexed_fees_by_type_for(variant)
       load_enterprise_fees unless @indexed_enterprise_fees
 
-      indexed_enterprise_fees_for(variant).each_with_object({}) do |enterprise_fee, fees|
-        fees[enterprise_fee.fee_type.to_sym] ||= 0
-        fees[enterprise_fee.fee_type.to_sym] += calculate_fee_for variant, enterprise_fee
-      end.select { |_fee_type, amount| amount > 0 }
+      indexed_enterprise_fees_for(variant)
+        .each_with_object({}) do |enterprise_fee, fees|
+          fees[enterprise_fee.fee_type.to_sym] ||= 0
+          fees[enterprise_fee.fee_type.to_sym] += calculate_fee_for(variant, enterprise_fee)
+        end
+        .select { |_fee_type, amount| amount > 0 }
     end
 
     def fees_for(variant)
       per_item_enterprise_fee_applicators_for(variant).sum do |applicator|
-        calculate_fee_for variant, applicator.enterprise_fee
+        calculate_fee_for(variant, applicator.enterprise_fee)
       end
     end
 
     def fees_by_type_for(variant)
-      per_item_enterprise_fee_applicators_for(variant).each_with_object({}) do |applicator, fees|
-        fees[applicator.enterprise_fee.fee_type.to_sym] ||= 0
-        fees[applicator.enterprise_fee.fee_type.to_sym] +=
-          calculate_fee_for variant, applicator.enterprise_fee
-      end.select { |_fee_type, amount| amount > 0 }
+      per_item_enterprise_fee_applicators_for(variant)
+        .each_with_object({}) do |applicator, fees|
+          fees[applicator.enterprise_fee.fee_type.to_sym] ||= 0
+          fees[applicator.enterprise_fee.fee_type.to_sym] += calculate_fee_for(variant, applicator.enterprise_fee)
+        end
+        .select { |_fee_type, amount| amount > 0 }
     end
 
     def fees_name_by_type_for(variant)
@@ -67,13 +70,17 @@ module OpenFoodNetwork
 
       @order_cycle.exchanges_carrying(variant, @distributor).each do |exchange|
         exchange.enterprise_fees.per_item.each do |enterprise_fee|
-          fees << OpenFoodNetwork::EnterpriseFeeApplicator.new(enterprise_fee, variant,
-                                                               exchange.role)
+          fees <<
+            OpenFoodNetwork::EnterpriseFeeApplicator.new(
+              enterprise_fee,
+              variant,
+              exchange.role
+            )
         end
       end
 
       @order_cycle.coordinator_fees.per_item.each do |enterprise_fee|
-        fees << OpenFoodNetwork::EnterpriseFeeApplicator.new(enterprise_fee, variant, 'coordinator')
+        fees << OpenFoodNetwork::EnterpriseFeeApplicator.new(enterprise_fee, variant, "coordinator")
       end
 
       fees
@@ -91,7 +98,7 @@ module OpenFoodNetwork
       end
 
       @order_cycle.coordinator_fees.per_order.each do |enterprise_fee|
-        fees << OpenFoodNetwork::EnterpriseFeeApplicator.new(enterprise_fee, nil, 'coordinator')
+        fees << OpenFoodNetwork::EnterpriseFeeApplicator.new(enterprise_fee, nil, "coordinator")
       end
 
       fees
@@ -103,17 +110,17 @@ module OpenFoodNetwork
       @indexed_enterprise_fees = {}
 
       exchange_fees = per_item_enterprise_fees_with_exchange_details
-      load_exchange_fees exchange_fees
+      load_exchange_fees(exchange_fees)
       load_coordinator_fees
     end
 
     def per_item_enterprise_fees_with_exchange_details
-      EnterpriseFee.
-        per_item.
-        joins(exchanges: :exchange_variants).
-        where(exchanges: { order_cycle_id: @order_cycle.id }).
-        merge(Exchange.supplying_to(@distributor)).
-        select('enterprise_fees.*, exchange_variants.variant_id AS variant_id')
+      EnterpriseFee
+        .per_item
+        .joins(exchanges: :exchange_variants)
+        .where(exchanges: {order_cycle_id: @order_cycle.id})
+        .merge(Exchange.supplying_to(@distributor))
+        .select("enterprise_fees.*, exchange_variants.variant_id AS variant_id")
     end
 
     def load_exchange_fees(exchange_fees)
@@ -139,8 +146,12 @@ module OpenFoodNetwork
     def calculate_fee_for(variant, enterprise_fee)
       # Spree's Calculator interface accepts Orders or LineItems,
       # so we meet that interface with a struct.
-      line_item = OpenStruct.new variant:, quantity: 1, price: variant.price,
-                                 amount: variant.price
+      line_item = OpenStruct.new(
+        variant:,
+        quantity: 1,
+        price: variant.price,
+        amount: variant.price
+      )
       enterprise_fee.compute_amount(line_item)
     end
   end

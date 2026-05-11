@@ -36,7 +36,7 @@ module Web
       # keeps global state unchanged
       around do |example|
         original_available_locales = I18n.available_locales
-        I18n.available_locales = ['en', 'en_GB', '']
+        I18n.available_locales = ["en", "en_GB", ""]
         example.run
         I18n.available_locales = original_available_locales
       end

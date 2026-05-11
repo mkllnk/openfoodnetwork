@@ -9,7 +9,8 @@ require "private_address_check/tcpsocket_ext"
 class WebhookDeliveryJob < ApplicationJob
   # General failed request error that we're going to use to signal
   # the job runner to retry our webhook worker.
-  class FailedWebhookRequestError < StandardError; end
+  class FailedWebhookRequestError < StandardError
+  end
 
   queue_as :default
 
@@ -18,7 +19,7 @@ class WebhookDeliveryJob < ApplicationJob
       id: job_id,
       event:,
       at: at.to_s,
-      data: payload,
+      data: payload
     }
 
     # Request user-submitted url, preventing any private connections being made
@@ -35,10 +36,10 @@ class WebhookDeliveryJob < ApplicationJob
 
   def notify_endpoint(url, body)
     connection = Faraday.new(
-      request: { timeout: 30 },
+      request: {timeout: 30},
       headers: {
-        'User-Agent' => 'openfoodnetwork_webhook/1.0',
-        'Content-Type' => 'application/json',
+        "User-Agent" => "openfoodnetwork_webhook/1.0",
+        "Content-Type" => "application/json"
       }
     )
     response = connection.post(url, body.to_json)

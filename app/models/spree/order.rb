@@ -8,28 +8,61 @@ module Spree
     include Balance
     include SetUnusedAddressFields
 
-    PAYMENT_STATES = %w{balance_due completed checkout credit_owed failed paid pending
-                        requires_authorization processing void invalid}.freeze
+    PAYMENT_STATES = %w[
+      balance_due
+      completed
+      checkout
+      credit_owed
+      failed
+      paid
+      pending
+      requires_authorization
+      processing
+      void
+      invalid
+    ]
+      .freeze
 
-    searchable_attributes :number, :state, :shipment_state, :payment_state, :distributor_id,
-                          :order_cycle_id, :email, :total, :customer_id, :distributor_name_alias
+    searchable_attributes(
+      :number,
+      :state,
+      :shipment_state,
+      :payment_state,
+      :distributor_id,
+      :order_cycle_id,
+      :email,
+      :total,
+      :customer_id,
+      :distributor_name_alias
+    )
     searchable_associations :shipping_method, :bill_address, :distributor
-    searchable_scopes :complete, :incomplete, :sort_by_billing_address_name_asc,
-                      :sort_by_billing_address_name_desc
+    searchable_scopes(
+      :complete,
+      :incomplete,
+      :sort_by_billing_address_name_asc,
+      :sort_by_billing_address_name_desc
+    )
 
     checkout_flow do
       go_to_state :address
       go_to_state :delivery
-      go_to_state :payment, if: ->(order) {
-        order.update_totals
-        order.payment_required? || order.zero_priced_order?
-      }
+      go_to_state(
+        :payment,
+        if: -> (order) {
+          order.update_totals
+          order.payment_required? || order.zero_priced_order?
+        }
+      )
       go_to_state :confirmation
       go_to_state :complete
     end
 
-    attr_accessor :use_billing, :checkout_processing, :save_bill_address,
-                  :save_ship_address
+    attr_accessor(
+      :use_billing,
+      :checkout_processing,
+      :save_bill_address,
+      :save_ship_address
+    )
     attr_writer :send_shipment_email
 
     token_resource
@@ -37,24 +70,33 @@ module Spree
     belongs_to :user, class_name: "Spree::User", optional: true
     belongs_to :created_by, class_name: "Spree::User", optional: true
 
-    belongs_to :bill_address, class_name: 'Spree::Address', optional: true
+    belongs_to :bill_address, class_name: "Spree::Address", optional: true
     alias_method :billing_address, :bill_address
     alias_method :billing_address=, :bill_address=
 
-    belongs_to :ship_address, class_name: 'Spree::Address', optional: true
+    belongs_to :ship_address, class_name: "Spree::Address", optional: true
     alias_method :shipping_address, :ship_address
     alias_method :shipping_address=, :ship_address=
 
     has_many :state_changes, as: :stateful, dependent: :destroy
-    has_many :line_items, -> {
-                            order('created_at ASC')
-                          }, class_name: "Spree::LineItem", inverse_of: :order, dependent: :destroy
+    has_many(
+      :line_items,
+      -> {
+        order("created_at ASC")
+      },
+      class_name: "Spree::LineItem",
+      inverse_of: :order,
+      dependent: :destroy
+    )
     has_many :payments, dependent: :destroy
     has_many :return_authorizations, dependent: :destroy, inverse_of: :order
-    has_many :adjustments, -> { order "#{Spree::Adjustment.table_name}.created_at ASC" },
-             inverse_of: :adjustable,
-             as: :adjustable,
-             dependent: :destroy
+    has_many(
+      :adjustments,
+      -> { order "#{Spree::Adjustment.table_name}.created_at ASC" },
+      inverse_of: :adjustable,
+      as: :adjustable,
+      dependent: :destroy
+    )
 
     has_many :shipments, dependent: :destroy do
       def states
@@ -64,23 +106,30 @@ module Spree
 
     has_many :line_item_adjustments, through: :line_items, source: :adjustments
     has_many :shipment_adjustments, through: :shipments, source: :adjustments
-    has_many :all_adjustments, class_name: 'Spree::Adjustment', dependent: :destroy
-    has_many :voucher_adjustments,
-             -> {
-               where(originator_type: 'Voucher')
-                 .order("#{Spree::Adjustment.table_name}.created_at ASC")
-             },
-             class_name: 'Spree::Adjustment',
-             inverse_of: :order,
-             dependent: :destroy
+    has_many :all_adjustments, class_name: "Spree::Adjustment", dependent: :destroy
+    has_many(
+      :voucher_adjustments,
+      -> {
+        where(originator_type: "Voucher")
+          .order("#{Spree::Adjustment.table_name}.created_at ASC")
+      },
+      class_name: "Spree::Adjustment",
+      inverse_of: :order,
+      dependent: :destroy
+    )
     has_many :invoices, dependent: :restrict_with_exception
     belongs_to :order_cycle, optional: true
-    has_one :exchange, ->(order) {
-      outgoing.to_enterprise(order.distributor)
-    }, through: :order_cycle, source: :exchanges
+    has_one(
+      :exchange,
+      -> (order) {
+        outgoing.to_enterprise(order.distributor)
+      },
+      through: :order_cycle,
+      source: :exchanges
+    )
     has_many :semantic_links, through: :exchange
 
-    belongs_to :distributor, class_name: 'Enterprise', optional: true
+    belongs_to :distributor, class_name: "Enterprise", optional: true
     belongs_to :customer, optional: true
     has_one :proxy_order, dependent: :destroy
     has_one :subscription, through: :proxy_order
@@ -93,17 +142,28 @@ module Spree
 
     delegate :admin_and_handling_total, :payment_fee, :ship_total, to: :adjustments_fetcher
     delegate :update_totals, :update_totals_and_states, to: :updater
-    delegate :create_order_fees!, :update_order_fees!,
-             :update_line_item_fees!, :recreate_all_fees!, to: :fee_handler
+    delegate(
+      :create_order_fees!,
+      :update_order_fees!,
+      :update_line_item_fees!,
+      :recreate_all_fees!,
+      to: :fee_handler
+    )
 
     validates :customer, presence: true, if: :require_customer?
-    validate :products_available_from_new_distribution, if: lambda {
-      distributor_id_changed? || order_cycle_id_changed?
-    }
+    validate(
+      :products_available_from_new_distribution,
+      if: lambda {
+        distributor_id_changed? || order_cycle_id_changed?
+      }
+    )
     validate :disallow_guest_order
-    validates :email, presence: true,
-                      format: /\A([\w.%+\-']+)@([\w-]+\.)+(\w{2,})\z/i,
-                      if: :require_email
+    validates(
+      :email,
+      presence: true,
+      format: /\A([\w.%+\-']+)@([\w-]+\.)+(\w{2,})\z/i,
+      if: :require_email
+    )
 
     validates :order_cycle, presence: true, on: :require_distribution
     validates :distributor, presence: true, on: :require_distribution
@@ -126,58 +186,83 @@ module Spree
     attribute :send_cancellation_email, type: :boolean, default: true
     attribute :restock_items, type: :boolean, default: true
 
-    scope :not_empty, -> {
-      left_outer_joins(:line_items).where.not(spree_line_items: { id: nil })
-    }
+    scope(
+      :not_empty,
+      -> {
+        left_outer_joins(:line_items).where.not(spree_line_items: {id: nil})
+      }
+    )
 
-    scope :managed_by, lambda { |user|
-      if user.admin?
-        where(nil)
-      else
-        # Find orders that are distributed by the user or have products supplied by the user
-        # WARNING: This only filters orders,
-        #   you'll need to filter line items separately using LineItem.managed_by
-        with_line_items_variants_and_products_outer.
-          where('spree_orders.distributor_id IN (?) OR spree_products.supplier_id IN (?)',
-                user.enterprises.select(&:id),
-                user.enterprises.select(&:id)).
-          select('DISTINCT spree_orders.*')
-      end
-    }
+    scope(
+      :managed_by,
+      lambda { |user|
+        if user.admin?
+          where(nil)
+        else
+          # Find orders that are distributed by the user or have products supplied by the user
+          # WARNING: This only filters orders,
+          #   you'll need to filter line items separately using LineItem.managed_by
+          with_line_items_variants_and_products_outer
+            .where(
+              "spree_orders.distributor_id IN (?) OR spree_products.supplier_id IN (?)",
+              user.enterprises.select(&:id),
+              user.enterprises.select(&:id)
+            )
+            .select("DISTINCT spree_orders.*")
+        end
+      }
+    )
 
-    scope :editable_by_producers, ->(enterprises) {
-      joins(
-        :distributor, line_items: :supplier
-      ).where(
-        supplier: { id: enterprises },
-        distributor: { enable_producers_to_edit_orders: true }
-      )
-    }
+    scope(
+      :editable_by_producers,
+      -> (enterprises) {
+        joins(
+          :distributor,
+          line_items: :supplier
+        )
+          .where(
+            supplier: {id: enterprises},
+            distributor: {enable_producers_to_edit_orders: true}
+          )
+      }
+    )
 
-    scope :distributed_by_user, lambda { |user|
-      if user.admin?
-        where(nil)
-      else
-        where(spree_orders: { distributor_id: user.enterprises.select(&:id) })
-      end
-    }
+    scope(
+      :distributed_by_user,
+      lambda { |user|
+        if user.admin?
+          where(nil)
+        else
+          where(spree_orders: {distributor_id: user.enterprises.select(&:id)})
+        end
+      }
+    )
 
-    scope :sort_by_billing_address_name_asc, -> {
-      references(:bill_address)
-        .order("spree_addresses.lastname ASC, spree_addresses.firstname ASC")
-    }
+    scope(
+      :sort_by_billing_address_name_asc,
+      -> {
+        references(:bill_address)
+          .order("spree_addresses.lastname ASC, spree_addresses.firstname ASC")
+      }
+    )
 
-    scope :sort_by_billing_address_name_desc, -> {
-      references(:bill_address)
-        .order("spree_addresses.lastname DESC, spree_addresses.firstname DESC")
-    }
+    scope(
+      :sort_by_billing_address_name_desc,
+      -> {
+        references(:bill_address)
+          .order("spree_addresses.lastname DESC, spree_addresses.firstname DESC")
+      }
+    )
 
-    scope :with_line_items_variants_and_products_outer, lambda {
-      left_outer_joins(line_items: { variant: :product })
-    }
+    scope(
+      :with_line_items_variants_and_products_outer,
+      lambda {
+        left_outer_joins(line_items: {variant: :product})
+      }
+    )
 
     # All the states an order can be in after completing the checkout
-    FINALIZED_STATES = %w(complete canceled resumed awaiting_return returned).freeze
+    FINALIZED_STATES = %w[complete canceled resumed awaiting_return returned].freeze
 
     scope :finalized, -> { where(state: FINALIZED_STATES) }
     scope :complete, -> { where.not(completed_at: nil) }
@@ -248,9 +333,9 @@ module Spree
 
     def changes_allowed?
       !!(complete? &&
-         !shipped? &&
-         distributor&.allow_order_changes? &&
-         order_cycle&.open?)
+        !shipped? &&
+        distributor&.allow_order_changes? &&
+        order_cycle&.open?)
     end
 
     # Is this a free order in which case the payment step should be skipped
@@ -299,15 +384,16 @@ module Spree
       if bill_address && ship_address.nil?
         self.ship_address = bill_address.clone
       else
-        ship_address.attributes = bill_address.attributes.except('id', 'updated_at', 'created_at')
+        ship_address.attributes = bill_address.attributes.except("id", "updated_at", "created_at")
       end
+
       true
     end
 
     def allow_cancel?
-      return false unless completed? && (state != 'canceled')
+      return false unless completed? && (state != "canceled")
 
-      shipment_state.nil? || %w{ready backorder pending}.include?(shipment_state)
+      shipment_state.nil? || %w[ready backorder pending].include?(shipment_state)
     end
 
     def allow_resume?
@@ -337,9 +423,11 @@ module Spree
 
       # Persist the changes we just made,
       #   but don't use save since we might have an invalid address associated
-      self.class.unscoped.where(id:).update_all(email: user.email,
-                                                user_id: user.id,
-                                                created_by_id:)
+      self.class.unscoped.where(id:).update_all(
+        email: user.email,
+        user_id: user.id,
+        created_by_id:
+      )
     end
 
     def generate_order_number
@@ -347,9 +435,10 @@ module Spree
 
       record = true
       while record
-        random = "R#{Array.new(9){ rand(9) }.join}"
+        random = "R#{Array.new(9) { rand(9) }.join}"
         record = self.class.find_by(number: random)
       end
+
       self.number = random if number.blank?
       number
     end
@@ -397,9 +486,9 @@ module Spree
     # Finalizes an in progress order after checkout is complete.
     # Called after transition to complete state when payments will have been processed
     def finalize!
-      touch :completed_at
+      touch(:completed_at)
 
-      all_adjustments.update_all state: 'closed'
+      all_adjustments.update_all(state: "closed")
 
       # update payment and shipment(s) states, and save
       updater.update_payment_state
@@ -415,16 +504,16 @@ module Spree
       deliver_order_confirmation_email
 
       state_changes.create(
-        previous_state: 'cart',
-        next_state: 'complete',
-        name: 'order',
+        previous_state: "cart",
+        next_state: "complete",
+        name: "order",
         user_id:
       )
     end
 
     # Helper methods for checkout steps
     def paid?
-      ['paid', 'credit_owed'].include?(payment_state)
+      ["paid", "credit_owed"].include?(payment_state)
     end
 
     # "Checkout" is the initial state and, for card payments, "pending" is the state after auth
@@ -433,7 +522,8 @@ module Spree
       (payments.select(&:pending?) +
         payments.select(&:requires_authorization?) +
         payments.select(&:processing?) +
-        payments.select(&:checkout?)).uniq
+        payments.select(&:checkout?))
+        .uniq
     end
 
     # processes any pending payments and must return a boolean as it's
@@ -479,7 +569,7 @@ module Spree
     end
 
     def shipped?
-      %w(partial shipped).include?(shipment_state)
+      %w[partial shipped].include?(shipment_state)
     end
 
     # Does this order have shipments that can be shipped?
@@ -536,13 +626,14 @@ module Spree
       shipments.each do |shipment|
         next if shipment.shipped?
 
-        update_adjustment! shipment.fee_adjustment if shipment.fee_adjustment
+        update_adjustment!(shipment.fee_adjustment) if shipment.fee_adjustment
         save_or_rescue_shipment(shipment)
       end
     end
 
     def save_or_rescue_shipment(shipment)
-      shipment.save # updates included tax
+      # updates included tax
+      shipment.save
     rescue ActiveRecord::RecordNotUnique => e
       # This error was seen in production on `shipment.save` above.
       # It caused lost payments and duplicate payments due to database rollbacks.
@@ -550,7 +641,7 @@ module Spree
       # because an outdated shipping fee is not as bad as a lost payment.
       # And the shipping fee is already up-to-date when this error occurs.
       # https://github.com/openfoodfoundation/openfoodnetwork/issues/3924
-      Alert.raise(e) do |report|
+      Alert.raise e do |report|
         report.add_metadata(:order, attributes)
         report.add_metadata(:shipment, shipment.attributes)
         report.add_metadata(:shipment_in_db, Spree::Shipment.find_by(id: shipment.id).attributes)
@@ -562,13 +653,13 @@ module Spree
       payments.each do |payment|
         next if payment.completed?
 
-        update_adjustment! payment.adjustment if payment.adjustment
+        update_adjustment!(payment.adjustment) if payment.adjustment
         payment.save
       end
     end
 
     def assign_order_cycle!(order_cycle)
-      return if self.order_cycle == order_cycle
+      return if self.order_cycle() == order_cycle
 
       self.order_cycle = order_cycle
       self.distributor = nil unless order_cycle.nil? || order_cycle.has_distributor?(distributor)
@@ -582,7 +673,7 @@ module Spree
 
     def assign_distributor!(distributor)
       self.distributor = distributor
-      self.order_cycle = nil unless order_cycle&.has_distributor? distributor
+      self.order_cycle = nil unless order_cycle&.has_distributor?(distributor)
       save!
     end
 
@@ -615,6 +706,7 @@ module Spree
         address.lastname = bill_address.lastname
         address.phone = bill_address.phone
       end
+
       address
     end
 
@@ -695,7 +787,7 @@ module Spree
     end
 
     def use_billing?
-      @use_billing == true || @use_billing == 'true' || @use_billing == '1'
+      @use_billing == true || @use_billing == "true" || @use_billing == "1"
     end
 
     def set_currency

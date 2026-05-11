@@ -25,11 +25,11 @@ module Orders
     end
 
     def payment_fee
-      sum_adjustments "payment_fee"
+      sum_adjustments("payment_fee")
     end
 
     def ship_total
-      sum_adjustments "shipping"
+      sum_adjustments("shipping")
     end
 
     private
@@ -57,7 +57,7 @@ module Orders
           match_by_scope(adjustment, adjustment_scope) && match_by_scope(adjustment, eligible_scope)
         end
       else
-        adjustments.where(nil).eligible.public_send scope
+        adjustments.where(nil).eligible.public_send(scope)
       end
     end
 
@@ -65,12 +65,11 @@ module Orders
       if adjustments_eager_loaded?
         adjustments.select do |adjustment|
           match_by_scope(adjustment, eligible_scope) &&
-            adjustment.originator_type == 'EnterpriseFee' &&
-            adjustment.adjustable_type != 'Spree::LineItem'
+            adjustment.originator_type == "EnterpriseFee" &&
+            adjustment.adjustable_type != "Spree::LineItem"
         end
       else
-        adjustments.eligible.
-          where("originator_type = ? AND adjustable_type != ?", 'EnterpriseFee', 'Spree::LineItem')
+        adjustments.eligible.where("originator_type = ? AND adjustable_type != ?", "EnterpriseFee", "Spree::LineItem")
       end
     end
 

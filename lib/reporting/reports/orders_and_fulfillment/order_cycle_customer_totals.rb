@@ -57,7 +57,7 @@ module Reporting
               payment&.payment_method&.name
             },
             customer_code: proc { |line_items| distributor_customer(line_items)&.code },
-            tags: proc { |line_items| distributor_customer(line_items)&.tags&.join(', ') },
+            tags: proc { |line_items| distributor_customer(line_items)&.tags&.join(", ") },
 
             billing_street: proc { |line_items| bill_address(line_items)&.address1 },
             billing_street_2: proc { |line_items| bill_address(line_items)&.address2 },
@@ -70,7 +70,7 @@ module Reporting
             final_weight_volume: proc { |line_items|
               line_items.map(&:final_weight_volume).sum(&:to_f).round(3)
             },
-            shipment_state: proc { |line_items| line_items.first.order.shipment_state },
+            shipment_state: proc { |line_items| line_items.first.order.shipment_state }
           }
         end
         # rubocop:enable Metrics/AbcSize
@@ -83,7 +83,7 @@ module Reporting
             {
               group_by: :hub,
               header: proc { |key, _items, _rows| "#{I18n.t(:report_header_hub)} #{key}" },
-              header_class: "h1",
+              header_class: "h1"
             },
             {
               group_by: proc { |line_items, _row| line_items.first.order },
@@ -91,20 +91,35 @@ module Reporting
               header: proc { |_order, _items, rows| row_header(rows.first) },
               fields_used_in_header: [:customer, :email, :phone, :order_cycle, :order_number],
               summary_row: proc { |order, _grouped_line_items, rows| summary_row(order, rows) }
-            },
+            }
           ]
         end
 
         def line_item_includes
-          [{ variant: [:product, :supplier],
-             order: [:bill_address, :ship_address, :order_cycle, :adjustments, :payments,
-                     :user, :distributor, :shipments] }]
+          [
+            {
+              variant: [:product, :supplier],
+              order: [
+                :bill_address,
+                :ship_address,
+                :order_cycle,
+                :adjustments,
+                :payments,
+                :user,
+                :distributor,
+                :shipments
+              ]
+            }
+          ]
         end
 
         def query_result
-          report_line_items.list(line_item_includes).group_by { |e|
-            [e.variant_id, e.price, e.order_id]
-          }.values
+          report_line_items
+            .list(line_item_includes)
+            .group_by { |e|
+              [e.variant_id, e.price, e.order_id]
+            }
+            .values
         end
 
         def default_params
@@ -142,7 +157,7 @@ module Reporting
             order_cycle: order.order_cycle&.name,
             payment_method: order.payments.first&.payment_method&.name,
             order_number: order.number,
-            date: order.completed_at.strftime("%F %T"),
+            date: order.completed_at.strftime("%F %T")
           }
         end
 
@@ -172,14 +187,14 @@ module Reporting
         end
 
         def voucher_label(order)
-          return '' unless voucher_applicable?(order)
+          return "" unless voucher_applicable?(order)
 
           voucher = order.voucher_adjustments.take.originator
           voucher.code.to_s
         end
 
         def voucher_amount(order)
-          return '' unless voucher_applicable?(order)
+          return "" unless voucher_applicable?(order)
 
           order.pre_discount_total - order.total
         end

@@ -4,19 +4,22 @@ module Api
   module V1
     class CustomerAccountTransactionController < Api::V1::BaseController
       def create
-        authorize! :create, CustomerAccountTransaction
+        authorize!(:create, CustomerAccountTransaction)
 
         default_params = {
-          currency: CurrentConfig.get(:currency), created_by: current_api_user
+          currency: CurrentConfig.get(:currency),
+          created_by: current_api_user
         }
-        parameters = default_params.merge(customer_account_transaction_params).merge(description: )
+        parameters = default_params.merge(customer_account_transaction_params).merge(description:)
         transaction = CustomerAccountTransaction.new(parameters)
 
         if transaction.save
-          render json: Api::V1::CustomerAccountTransactionSerializer.new(transaction),
-                 status: :created
+          render(
+            json: Api::V1::CustomerAccountTransactionSerializer.new(transaction),
+            status: :created
+          )
         else
-          invalid_resource! transaction
+          invalid_resource!(transaction)
         end
       end
 

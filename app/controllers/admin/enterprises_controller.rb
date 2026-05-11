@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'open_food_network/referer_parser'
-require 'open_food_network/permissions'
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/referer_parser"
+require "open_food_network/permissions"
+require "open_food_network/order_cycle_permissions"
 
 module Admin
   class EnterprisesController < Admin::ResourceController
@@ -28,7 +28,7 @@ module Admin
     before_action :load_properties, only: [:edit, :update]
     before_action :setup_property, only: [:edit]
 
-    after_action  :geocode_address_if_use_geocoder, only: [:create, :update]
+    after_action :geocode_address_if_use_geocoder, only: [:create, :update]
 
     include OrderCyclesHelper
 
@@ -38,15 +38,20 @@ module Admin
       respond_to do |format|
         format.html
         format.json {
-          render_as_json @collection, ams_prefix: params[:ams_prefix],
-                                      spree_current_user:
+          render_as_json(
+            @collection,
+            ams_prefix: params[:ams_prefix],
+            spree_current_user:
+          )
         }
       end
     end
 
     def edit
-      @object = Enterprise.where(permalink: params[:id]).
-        includes(users: [:ship_address, :bill_address]).first
+      @object = Enterprise
+        .where(permalink: params[:id])
+        .includes(users: [:ship_address, :bill_address])
+        .first
       @object.build_custom_tab if @object.custom_tab.nil?
 
       load_tag_rule_types
@@ -56,29 +61,32 @@ module Admin
 
       @enterprise.is_primary_producer = params[:is_primary_producer]
       @enterprise.sells = params[:enterprise_sells]
-      render cable_ready: cable_car.morph("#side_menu", partial("admin/shared/side_menu"))
-        .morph("#permalink", partial("admin/enterprises/form/permalink"))
+      render(
+        cable_ready: cable_car
+          .morph("#side_menu", partial("admin/shared/side_menu"))
+          .morph("#permalink", partial("admin/enterprises/form/permalink"))
+      )
     end
 
     def welcome
-      render layout: "spree/layouts/bare_admin"
+      render(layout: "spree/layouts/bare_admin")
     end
 
     def update
-      tag_rules_attributes = params[object_name].delete :tag_rules_attributes
+      tag_rules_attributes = params[object_name].delete(:tag_rules_attributes)
       update_tag_rules(tag_rules_attributes) if tag_rules_attributes.present?
       update_vouchers
 
-      delete_custom_tab if params[:custom_tab] == 'false'
+      delete_custom_tab if params[:custom_tab] == "false"
 
       if @object.update(enterprise_params)
         flash[:success] = flash_success_message
 
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_save }
-          format.js   { render layout: false }
+          format.html { redirect_to(location_after_save) }
+          format.js { render(layout: false) }
           format.json {
-            render_as_json @object, ams_prefix: 'index', spree_current_user:
+            render_as_json(@object, ams_prefix: "index", spree_current_user:)
           }
           format.turbo_stream
         end
@@ -87,7 +95,7 @@ module Admin
         load_tag_rules
         respond_with(@object) do |format|
           format.json {
-            render json: { errors: @object.errors.messages }, status: :unprocessable_entity
+            render(json: {errors: @object.errors.messages}, status: :unprocessable_entity)
           }
         end
       end
@@ -96,19 +104,19 @@ module Admin
     def register
       register_params = params.permit(:sells)
 
-      if register_params[:sells] == 'unspecified'
+      if register_params[:sells] == "unspecified"
         flash[:error] = I18n.t(:enterprise_register_package_error)
-        return render :welcome, layout: "spree/layouts/bare_admin"
+        return render(:welcome, layout: "spree/layouts/bare_admin")
       end
 
-      attributes = { sells: register_params[:sells], visible: "only_through_links" }
+      attributes = {sells: register_params[:sells], visible: "only_through_links"}
 
       if @enterprise.update(attributes)
         flash[:success] = I18n.t(:enterprise_register_success_notice, enterprise: @enterprise.name)
-        redirect_to spree.admin_dashboard_path
+        redirect_to(spree.admin_dashboard_path)
       else
         flash[:error] = I18n.t(:enterprise_register_error, enterprise: @enterprise.name)
-        render :welcome, layout: "spree/layouts/bare_admin"
+        render(:welcome, layout: "spree/layouts/bare_admin")
       end
     end
 
@@ -118,12 +126,12 @@ module Admin
       if @enterprise_set.save
         flash[:success] = I18n.t(:enterprise_bulk_update_success_notice)
 
-        redirect_to main_app.admin_enterprises_path
+        redirect_to(main_app.admin_enterprises_path)
       else
         touched_enterprises = @enterprise_set.collection.select(&:changed?)
-        @enterprise_set.collection.to_a.select! { |e| touched_enterprises.include? e }
+        @enterprise_set.collection.to_a.select! { |e| touched_enterprises.include?(e) }
         flash[:error] = I18n.t(:enterprise_bulk_update_error)
-        render :index
+        render(:index)
       end
     end
 
@@ -143,8 +151,11 @@ module Admin
     def visible
       respond_to do |format|
         format.json do
-          render_as_json @collection, ams_prefix: params[:ams_prefix] || 'basic',
-                                      spree_current_user:
+          render_as_json(
+            @collection,
+            ams_prefix: params[:ams_prefix] || "basic",
+            spree_current_user:
+          )
         end
       end
     end
@@ -154,7 +165,7 @@ module Admin
 
       @index = params[:index]
       @customer_rule_index = params[:customer_rule_index].to_i
-      @group = { tags: [], rules: [] }
+      @group = {tags: [], rules: []}
 
       respond_to do |format|
         format.turbo_stream
@@ -166,12 +177,12 @@ module Admin
         @object.destroy!
         flash.now[:success] = flash_message_for(@object, :successfully_removed)
       rescue StandardError
-        Rails.logger.error @object.errors.full_messages.to_sentence
+        Rails.logger.error(@object.errors.full_messages.to_sentence)
         flash.now[:error] = @object.errors.full_messages.to_sentence
       end
 
       respond_to do |format|
-        format.turbo_stream { render :destroy, status: :ok }
+        format.turbo_stream { render(:destroy, status: :ok) }
       end
     end
 
@@ -214,6 +225,7 @@ module Admin
         enterprise_params.keys.first
       end
     end
+
     helper_method :attachment_removal_parameter
 
     def load_enterprise_set_on_index
@@ -238,28 +250,39 @@ module Admin
         coordinator = Enterprise.find_by(id: params[:coordinator_id]) if params[:coordinator_id]
         @order_cycle ||= OrderCycle.new(coordinator:) if coordinator.present?
 
-        enterprises = OpenFoodNetwork::OrderCyclePermissions.new(spree_current_user, @order_cycle)
+        enterprises = OpenFoodNetwork::OrderCyclePermissions
+          .new(spree_current_user, @order_cycle)
           .visible_enterprises
 
         enterprises.presence&.includes(supplied_products: [:variants, :image])
       when :index
         if spree_current_user.admin?
-          OpenFoodNetwork::Permissions.new(spree_current_user).
-            editable_enterprises.
-            order('is_primary_producer ASC, name')
+          OpenFoodNetwork::Permissions
+            .new(spree_current_user)
+            .editable_enterprises
+            .order("is_primary_producer ASC, name")
         elsif json_request?
-          OpenFoodNetwork::Permissions.new(spree_current_user)
-            .editable_enterprises.ransack(params[:q]).result
+          OpenFoodNetwork::Permissions
+            .new(spree_current_user)
+            .editable_enterprises
+            .ransack(params[:q])
+            .result
         else
           Enterprise.where("1=0")
         end
+
       when :visible
-        OpenFoodNetwork::Permissions.new(spree_current_user).visible_enterprises
-          .includes(:shipping_methods, :payment_methods).ransack(params[:q]).result
+        OpenFoodNetwork::Permissions
+          .new(spree_current_user)
+          .visible_enterprises
+          .includes(:shipping_methods, :payment_methods)
+          .ransack(params[:q])
+          .result
       else
-        OpenFoodNetwork::Permissions.new(spree_current_user).
-          editable_enterprises.
-          order('is_primary_producer ASC, name')
+        OpenFoodNetwork::Permissions
+          .new(spree_current_user)
+          .editable_enterprises
+          .order("is_primary_producer ASC, name")
       end
     end
 
@@ -276,10 +299,11 @@ module Admin
       enterprise_shipping_methods = @enterprise.shipping_methods.to_a
       # rubocop:disable Style/TernaryParentheses
       @payment_methods = Spree::PaymentMethod.managed_by(spree_current_user).to_a.sort_by! do |pm|
-        [(enterprise_payment_methods.include? pm) ? 0 : 1, pm.name]
+        [(enterprise_payment_methods.include?(pm)) ? 0 : 1, pm.name]
       end
+
       @shipping_methods = Spree::ShippingMethod.managed_by(spree_current_user).to_a.sort_by! do |sm|
-        [(enterprise_shipping_methods.include? sm) ? 0 : 1, sm.name]
+        [(enterprise_shipping_methods.include?(sm)) ? 0 : 1, sm.name]
       end
       # rubocop:enable Style/TernaryParentheses
 
@@ -304,9 +328,9 @@ module Admin
       # methods that are specific to each class do not become available until after the
       # record is persisted. This problem is compounded by the use of calculators.
       @object.transaction do
-        tag_rules_attributes.select{ |_i, attrs| attrs[:type].present? }.each_value do |attrs|
+        tag_rules_attributes.select { |_i, attrs| attrs[:type].present? }.each_value do |attrs|
           rule = @object.tag_rules.find_by(id: attrs.delete(:id)) ||
-                 attrs[:type].constantize.new(enterprise: @object)
+            attrs[:type].constantize.new(enterprise: @object)
 
           rule.update(attrs.permit(PermittedAttributes::TagRules.attributes))
         end
@@ -329,7 +353,7 @@ module Admin
       return unless attrs[:calculator_type].present? && attrs[:calculator_attributes].present?
 
       rule.update(calculator_type: attrs[:calculator_type])
-      attrs[:calculator_attributes].merge!( id: rule.calculator.id )
+      attrs[:calculator_attributes].merge!(id: rule.calculator.id)
     end
 
     def check_can_change_bulk_sells
@@ -337,7 +361,7 @@ module Admin
 
       params[:sets_enterprise_set][:collection_attributes].each_value do |enterprise_params|
         unless spree_current_user == Enterprise.find_by(id: enterprise_params[:id]).owner
-          enterprise_params.delete :sells
+          enterprise_params.delete(:sells)
         end
       end
     end
@@ -345,7 +369,7 @@ module Admin
     def check_can_change_sells
       return if spree_current_user.admin? || spree_current_user == @enterprise.owner
 
-      enterprise_params.delete :sells
+      enterprise_params.delete(:sells)
     end
 
     def override_owner
@@ -357,36 +381,41 @@ module Admin
 
       has_hub = spree_current_user.owned_enterprises.is_hub.any?
       new_enterprise_is_producer = Enterprise.new(enterprise_params).is_primary_producer
-      enterprise_params[:sells] = has_hub && !new_enterprise_is_producer ? 'any' : 'none'
+      enterprise_params[:sells] = has_hub && !new_enterprise_is_producer ? "any" : "none"
     end
 
     def check_can_change_owner
-      return if ( spree_current_user == @enterprise.owner ) || spree_current_user.admin?
+      return if (spree_current_user == @enterprise.owner) || spree_current_user.admin?
 
-      enterprise_params.delete :owner_id
+      enterprise_params.delete(:owner_id)
     end
 
     def check_can_change_bulk_owner
       return if spree_current_user.admin?
 
       bulk_params[:collection_attributes].each_value do |enterprise_params|
-        enterprise_params.delete :owner_id
+        enterprise_params.delete(:owner_id)
       end
     end
 
     def check_can_change_managers
-      return if ( spree_current_user == @enterprise.owner ) || spree_current_user.admin?
+      return if (spree_current_user == @enterprise.owner) || spree_current_user.admin?
 
-      enterprise_params.delete :user_ids
+      enterprise_params.delete(:user_ids)
     end
 
     def strip_new_properties
-      unless spree_current_user.admin? || params.dig(:enterprise,
-                                                     :producer_properties_attributes).nil?
+      unless spree_current_user.admin? ||
+          params
+            .dig(
+              :enterprise,
+              :producer_properties_attributes
+            )
+            .nil?
         names = Spree::Property.pluck(:name)
         enterprise_params[:producer_properties_attributes].each do |key, property|
-          unless names.include? property[:property_name]
-            enterprise_params[:producer_properties_attributes].delete key
+          unless names.include?(property[:property_name])
+            enterprise_params[:producer_properties_attributes].delete(key)
           end
         end
       end
@@ -418,10 +447,8 @@ module Admin
         @default_rules = @enterprise.tag_rules.exclude_variant.select(&:is_default)
         @rules = @enterprise.tag_rules.exclude_variant.prioritised.reject(&:is_default)
       else
-        @default_rules =
-          @enterprise.tag_rules.exclude_inventory.exclude_variant.select(&:is_default)
-        @rules =
-          @enterprise.tag_rules.exclude_inventory.exclude_variant.prioritised.reject(&:is_default)
+        @default_rules = @enterprise.tag_rules.exclude_inventory.exclude_variant.select(&:is_default)
+        @rules = @enterprise.tag_rules.exclude_inventory.exclude_variant.prioritised.reject(&:is_default)
       end
     end
 
@@ -448,14 +475,21 @@ module Admin
     end
 
     def enterprise_params
-      @enterprise_params ||= PermittedAttributes::Enterprise.new(params).call.
-        to_h.with_indifferent_access
+      @enterprise_params ||= PermittedAttributes::Enterprise
+        .new(params)
+        .call
+        .to_h
+        .with_indifferent_access
     end
 
     def bulk_params
-      @bulk_params ||= params.require(:sets_enterprise_set).permit(
-        collection_attributes: PermittedAttributes::Enterprise.attributes
-      ).to_h.with_indifferent_access
+      @bulk_params ||= params
+        .require(:sets_enterprise_set)
+        .permit(
+          collection_attributes: PermittedAttributes::Enterprise.attributes
+        )
+        .to_h
+        .with_indifferent_access
     end
 
     # Used in Admin::ResourceController#create

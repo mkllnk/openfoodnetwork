@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'system_helper'
+require "system_helper"
 
 RSpec.describe "Admin -> Order -> Payments" do
-  include AuthenticationHelper
-  include TableHelper
+  include(AuthenticationHelper)
+  include(TableHelper)
 
   let(:distributor) { build(:distributor_enterprise) }
   let(:order) { create(:completed_order_with_fees, distributor:, payments: [payment]) }
@@ -17,38 +17,38 @@ RSpec.describe "Admin -> Order -> Payments" do
       distributors: [distributor],
       environment: "test",
       preferred_instance_url: "https://taler.example.com",
-      preferred_password: "sandbox",
+      preferred_password: "sandbox"
     )
   }
 
   before do
-    login_as distributor.owner
+    login_as(distributor.owner)
   end
 
   it "allows to void a Taler payment" do
     order_status = {
       order_status: "paid",
       contract_terms: {
-        amount: "KUDOS:2",
+        amount: "KUDOS:2"
       }
     }
     token_endpoint = "https://taler.example.com/private/token"
     order_endpoint = "https://taler.example.com/private/orders/taler-id-1"
     refund_endpoint = "https://taler.example.com/private/orders/taler-id-1/refund"
-    stub_request(:post, token_endpoint).to_return(body: { token: "abc" }.to_json)
+    stub_request(:post, token_endpoint).to_return(body: {token: "abc"}.to_json)
     stub_request(:get, order_endpoint).to_return(body: order_status.to_json)
     stub_request(:post, refund_endpoint).to_return(body: "{}")
 
-    visit spree.admin_order_payments_path(order.number)
+    visit(spree.admin_order_payments_path(order.number))
 
-    within row_containing("Taler") do
-      expect(page).to have_text "COMPLETED"
-      expect(page).to have_link "Void"
+    within(row_containing("Taler")) do
+      expect(page).to(have_text("COMPLETED"))
+      expect(page).to(have_link("Void"))
 
-      click_link class: "icon-void"
+      click_link(class: "icon-void")
 
-      expect(page).to have_text "VOID"
-      expect(page).not_to have_link "Void"
+      expect(page).to(have_text("VOID"))
+      expect(page).not_to(have_link("Void"))
     end
   end
 
@@ -56,31 +56,31 @@ RSpec.describe "Admin -> Order -> Payments" do
     order_status = {
       order_status: "paid",
       contract_terms: {
-        amount: "KUDOS:2",
+        amount: "KUDOS:2"
       }
     }
     token_endpoint = "https://taler.example.com/private/token"
     order_endpoint = "https://taler.example.com/private/orders/taler-id-1"
     refund_endpoint = "https://taler.example.com/private/orders/taler-id-1/refund"
-    stub_request(:post, token_endpoint).to_return(body: { token: "abc" }.to_json)
+    stub_request(:post, token_endpoint).to_return(body: {token: "abc"}.to_json)
     stub_request(:get, order_endpoint).to_return(body: order_status.to_json)
     stub_request(:post, refund_endpoint).to_return(body: "{}")
 
-    visit spree.admin_order_payments_path(order.number)
+    visit(spree.admin_order_payments_path(order.number))
 
-    within row_containing("Taler") do
-      expect(page).to have_text "COMPLETED"
-      expect(page).to have_link "Credit"
+    within(row_containing("Taler")) do
+      expect(page).to(have_text("COMPLETED"))
+      expect(page).to(have_link("Credit"))
 
-      click_link class: "icon-credit"
+      click_link(class: "icon-credit")
 
-      expect(page).to have_text "COMPLETED"
-      expect(page).not_to have_link "Credit"
+      expect(page).to(have_text("COMPLETED"))
+      expect(page).not_to(have_link("Credit"))
     end
 
     # Our payment system creates a new payment to show the credit.
-    within row_containing("$-9.75") do
-      expect(page).not_to have_link "Void"
+    within(row_containing("$-9.75")) do
+      expect(page).not_to(have_link("Void"))
     end
   end
 end

@@ -7,8 +7,8 @@ module SampleData
     include Logging
 
     def create_samples
-      log "Creating taxonomies:"
-      taxons = ['Vegetables', 'Fruit', 'Oils', 'Preserves and Sauces', 'Dairy', 'Fungi']
+      log("Creating taxonomies:")
+      taxons = ["Vegetables", "Fruit", "Oils", "Preserves and Sauces", "Dairy", "Fungi"]
       taxons.each do |taxon_name|
         create_taxon(taxon_name)
       end
@@ -19,7 +19,7 @@ module SampleData
     def create_taxon(taxon_name)
       return if Spree::Taxon.where(name: taxon_name).exists?
 
-      log "- #{taxon_name}"
+      log("- #{taxon_name}")
       Spree::Taxon.create!(
         name: taxon_name
       )

@@ -4,7 +4,7 @@ module Vine
   class VoucherValidatorService
     VINE_ERRORS = {
       # https://github.com/openfoodfoundation/vine/blob/main/app/Enums/ApiResponse.php
-      "This voucher has expired." => :expired,
+      "This voucher has expired." => :expired
     }.freeze
 
     attr_reader :voucher_code, :errors
@@ -25,7 +25,7 @@ module Vine
       handle_errors(e.response)
       nil
     rescue Faraday::Error => e
-      Rails.logger.error e.inspect
+      Rails.logger.error(e.inspect)
       Bugsnag.notify(e)
 
       errors[:vine_api] = I18n.t("vine_voucher_validator_service.errors.vine_api")
@@ -52,8 +52,7 @@ module Vine
         key = VINE_ERRORS.fetch(message, :invalid_voucher)
         errors[:invalid_voucher] = I18n.t("vine_voucher_validator_service.errors.#{key}")
       elsif response[:status] == 404
-        errors[:not_found_voucher] =
-          I18n.t("vine_voucher_validator_service.errors.not_found_voucher")
+        errors[:not_found_voucher] = I18n.t("vine_voucher_validator_service.errors.not_found_voucher")
       else
         errors[:vine_api] = I18n.t("vine_voucher_validator_service.errors.vine_api")
       end

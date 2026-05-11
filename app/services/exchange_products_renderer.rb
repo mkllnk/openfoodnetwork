@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 class ExchangeProductsRenderer
   def initialize(order_cycle, user)
@@ -17,8 +17,7 @@ class ExchangeProductsRenderer
   end
 
   def exchange_variants(incoming, enterprise)
-    variants_relation = Spree::Variant.
-      where(product_id: exchange_products(incoming, enterprise).select(&:id))
+    variants_relation = Spree::Variant.where(product_id: exchange_products(incoming, enterprise).select(&:id))
 
     filter_visible(variants_relation)
   end
@@ -37,7 +36,7 @@ class ExchangeProductsRenderer
 
   def filter_visible(relation)
     if @order_cycle.present? &&
-       @order_cycle.prefers_product_selection_from_coordinator_inventory_only?
+        @order_cycle.prefers_product_selection_from_coordinator_inventory_only?
       relation = relation.visible_for(@order_cycle.coordinator)
     end
 
@@ -45,9 +44,9 @@ class ExchangeProductsRenderer
   end
 
   def products_for_outgoing_exchange
-    supplied_products(enterprises_for_outgoing_exchange.select(:id)).
-      includes(:variants).
-      where('spree_variants.id': incoming_exchanges_variants)
+    supplied_products(enterprises_for_outgoing_exchange.select(:id))
+      .includes(:variants)
+      .where('spree_variants.id': incoming_exchanges_variants)
   end
 
   def incoming_exchanges_variants
@@ -56,20 +55,25 @@ class ExchangeProductsRenderer
     @incoming_exchanges_variants = []
     visible_incoming_exchanges.each do |incoming_exchange|
       @incoming_exchanges_variants.push(
-        *incoming_exchange.variants.merge(
-          visible_incoming_variants(incoming_exchange.sender)
-        ).map(&:id).to_a
+        *incoming_exchange
+          .variants
+          .merge(
+            visible_incoming_variants(incoming_exchange.sender)
+          )
+          .map(&:id)
+          .to_a
       )
     end
+
     @incoming_exchanges_variants
   end
 
   def visible_incoming_exchanges
-    OpenFoodNetwork::OrderCyclePermissions.
-      new(@user, @order_cycle).
-      visible_exchanges.
-      by_enterprise_name.
-      incoming
+    OpenFoodNetwork::OrderCyclePermissions
+      .new(@user, @order_cycle)
+      .visible_exchanges
+      .by_enterprise_name
+      .incoming
   end
 
   def visible_incoming_variants(incoming_exchange_sender)
@@ -83,19 +87,19 @@ class ExchangeProductsRenderer
   end
 
   def permitted_incoming_variants(incoming_exchange_sender)
-    OpenFoodNetwork::OrderCyclePermissions.
-      new(@user, @order_cycle).
-      visible_variants_for_incoming_exchanges_from(incoming_exchange_sender)
+    OpenFoodNetwork::OrderCyclePermissions
+      .new(@user, @order_cycle)
+      .visible_variants_for_incoming_exchanges_from(incoming_exchange_sender)
   end
 
   def enterprises_for_outgoing_exchange
-    enterprises = OpenFoodNetwork::OrderCyclePermissions.
-      new(@user, @order_cycle)
+    enterprises = OpenFoodNetwork::OrderCyclePermissions
+      .new(@user, @order_cycle)
       .visible_enterprises
     return enterprises if enterprises.empty?
 
     enterprises.includes(
-      supplied_products: [{ variants: :supplier }, :image]
+      supplied_products: [{variants: :supplier}, :image]
     )
   end
 end

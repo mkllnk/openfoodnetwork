@@ -10,8 +10,8 @@ RSpec.describe OidcAccount do
       )
     }
 
-    it { is_expected.to belong_to :user }
-    it { is_expected.to validate_uniqueness_of :uid }
+    it { is_expected.to(belong_to(:user)) }
+    it { is_expected.to(validate_uniqueness_of(:uid)) }
   end
 
   describe ".link" do
@@ -24,13 +24,13 @@ RSpec.describe OidcAccount do
 
     it "creates or updates an account record" do
       expect { OidcAccount.link(user, auth) }
-        .to change { OidcAccount.count }.by(1)
+        .to(change { OidcAccount.count }.by(1))
 
       account = OidcAccount.last
-      expect(account.user).to eq user
-      expect(account.provider).to eq "openid_connect"
-      expect(account.token).to match /^ey/
-      expect(account.refresh_token).to match /^ey/
+      expect(account.user).to(eq(user))
+      expect(account.provider).to(eq("openid_connect"))
+      expect(account.token).to(match(/^ey/))
+      expect(account.refresh_token).to(match(/^ey/))
 
       auth.uid = "user@example.org"
 
@@ -38,9 +38,15 @@ RSpec.describe OidcAccount do
         OidcAccount.link(user, auth)
         account.reload
       }
-        .to change { OidcAccount.count }.by(0)
-        .and change { account.uid }
-        .from("ofn@example.com").to("user@example.org")
+        .to(
+          change { OidcAccount.count }
+            .by(0)
+            .and(
+              change { account.uid }
+                .from("ofn@example.com")
+                .to("user@example.org")
+            )
+        )
     end
   end
 end

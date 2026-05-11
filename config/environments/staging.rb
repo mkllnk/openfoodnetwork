@@ -7,7 +7,7 @@ Openfoodnetwork::Application.configure do
   config.cache_classes = true
 
   # Full error reports are disabled and caching is turned on
-  config.consider_all_requests_local       = false
+  config.consider_all_requests_local = false
   config.action_controller.perform_caching = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this)
@@ -33,7 +33,7 @@ Openfoodnetwork::Application.configure do
   config.force_ssl = true
 
   # Use https in email links
-  config.action_mailer.default_url_options = { protocol: 'https' }
+  config.action_mailer.default_url_options = {protocol: "https"}
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
@@ -48,8 +48,8 @@ Openfoodnetwork::Application.configure do
     reconnect_attempts: 1
   }
 
-  config.action_cable.url = "#{ENV['OFN_URL']}/cable"
-  config.action_cable.allowed_request_origins = [/http:\/\/#{ENV['OFN_URL']}\/*/, /https:\/\/#{ENV['OFN_URL']}\/*/]
+  config.action_cable.url = "#{ENV["OFN_URL"]}/cable"
+  config.action_cable.allowed_request_origins = [/http:\/\/#{ENV["OFN_URL"]}\/*/, /https:\/\/#{ENV["OFN_URL"]}\/*/]
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"

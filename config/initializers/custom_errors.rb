@@ -7,10 +7,13 @@ module ActiveModel
       return message if attribute == :base
 
       attr_name = attribute.to_s.tr(".", "_").humanize
-      attr_name = base.class.human_attribute_name(attribute, {
-        default: attr_name,
-        base: base,
-      })
+      attr_name = base.class.human_attribute_name(
+        attribute,
+        {
+          default: attr_name,
+          base: base
+        }
+      )
 
       if message.start_with?("^")
         I18n.t("errors.format.full_message", default: "%{message}", message: message[1..-1], attribute: attr_name)

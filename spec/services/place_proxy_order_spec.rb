@@ -18,27 +18,27 @@ RSpec.describe PlaceProxyOrder do
     let(:stock_changes_loader) { instance_double(CapQuantity) }
 
     before do
-      allow(stock_changes_loader).to receive(:call).and_return(changes)
-      allow(SubscriptionMailer).to receive(:empty_email) { mail_mock }
+      allow(stock_changes_loader).to(receive(:call).and_return(changes))
+      allow(SubscriptionMailer).to(receive(:empty_email) { mail_mock })
     end
 
     it "marks placeable proxy_orders as processed by setting placed_at" do
       freeze_time do
-        expect { subject.call }.to change { proxy_order.reload.placed_at }
-        expect(proxy_order.placed_at).to eq(Time.zone.now)
+        expect { subject.call }.to(change { proxy_order.reload.placed_at })
+        expect(proxy_order.placed_at).to(eq(Time.zone.now))
       end
     end
 
     it "tracks exceptions" do
       order.line_items << build(:line_item)
 
-      expect(summarizer).to receive(:record_and_log_error).with(:processing, order, kind_of(String))
-      expect(Bugsnag).to receive(:notify).with(kind_of(StandardError))
+      expect(summarizer).to(receive(:record_and_log_error).with(:processing, order, kind_of(String)))
+      expect(Bugsnag).to(receive(:notify).with(kind_of(StandardError)))
 
       subject.call
     end
 
-    context "when the order is already complete" do
+    context("when the order is already complete") do
       let(:summarizer) {
         instance_double(OrderManagement::Subscriptions::Summarizer, record_order: true)
       }
@@ -52,20 +52,21 @@ RSpec.describe PlaceProxyOrder do
       end
 
       it "records an issue and ignores it" do
-        expect(summarizer).to receive(:record_issue).with(:complete, order).once
-        expect { subject.call }.not_to change { order.reload.state }
-        expect(order.payments.first.state).to eq "checkout"
-        expect(ActionMailer::Base.deliveries.count).to be 0
+        expect(summarizer).to(receive(:record_issue).with(:complete, order).once)
+        expect { subject.call }.not_to(change { order.reload.state })
+        expect(order.payments.first.state).to(eq("checkout"))
+        expect(ActionMailer::Base.deliveries.count).to(be(0))
       end
     end
 
-    context "when the order is not already complete" do
+    context("when the order is not already complete") do
       describe "selection of shipping method" do
         let(:shop) { create(:distributor_enterprise) }
         let(:shipping_method) { create(:shipping_method, distributors: [shop]) }
         let!(:subscription) do
           create(:subscription, shop:, shipping_method:, with_items: true)
         end
+
         let(:proxy_order) { create(:proxy_order, subscription:) }
 
         before do
@@ -77,25 +78,25 @@ RSpec.describe PlaceProxyOrder do
           subject.call
 
           proxy_order.reload
-          expect(proxy_order.state).to eq "complete"
-          expect(proxy_order.order.shipping_method).to eq(shipping_method)
+          expect(proxy_order.state).to(eq("complete"))
+          expect(proxy_order.order.shipping_method).to(eq(shipping_method))
         end
       end
     end
 
-    context "when the proxy order fails to generate an order" do
+    context("when the proxy order fails to generate an order") do
       before do
-        allow(proxy_order).to receive(:initialise_order!) { nil }
+        allow(proxy_order).to(receive(:initialise_order!) { nil })
       end
 
       it "records an error" do
-        expect(summarizer).to receive(:record_subscription_issue)
+        expect(summarizer).to(receive(:record_subscription_issue))
         subject.call
       end
 
-      it 'does not process the proxy order' do
+      it "does not process the proxy order" do
         subject.call
-        expect(proxy_order.reload.placed_at).to be_nil
+        expect(proxy_order.reload.placed_at).to(be_nil)
       end
     end
   end
@@ -106,47 +107,47 @@ RSpec.describe PlaceProxyOrder do
     }
 
     before do
-      allow(SubscriptionMailer).to receive(:placement_email) { mail_mock }
+      allow(SubscriptionMailer).to(receive(:placement_email) { mail_mock })
 
       order.line_items << build(:line_item)
 
       order_workflow = instance_double(Orders::WorkflowService, complete!: true)
-      allow(Orders::WorkflowService).to receive(:new).with(order).and_return(order_workflow)
+      allow(Orders::WorkflowService).to(receive(:new).with(order).and_return(order_workflow))
     end
 
-    context "when no changes are present" do
+    context("when no changes are present") do
       let(:changes) { {} }
       let(:stock_changes_loader) { instance_double(CapQuantity) }
 
       before do
-        allow(stock_changes_loader).to receive(:call).with(order).and_return(changes)
+        allow(stock_changes_loader).to(receive(:call).with(order).and_return(changes))
       end
 
       it "logs a success and sends the email" do
-        expect(summarizer).to receive(:record_success).with(order).once
+        expect(summarizer).to(receive(:record_success).with(order).once)
 
         subject.call
 
-        expect(SubscriptionMailer).to have_received(:placement_email)
-        expect(mail_mock).to have_received(:deliver_now)
+        expect(SubscriptionMailer).to(have_received(:placement_email))
+        expect(mail_mock).to(have_received(:deliver_now))
       end
     end
 
-    context "when changes are present" do
+    context("when changes are present") do
       let(:changes) { double(:changes) }
       let(:stock_changes_loader) { instance_double(CapQuantity) }
 
       before do
-        allow(stock_changes_loader).to receive(:call).with(order).and_return(changes)
+        allow(stock_changes_loader).to(receive(:call).with(order).and_return(changes))
       end
 
       it "logs an issue and sends the email" do
-        expect(summarizer).to receive(:record_issue).with(:changes, order).once
+        expect(summarizer).to(receive(:record_issue).with(:changes, order).once)
 
         subject.call
 
-        expect(SubscriptionMailer).to have_received(:placement_email).with(order, changes)
-        expect(mail_mock).to have_received(:deliver_now)
+        expect(SubscriptionMailer).to(have_received(:placement_email).with(order, changes))
+        expect(mail_mock).to(have_received(:deliver_now))
       end
     end
   end
@@ -160,17 +161,17 @@ RSpec.describe PlaceProxyOrder do
     let(:stock_changes_loader) { instance_double(CapQuantity) }
 
     before do
-      allow(stock_changes_loader).to receive(:call).with(order).and_return(changes)
-      allow(SubscriptionMailer).to receive(:empty_email) { mail_mock }
+      allow(stock_changes_loader).to(receive(:call).with(order).and_return(changes))
+      allow(SubscriptionMailer).to(receive(:empty_email) { mail_mock })
     end
 
     it "logs an issue and sends the email" do
-      expect(summarizer).to receive(:record_issue).with(:empty, order).once
+      expect(summarizer).to(receive(:record_issue).with(:empty, order).once)
 
       subject.call
 
-      expect(SubscriptionMailer).to have_received(:empty_email).with(order, changes)
-      expect(mail_mock).to have_received(:deliver_now)
+      expect(SubscriptionMailer).to(have_received(:empty_email).with(order, changes))
+      expect(mail_mock).to(have_received(:deliver_now))
     end
   end
 end

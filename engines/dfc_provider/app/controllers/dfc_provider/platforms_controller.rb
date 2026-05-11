@@ -6,11 +6,11 @@ module DfcProvider
     before_action :check_enterprise
 
     def index
-      render json: platforms
+      render(json: platforms)
     end
 
     def show
-      render json: platform(params[:id])
+      render(json: platform(params[:id]))
     end
 
     def update
@@ -19,7 +19,8 @@ module DfcProvider
       requested_scopes = requested_platform
         .dig("dfc-t:hasAssignedScopes", "@list")
         .pluck("@id")
-        .map { |uri| uri[/[a-zA-Z]+\z/] } # return last part like ReadEnterprise
+        # return last part like ReadEnterprise
+        .map { |uri| uri[/[a-zA-Z]+\z/] }
       current_scopes = granted_scopes(key)
       scopes_to_delete = current_scopes - requested_scopes
       scopes_to_create = requested_scopes - current_scopes
@@ -34,7 +35,7 @@ module DfcProvider
       enterprise_url = urls.enterprise_url(current_enterprise.id)
       ProxyNotifier.new.refresh(key, enterprise_url)
 
-      render json: platform(key)
+      render(json: platform(key))
     end
 
     private
@@ -48,7 +49,7 @@ module DfcProvider
         '@id': id,
         'dfc-t:platforms': {
           '@type': "rdf:List",
-          '@list': platforms,
+          '@list': platforms
         }
       }
     end
@@ -66,7 +67,7 @@ module DfcProvider
         localId: key,
         'dfc-t:hasAssignedScopes': {
           '@type': "rdf:List",
-          '@list': scopes(key),
+          '@list': scopes(key)
         }
       }
     end
@@ -75,7 +76,7 @@ module DfcProvider
       granted_scopes(platform_id).map do |scope|
         {
           '@id': "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/scopes.rdf##{scope}",
-          '@type': "dfc-t:Scope",
+          '@type': "dfc-t:Scope"
         }
       end
     end
@@ -88,7 +89,7 @@ module DfcProvider
       DfcPermission.where(
         user: current_user,
         enterprise: current_enterprise,
-        grantee: platform_id,
+        grantee: platform_id
       )
     end
 
@@ -96,8 +97,8 @@ module DfcProvider
     # It assumes that it's an OIDC access token but we are passing the Rails
     # CSRF token to the component to allow POST request with cookie auth.
     def move_authenticity_token
-      token = request.delete_header('HTTP_AUTHORIZATION').to_s.split.last
-      request.headers['X-CSRF-Token'] = token if token
+      token = request.delete_header("HTTP_AUTHORIZATION").to_s.split.last
+      request.headers["X-CSRF-Token"] = token if token
     end
   end
 end

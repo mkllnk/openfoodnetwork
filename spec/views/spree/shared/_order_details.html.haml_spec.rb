@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
 RSpec.describe "spree/shared/_order_details.html.haml" do
-  include AuthenticationHelper
+  include(AuthenticationHelper)
 
-  helper Spree::BaseHelper
-  helper CheckoutHelper
-  helper OrderHelper
+  helper(Spree::BaseHelper)
+  helper(CheckoutHelper)
+  helper(OrderHelper)
 
   let(:order) { create(:completed_order_with_fees) }
 
   before do
     assign(:order, order)
     assign(:paid_with_credit, 0.00)
-    allow(view).to receive_messages(
-      order:,
-      current_order: order
+    allow(view).to(
+      receive_messages(
+        order:,
+        current_order: order
+      )
     )
   end
 
@@ -23,7 +25,7 @@ RSpec.describe "spree/shared/_order_details.html.haml" do
 
     render
 
-    expect(rendered).to have_content("Paying via:\nBartering")
+    expect(rendered).to(have_content("Paying via:\nBartering"))
   end
 
   it "displays payment methods safely" do
@@ -31,7 +33,7 @@ RSpec.describe "spree/shared/_order_details.html.haml" do
 
     render
 
-    expect(rendered).to have_content("Paying via:\nBar<script>evil</script>ter&rarr;ing")
+    expect(rendered).to(have_content("Paying via:\nBar<script>evil</script>ter&rarr;ing"))
   end
 
   it "shows the last used payment method" do
@@ -53,6 +55,6 @@ RSpec.describe "spree/shared/_order_details.html.haml" do
 
     render
 
-    expect(rendered).to have_content("Paying via:\nCredit")
+    expect(rendered).to(have_content("Paying via:\nCredit"))
   end
 end

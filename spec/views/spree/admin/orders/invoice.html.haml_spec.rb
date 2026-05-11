@@ -12,24 +12,29 @@ RSpec.describe "spree/admin/orders/invoice.html.haml" do
       city: "Thornbury",
       zipcode: "3071",
       state_id: 1,
-      state_name: "Victoria",
+      state_name: "Victoria"
     )
   end
+
   let(:adas_address_display) { "2 Mahome St, Thornbury, 3071, Victoria" }
 
   before do
     assign(:order, order)
-    allow(view).to receive_messages checkout_adjustments_for: [],
-                                    display_line_items_taxes: '',
-                                    display_checkout_tax_total: '10',
-                                    display_checkout_total_less_tax: '8',
-                                    outstanding_balance_label: 'Outstanding Balance'
+    allow(view).to(
+      receive_messages(
+        checkout_adjustments_for: [],
+        display_line_items_taxes: "",
+        display_checkout_tax_total: "10",
+        display_checkout_total_less_tax: "8",
+        outstanding_balance_label: "Outstanding Balance"
+      )
+    )
 
     # return a duplicate empaty string for CSS pack request like:
     # 'http://test.host/packs-test/css/mail-1ab2dc7f.css'
     # This is because Wicked PDF will try to force an encoding on the returned string, which will
     # break with a frozen string
-    stub_request(:get, ->(uri) { uri.to_s.include? "/css/mail" }).to_return(body: "".dup)
+    stub_request(:get, -> (uri) { uri.to_s.include?("/css/mail") }).to_return(body: "".dup)
   end
 
   it "displays the customer code" do
@@ -37,56 +42,56 @@ RSpec.describe "spree/admin/orders/invoice.html.haml" do
       user: order.user,
       email: order.user.email,
       enterprise: order.distributor,
-      code: "Money Penny",
+      code: "Money Penny"
     )
     render
-    expect(rendered).to have_content "Code: Money Penny"
+    expect(rendered).to(have_content("Code: Money Penny"))
   end
 
   it "displays the billing address" do
     order.bill_address = adas_address
     render
-    expect(rendered).to have_content "Ada Lovelace"
-    expect(rendered).to have_content adas_address.phone
-    expect(rendered).to have_content adas_address_display
+    expect(rendered).to(have_content("Ada Lovelace"))
+    expect(rendered).to(have_content(adas_address.phone))
+    expect(rendered).to(have_content(adas_address_display))
   end
 
   it "displays shipping info" do
     order.shipping_method.update!(
       name: "Home delivery",
-      require_ship_address: true,
+      require_ship_address: true
     )
     order.ship_address = adas_address
 
     render
-    expect(rendered).to have_content "Shipping: Home delivery"
-    expect(rendered).to have_content adas_address.phone
-    expect(rendered).to have_content adas_address_display
+    expect(rendered).to(have_content("Shipping: Home delivery"))
+    expect(rendered).to(have_content(adas_address.phone))
+    expect(rendered).to(have_content(adas_address_display))
   end
 
   it "displays special instructions" do
     order.special_instructions = "The combination is 12345."
 
     render
-    expect(rendered).to have_content "The combination is 12345."
+    expect(rendered).to(have_content("The combination is 12345."))
   end
 
   it "hides billing address for pickups" do
     order.ship_address = adas_address
     order.shipping_method.update!(
       name: "Pickup",
-      require_ship_address: false,
+      require_ship_address: false
     )
 
     render
-    expect(rendered).to have_content "Shipping: Pickup"
-    expect(rendered).not_to have_content adas_address_display
+    expect(rendered).to(have_content("Shipping: Pickup"))
+    expect(rendered).not_to(have_content(adas_address_display))
   end
 
   it "displays order note on invoice when note is given" do
     order.note = "Test note"
 
     render
-    expect(rendered).to have_content "Test note"
+    expect(rendered).to(have_content("Test note"))
   end
 end

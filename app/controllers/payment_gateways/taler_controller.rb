@@ -17,7 +17,7 @@ module PaymentGateways
       # Process payment early because it's probably paid already.
       # We want to capture that before any validations raise errors.
       unless payment.process!
-        return redirect_to order_failed_route(step: "payment")
+        return redirect_to(order_failed_route(step: "payment"))
       end
 
       @order = payment.order
@@ -26,12 +26,13 @@ module PaymentGateways
 
         process_payment_completion!
       end
+
     rescue Spree::Core::GatewayError => e
       flash[:notice] = e.message
-      redirect_to order_failed_route(step: "payment")
+      redirect_to(order_failed_route(step: "payment"))
     rescue StockError
       flash[:notice] = t("checkout.payment_cancelled_due_to_stock")
-      redirect_to main_app.checkout_step_path(step: "details")
+      redirect_to(main_app.checkout_step_path(step: "details"))
     end
   end
 end

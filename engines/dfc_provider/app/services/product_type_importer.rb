@@ -10,9 +10,12 @@ class ProductTypeImporter < DfcBuilder
     # We could query all broader taxons in one but then we need to still sort
     # them locally and use more memory. That would be a pessimistic query.
     # Consider caching the result instead.
-    taxons = priority_list.lazy.map do |type|
-      Spree::Taxon.find_by(dfc_id: type.semanticId)
-    end.compact
+    taxons = priority_list
+      .lazy
+      .map do |type|
+        Spree::Taxon.find_by(dfc_id: type.semanticId)
+      end
+      .compact
 
     taxons.first || Spree::Taxon.first
   end
@@ -24,8 +27,9 @@ class ProductTypeImporter < DfcBuilder
       DataFoodConsortium::ConnectorV1::SKOSParser.concepts[id]
     end
 
-    broaders + broaders.flat_map do |broader|
-      list_broaders(broader)
-    end
+    broaders +
+      broaders.flat_map do |broader|
+        list_broaders(broader)
+      end
   end
 end

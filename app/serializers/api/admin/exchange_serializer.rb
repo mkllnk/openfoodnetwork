@@ -3,9 +3,18 @@
 module Api
   module Admin
     class ExchangeSerializer < ActiveModel::Serializer
-      attributes :id, :sender_id, :receiver_id, :incoming, :variants,
-                 :receival_instructions, :pickup_time, :pickup_instructions,
-                 :tags, :tag_list
+      attributes(
+        :id,
+        :sender_id,
+        :receiver_id,
+        :incoming,
+        :variants,
+        :receival_instructions,
+        :pickup_time,
+        :pickup_instructions,
+        :tags,
+        :tag_list
+      )
 
       has_many :enterprise_fees, serializer: Api::Admin::BasicEnterpriseFeeSerializer
 
@@ -33,12 +42,14 @@ module Api
       end
 
       def permitted_incoming_variants
-        OpenFoodNetwork::OrderCyclePermissions.new(options[:current_user], object.order_cycle).
-          visible_variants_for_incoming_exchanges_from(object.sender)
+        OpenFoodNetwork::OrderCyclePermissions
+          .new(options[:current_user], object.order_cycle)
+          .visible_variants_for_incoming_exchanges_from(object.sender)
       end
 
       def permitted_outgoing_variants
-        OpenFoodNetwork::OrderCyclePermissions.new(options[:current_user], object.order_cycle)
+        OpenFoodNetwork::OrderCyclePermissions
+          .new(options[:current_user], object.order_cycle)
           .visible_variants_for_outgoing_exchanges_to(object.receiver)
       end
 
@@ -53,7 +64,7 @@ module Api
       end
 
       def tags
-        preloaded_tag_list.map { |tag| { text: tag } }
+        preloaded_tag_list.map { |tag| {text: tag} }
       end
     end
   end

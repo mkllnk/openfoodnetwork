@@ -12,7 +12,7 @@ module Api
       respond_to :json
 
       def create
-        authorize! :create, Enterprise
+        authorize!(:create, Enterprise)
 
         # params[:user_ids] breaks the enterprise creation
         # We remove them from params and save them after creating the enterprise
@@ -22,7 +22,7 @@ module Api
           geocode_address_if_use_geocoder
           @enterprise.user_ids = user_ids
           record_tos_acceptance
-          render json: @enterprise.id, status: :created
+          render(json: @enterprise.id, status: :created)
         else
           invalid_resource!(@enterprise)
         end
@@ -30,11 +30,11 @@ module Api
 
       def update
         @enterprise = Enterprise.find_by(permalink: params[:id]) || Enterprise.find(params[:id])
-        authorize! :update, @enterprise
+        authorize!(:update, @enterprise)
 
         if @enterprise.update(enterprise_params)
           geocode_address_if_use_geocoder
-          render json: @enterprise.id, status: :ok
+          render(json: @enterprise.id, status: :ok)
         else
           invalid_resource!(@enterprise)
         end
@@ -42,11 +42,11 @@ module Api
 
       def update_image
         @enterprise = Enterprise.find_by(permalink: params[:id]) || Enterprise.find(params[:id])
-        authorize! :update, @enterprise
+        authorize!(:update, @enterprise)
 
         if params[:logo] && @enterprise.update!(logo: params[:logo])
           render(html: @enterprise.logo_url(:medium), status: :ok)
-        elsif params[:promo] && @enterprise.update!( promo_image: params[:promo] )
+        elsif params[:promo] && @enterprise.update!(promo_image: params[:promo])
           render(html: @enterprise.promo_image_url(:medium), status: :ok)
         else
           invalid_resource!(@enterprise)
@@ -60,7 +60,7 @@ module Api
       end
 
       def check_type
-        enterprise_params.delete :type unless current_api_user.admin?
+        enterprise_params.delete(:type) unless current_api_user.admin?
       end
 
       def override_sells
@@ -68,10 +68,10 @@ module Api
         new_enterprise_is_producer = !!enterprise_params[:is_primary_producer]
 
         enterprise_params[:sells] = if has_hub && !new_enterprise_is_producer
-                                      'any'
-                                    else
-                                      'unspecified'
-                                    end
+          "any"
+        else
+          "unspecified"
+        end
       end
 
       def override_visible
@@ -85,8 +85,11 @@ module Api
       end
 
       def enterprise_params
-        @enterprise_params ||= PermittedAttributes::Enterprise.new(params).call.
-          to_h.with_indifferent_access
+        @enterprise_params ||= PermittedAttributes::Enterprise
+          .new(params)
+          .call
+          .to_h
+          .with_indifferent_access
       end
     end
   end

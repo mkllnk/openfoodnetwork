@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'i18n'
-require 'active_support/core_ext/array/extract_options'
-require 'spree/i18n/base'
+require "i18n"
+require "active_support/core_ext/array/extract_options"
+require "spree/i18n/base"
 
 module Spree
   extend ActionView::Helpers::TranslationHelper
@@ -22,7 +22,7 @@ module Spree
 
     alias_method :t, :translate
 
-    delegate :context, to: :'Spree::ViewContext'
+    delegate :context, to: :"Spree::ViewContext"
 
     def virtual_path
       return unless context
@@ -31,7 +31,7 @@ module Spree
 
       return unless path
 
-      path.gsub("spree", '')
+      path.gsub("spree", "")
     end
   end
 end

@@ -4,11 +4,11 @@ module Admin
   class ProductPreviewController < Spree::Admin::BaseController
     def show
       @product = Spree::Product.find(params[:id])
-      authorize! :show, @product
+      authorize!(:show, @product)
 
       respond_with do |format|
         format.turbo_stream {
-          render "admin/products_v3/product_preview", status: :ok
+          render("admin/products_v3/product_preview", status: :ok)
         }
       end
     end

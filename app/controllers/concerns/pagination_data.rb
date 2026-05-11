@@ -4,7 +4,7 @@ module PaginationData
   extend ActiveSupport::Concern
 
   def pagination_data
-    return unless defined? @pagy
+    return unless defined?(@pagy)
 
     {
       results: @pagy.count,
@@ -19,7 +19,7 @@ module PaginationData
   end
 
   def default_per_page
-    return unless defined? self.class::DEFAULT_PER_PAGE
+    return unless defined?(self.class::DEFAULT_PER_PAGE)
 
     self.class::DEFAULT_PER_PAGE
   end

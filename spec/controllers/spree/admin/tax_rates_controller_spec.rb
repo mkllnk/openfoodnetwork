@@ -7,8 +7,14 @@ module Spree
 
       let!(:default_tax_zone) { create(:zone, default_tax: true) }
       let!(:tax_rate) {
-        create(:tax_rate, name: "Original Rate", amount: 0.1, included_in_price: false,
-                          calculator: build(:calculator), zone: default_tax_zone)
+        create(
+          :tax_rate,
+          name: "Original Rate",
+          amount: 0.1,
+          included_in_price: false,
+          calculator: build(:calculator),
+          zone: default_tax_zone
+        )
       }
 
       describe "#update" do
@@ -19,13 +25,14 @@ module Spree
 
           context "when the amount and included flag are not changed" do
             let(:params) {
-              { name: "Updated Rate", amount: "0.1", included_in_price: "0" }
+              {name: "Updated Rate", amount: "0.1", included_in_price: "0"}
             }
 
             it "updates the record" do
               expect {
                 spree_put :update, id: tax_rate.id, tax_rate: params
-              }.not_to change{ Spree::TaxRate.with_deleted.count }
+              }
+                .not_to change { Spree::TaxRate.with_deleted.count }
 
               expect(response).to redirect_to spree.admin_tax_rates_url
               expect(tax_rate.reload.name).to eq "Updated Rate"
@@ -36,9 +43,13 @@ module Spree
           context "when the amount is changed" do
             it "duplicates the record and soft-deletes the duplicate" do
               expect {
-                spree_put :update, id: tax_rate.id,
-                                   tax_rate: { name: "Changed Rate", amount: "0.5" }
-              }.to change{ Spree::TaxRate.with_deleted.count }.by(1)
+                spree_put(
+                  :update,
+                  id: tax_rate.id,
+                  tax_rate: {name: "Changed Rate", amount: "0.5"}
+                )
+              }
+                .to change { Spree::TaxRate.with_deleted.count }.by(1)
 
               expect(response).to redirect_to spree.admin_tax_rates_url
 
@@ -57,9 +68,13 @@ module Spree
           context "when included_in_price is changed" do
             it "duplicates the record and soft-deletes the duplicate" do
               expect {
-                spree_put :update, id: tax_rate.id,
-                                   tax_rate: { name: "Changed Rate", included_in_price: "1" }
-              }.to change{ Spree::TaxRate.with_deleted.count }.by(1)
+                spree_put(
+                  :update,
+                  id: tax_rate.id,
+                  tax_rate: {name: "Changed Rate", included_in_price: "1"}
+                )
+              }
+                .to change { Spree::TaxRate.with_deleted.count }.by(1)
 
               expect(response).to redirect_to spree.admin_tax_rates_url
 

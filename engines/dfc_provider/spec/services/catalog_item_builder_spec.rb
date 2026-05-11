@@ -14,24 +14,30 @@ RSpec.describe CatalogItemBuilder do
     it "assigns a semantic id" do
       item = CatalogItemBuilder.catalog_item(variant)
 
-      expect(item.semanticId).to eq(
-        "http://test.host/api/dfc/enterprises/7/catalog_items/5"
+      expect(item.semanticId).to(
+        eq(
+          "http://test.host/api/dfc/enterprises/7/catalog_items/5"
+        )
       )
     end
 
     it "refers to a supplied product" do
       item = CatalogItemBuilder.catalog_item(variant)
 
-      expect(item.product.semanticId).to eq(
-        "http://test.host/api/dfc/enterprises/7/supplied_products/5"
+      expect(item.product.semanticId).to(
+        eq(
+          "http://test.host/api/dfc/enterprises/7/supplied_products/5"
+        )
       )
     end
 
     it "refers to the supplier" do
       item = CatalogItemBuilder.catalog_item(variant)
 
-      expect(item.managedBy).to eq(
-        "http://test.host/api/dfc/enterprises/7"
+      expect(item.managedBy).to(
+        eq(
+          "http://test.host/api/dfc/enterprises/7"
+        )
       )
     end
   end
@@ -50,8 +56,11 @@ RSpec.describe CatalogItemBuilder do
         CatalogItemBuilder.apply_stock(item, variant)
         variant.save!
       }
-        .to change { variant.on_demand }.to(false)
-        .and change { variant.on_hand }.to(0)
+        .to(
+          change { variant.on_demand }
+            .to(false)
+            .and(change { variant.on_hand }.to(0))
+        )
     end
   end
 end

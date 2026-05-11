@@ -3,7 +3,7 @@
 module PreferenceSections
   class MapSection
     def name
-      I18n.t('admin.contents.edit.map')
+      I18n.t("admin.contents.edit.map")
     end
 
     def preferences

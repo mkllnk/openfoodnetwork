@@ -19,44 +19,58 @@ module Spree
     has_many :shipping_method_categories, dependent: :destroy
     has_many :shipping_categories, through: :shipping_method_categories
     has_many :distributor_shipping_methods, dependent: :destroy
-    has_many :distributors, through: :distributor_shipping_methods,
-                            class_name: 'Enterprise',
-                            foreign_key: 'distributor_id'
+    has_many(
+      :distributors,
+      through: :distributor_shipping_methods,
+      class_name: "Enterprise",
+      foreign_key: "distributor_id"
+    )
 
-    has_and_belongs_to_many :zones, join_table: 'spree_shipping_methods_zones',
-                                    class_name: 'Spree::Zone'
+    has_and_belongs_to_many(
+      :zones,
+      join_table: "spree_shipping_methods_zones",
+      class_name: "Spree::Zone"
+    )
 
-    belongs_to :tax_category, class_name: 'Spree::TaxCategory', optional: true
+    belongs_to :tax_category, class_name: "Spree::TaxCategory", optional: true
 
     validates :name, presence: true
     validate :distributor_validation
     validate :at_least_one_shipping_category
-    validates :display_on, inclusion: { in: DISPLAY_ON_OPTIONS.values }, allow_nil: true
+    validates :display_on, inclusion: {in: DISPLAY_ON_OPTIONS.values}, allow_nil: true
 
     after_initialize :init
 
     after_save :touch_distributors
 
-    scope :managed_by, lambda { |user|
-      if user.admin?
-        where(nil)
-      else
-        joins(:distributors).
-          where(distributors_shipping_methods: { distributor_id: user.enterprises.select(&:id) }).
-          select('DISTINCT spree_shipping_methods.*')
-      end
-    }
+    scope(
+      :managed_by,
+      lambda { |user|
+        if user.admin?
+          where(nil)
+        else
+          joins(:distributors)
+            .where(distributors_shipping_methods: {distributor_id: user.enterprises.select(&:id)})
+            .select("DISTINCT spree_shipping_methods.*")
+        end
+      }
+    )
 
-    scope :for_distributors, ->(distributors) {
-      non_unique_matches = unscoped.joins(:distributors).where(enterprises: { id: distributors })
-      where(id: non_unique_matches.map(&:id))
-    }
-    scope :for_distributor, lambda { |distributor|
-      joins(:distributors).
-        where(enterprises: { id: distributor })
-    }
+    scope(
+      :for_distributors,
+      -> (distributors) {
+        non_unique_matches = unscoped.joins(:distributors).where(enterprises: {id: distributors})
+        where(id: non_unique_matches.map(&:id))
+      }
+    )
+    scope(
+      :for_distributor,
+      lambda { |distributor|
+        joins(:distributors).where(enterprises: {id: distributor})
+      }
+    )
 
-    scope :by_name, -> { order('spree_shipping_methods.name ASC') }
+    scope :by_name, -> { order("spree_shipping_methods.name ASC") }
 
     # Here we allow checkout with shipping methods without zones (see issue #3928 for details)
     #   and also checkout with addresses outside of the zones of the selected shipping method
@@ -91,17 +105,19 @@ module Spree
     #
     # Optionally, specify some distributor_ids as a parameter to scope the results
     def self.services(distributor_ids = nil)
-      methods = Spree::ShippingMethod.joins(:distributor_shipping_methods).group('distributor_id')
+      methods = Spree::ShippingMethod.joins(:distributor_shipping_methods).group("distributor_id")
 
       if distributor_ids.present?
-        methods = methods.where(distributor_shipping_methods: { distributor_id: distributor_ids })
+        methods = methods.where(distributor_shipping_methods: {distributor_id: distributor_ids})
       end
 
-      methods.
-        pluck(Arel.sql("distributor_id"),
-              Arel.sql("BOOL_OR(spree_shipping_methods.require_ship_address = 'f') AS pickup"),
-              Arel.sql("BOOL_OR(spree_shipping_methods.require_ship_address = 't') AS delivery")).
-        to_h { |(distributor_id, pickup, delivery)| [distributor_id.to_i, { pickup:, delivery: }] }
+      methods
+        .pluck(
+          Arel.sql("distributor_id"),
+          Arel.sql("BOOL_OR(spree_shipping_methods.require_ship_address = 'f') AS pickup"),
+          Arel.sql("BOOL_OR(spree_shipping_methods.require_ship_address = 't') AS delivery")
+        )
+        .to_h { |(distributor_id, pickup, delivery)| [distributor_id.to_i, {pickup:, delivery:}] }
     end
 
     def self.backend
@@ -121,11 +137,12 @@ module Spree
     def no_active_or_upcoming_order_cycle_distributors_with_only_one_shipping_method?
       return true if new_record?
 
-      distributors.
-        with_order_cycles_as_distributor_outer.
-        merge(OrderCycle.active.or(OrderCycle.upcoming)).none? do |distributor|
-        distributor.shipping_method_ids.one?
-      end
+      distributors
+        .with_order_cycles_as_distributor_outer
+        .merge(OrderCycle.active.or(OrderCycle.upcoming))
+        .none? do |distributor|
+          distributor.shipping_method_ids.one?
+        end
     end
 
     def at_least_one_shipping_category
@@ -141,7 +158,7 @@ module Spree
     end
 
     def distributor_validation
-      validates_with DistributorsValidator
+      validates_with(DistributorsValidator)
     end
   end
 end

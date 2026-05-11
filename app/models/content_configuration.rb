@@ -23,28 +23,55 @@ class ContentConfiguration < Spree::Preferences::Configuration
   # Producer sign-up page
   # All the following defaults using I18n don't work.
   # https://github.com/openfoodfoundation/openfoodnetwork/issues/3816
-  preference :producer_signup_pricing_table_html, :text,
-             default: I18n.t(:content_configuration_pricing_table)
-  preference :producer_signup_case_studies_html, :text,
-             default: I18n.t(:content_configuration_case_studies)
-  preference :producer_signup_detail_html, :text,
-             default: I18n.t(:content_configuration_detail)
+  preference(
+    :producer_signup_pricing_table_html,
+    :text,
+    default: I18n.t(:content_configuration_pricing_table)
+  )
+  preference(
+    :producer_signup_case_studies_html,
+    :text,
+    default: I18n.t(:content_configuration_case_studies)
+  )
+  preference(
+    :producer_signup_detail_html,
+    :text,
+    default: I18n.t(:content_configuration_detail)
+  )
 
   # Hubs sign-up page
-  preference :hub_signup_pricing_table_html, :text,
-             default: I18n.t(:content_configuration_pricing_table)
-  preference :hub_signup_case_studies_html, :text,
-             default: I18n.t(:content_configuration_case_studies)
-  preference :hub_signup_detail_html, :text,
-             default: I18n.t(:content_configuration_detail)
+  preference(
+    :hub_signup_pricing_table_html,
+    :text,
+    default: I18n.t(:content_configuration_pricing_table)
+  )
+  preference(
+    :hub_signup_case_studies_html,
+    :text,
+    default: I18n.t(:content_configuration_case_studies)
+  )
+  preference(
+    :hub_signup_detail_html,
+    :text,
+    default: I18n.t(:content_configuration_detail)
+  )
 
   # Groups sign-up page
-  preference :group_signup_pricing_table_html, :text,
-             default: I18n.t(:content_configuration_pricing_table)
-  preference :group_signup_case_studies_html, :text,
-             default: I18n.t(:content_configuration_case_studies)
-  preference :group_signup_detail_html, :text,
-             default: I18n.t(:content_configuration_detail)
+  preference(
+    :group_signup_pricing_table_html,
+    :text,
+    default: I18n.t(:content_configuration_pricing_table)
+  )
+  preference(
+    :group_signup_case_studies_html,
+    :text,
+    default: I18n.t(:content_configuration_case_studies)
+  )
+  preference(
+    :group_signup_detail_html,
+    :text,
+    default: I18n.t(:content_configuration_detail)
+  )
 
   # Main URLs
   preference :menu_1, :boolean, default: true
@@ -74,24 +101,32 @@ class ContentConfiguration < Spree::Preferences::Configuration
   preference :footer_pinterest_url, :string, default: ""
   preference :footer_email, :string, default: "hello@openfoodnetwork.org"
   preference :community_forum_url, :string, default: "http://community.openfoodnetwork.org"
-  preference :footer_links_md, :text, default: <<~FOOTERSTR
-    [Newsletter sign-up](/)
+  preference(
+    :footer_links_md,
+    :text,
+    default: <<~FOOTERSTR
+      [Newsletter sign-up](/)
 
-    [News](/)
+      [News](/)
 
-    [Calendar](/)
-  FOOTERSTR
+      [Calendar](/)
+    FOOTERSTR
+  )
 
-  preference :footer_about_url, :string, default: "http://www.openfoodnetwork.org/ofn-local/open-food-network-australia/"
+  preference(
+    :footer_about_url,
+    :string,
+    default: "http://www.openfoodnetwork.org/ofn-local/open-food-network-australia/"
+  )
 
   # User Guide
-  preference :user_guide_link, :string, default: 'https://guide.openfoodnetwork.org/'
+  preference :user_guide_link, :string, default: "https://guide.openfoodnetwork.org/"
 
   # ContentConfig Caching
   preference :updated_at_timestamp, :integer, default: Time.zone.today.to_time.to_i
 
   def updated_at
-    Time.zone.at updated_at_timestamp
+    Time.zone.at(updated_at_timestamp)
   end
 
   def updated_at=(time)

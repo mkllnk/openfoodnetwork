@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 RSpec.describe ShopsController do
-  include WebHelper
+  include(WebHelper)
 
   render_views
 
   let!(:distributor) { create(:distributor_enterprise, with_payment_and_shipping: true) }
 
-  it 'renders distributed product properties' do
-    product_property = create(:property, presentation: 'eggs')
+  it "renders distributed product properties" do
+    product_property = create(:property, presentation: "eggs")
     product = create(:product, properties: [product_property])
     producer = create(:supplier_enterprise)
 
@@ -20,14 +20,14 @@ RSpec.describe ShopsController do
       variants: [product.variants]
     )
 
-    get :index
+    get(:index)
 
     expect(response.body)
-      .to match(/"distributed_properties":\[{"id":\d+,"name":"eggs","presentation":"eggs"}\]/)
+      .to(match(/"distributed_properties":\[{"id":\d+,"name":"eggs","presentation":"eggs"}\]/))
   end
 
-  it 'renders distributed producer properties' do
-    producer_property = create(:property, presentation: 'certified')
+  it "renders distributed producer properties" do
+    producer_property = create(:property, presentation: "certified")
     producer = create(:supplier_enterprise, properties: [producer_property])
     product = create(:product, supplier_id: producer.id)
 
@@ -39,17 +39,21 @@ RSpec.describe ShopsController do
       variants: [product.variants]
     )
 
-    get :index
+    get(:index)
 
     expect(response.body)
-      .to match(/"distributed_properties":\[{"id":\d+,"name":
-                "certified","presentation":"certified"}\]/x)
+      .to(
+        match(
+          /"distributed_properties":\[{"id":\d+,"name":
+                "certified","presentation":"certified"}\]/x
+        )
+      )
   end
 
-  it 'renders distributed properties' do
-    duplicate_property = create(:property, presentation: 'dairy')
+  it "renders distributed properties" do
+    duplicate_property = create(:property, presentation: "dairy")
     producer = create(:supplier_enterprise, properties: [duplicate_property])
-    property = create(:property, presentation: 'dairy')
+    property = create(:property, presentation: "dairy")
 
     product = create(:product, properties: [property])
 
@@ -63,9 +67,9 @@ RSpec.describe ShopsController do
       variants: [product.variants]
     )
 
-    get :index
+    get(:index)
 
     expect(response.body)
-      .to match(/"distributed_properties":\[{"id":\d+,"name":"dairy","presentation":"dairy"}\]/)
+      .to(match(/"distributed_properties":\[{"id":\d+,"name":"dairy","presentation":"dairy"}\]/))
   end
 end

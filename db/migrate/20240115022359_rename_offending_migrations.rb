@@ -14,26 +14,32 @@ class RenameOffendingMigrations < ActiveRecord::Migration[7.0]
     '20231002000136976': "20231002000145",
     '20231002000137115': "20231002000146",
     '20231002000137116': "20231002000147",
-    '20231003000823494': "20231003000823",
+    '20231003000823494': "20231003000823"
   }.freeze
 
   def up
     MIGRATION_IDS.each do |bad_id, good_id|
-      execute <<~SQL.squish
-        UPDATE schema_migrations
-           SET version='#{good_id}'
-         WHERE version='#{bad_id}'
-      SQL
+      execute(
+        <<~SQL
+          UPDATE schema_migrations
+             SET version='#{good_id}'
+           WHERE version='#{bad_id}'
+        SQL
+          .squish
+      )
     end
   end
 
   def down
     MIGRATION_IDS.each do |bad_id, good_id|
-      execute <<~SQL.squish
-        UPDATE schema_migrations
-           SET version='#{bad_id}'
-         WHERE version='#{good_id}'
-      SQL
+      execute(
+        <<~SQL
+          UPDATE schema_migrations
+             SET version='#{bad_id}'
+           WHERE version='#{good_id}'
+        SQL
+          .squish
+      )
     end
   end
 end

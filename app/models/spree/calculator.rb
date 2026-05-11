@@ -10,17 +10,18 @@ module Spree
     #
     # It should return amount computed based on #calculable and/or optional parameter
     def compute(_something = nil)
-      raise NotImplementedError, 'please use concrete calculator'
+      raise NotImplementedError, "please use concrete calculator"
     end
 
     # overwrite to provide description for your calculators
     def self.description
-      'Base Calculator'
+      "Base Calculator"
     end
 
     ###################################################################
 
-    def self.register(*klasses); end
+    def self.register(*klasses)
+    end
 
     # Returns all calculators applicable for kind of work
     def self.calculators
@@ -44,7 +45,7 @@ module Spree
     def line_items_for(object)
       return [object] if object.is_a?(Spree::LineItem)
 
-      if object.respond_to? :line_items
+      if object.respond_to?(:line_items)
         object.line_items
       elsif object.respond_to?(:order) && object.order.present?
         object.order.line_items

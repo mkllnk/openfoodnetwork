@@ -4,12 +4,16 @@ module AngularFormHelper
   def ng_options_for_select(container, _angular_field = nil)
     return container if container.is_a?(String)
 
-    container.map do |element|
-      html_attributes = option_html_attributes(element)
-      text, value = option_text_and_value(element).map(&:to_s)
-      %(<option value="#{ERB::Util.html_escape(value)}"\
-        #{html_attributes}>#{ERB::Util.html_escape(text)}</option>)
-    end.join("\n").html_safe # rubocop:disable Rails/OutputSafety
+    container
+      .map do |element|
+        html_attributes = option_html_attributes(element)
+        text, value = option_text_and_value(element).map(&:to_s)
+        "<option value=\"#{ERB::Util.html_escape(value)}\"\
+        #{html_attributes}>#{ERB::Util.html_escape(text)}</option>"
+        # rubocop:disable Rails/OutputSafety
+      end
+      .join("\n")
+      .html_safe
   end
 
   def ng_options_from_collection_for_select(collection, value_method, text_method, angular_field)

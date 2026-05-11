@@ -24,15 +24,16 @@ module Reporting
         def columns
           super.merge(
             {
-              on_demand: proc{ |variant| variant.on_demand },
-              on_hand: proc{ |variant| variant.on_demand ? I18n.t(:on_demand) : variant.on_hand },
+              on_demand: proc { |variant| variant.on_demand },
+              on_hand: proc { |variant| variant.on_demand ? I18n.t(:on_demand) : variant.on_hand },
               tax_category: proc { |variant| variant.tax_category_id && variant.tax_category.name }
             }
           )
         end
 
         def filter_on_hand(variants)
-          variants # do not filter
+          # do not filter
+          variants
         end
       end
     end

@@ -6,7 +6,7 @@ module AdminHelper
     columns_dropdown = ofn_drop_down("Columns")
     columns_dropdown.click
 
-    within columns_dropdown do
+    within(columns_dropdown) do
       labels.each do |label|
         # Convert label to case-insensitive regexp if not one already
         label = /#{label}/i unless label.is_a?(Regexp)

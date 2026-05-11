@@ -61,7 +61,7 @@ module OrderManagement
       end
 
       def update_item_total
-        order.item_total = line_items.sum('price * quantity')
+        order.item_total = line_items.sum("price * quantity")
         update_order_total
       end
 
@@ -100,13 +100,13 @@ module OrderManagement
       #   to locate Orders needing attention.
       def update_shipment_state
         order.shipment_state = if order.shipment&.backordered?
-                                 'backorder'
-                               else
-                                 # It returns nil if there is no shipment
-                                 order.shipment&.state
-                               end
+          "backorder"
+        else
+          # It returns nil if there is no shipment
+          order.shipment&.state
+        end
 
-        order.state_changed('shipment')
+        order.state_changed("shipment")
         order.shipment_state
       end
 
@@ -180,11 +180,11 @@ module OrderManagement
 
       def infer_payment_state
         if failed_payments?
-          'failed'
+          "failed"
         elsif canceled_and_not_paid_for?
-          'void'
+          "void"
         elsif requires_authorization?
-          'requires_authorization'
+          "requires_authorization"
         else
           infer_payment_state_from_balance
         end
@@ -200,11 +200,11 @@ module OrderManagement
 
       def infer_state(balance)
         if balance.positive?
-          'balance_due'
+          "balance_due"
         elsif balance.negative?
-          'credit_owed'
+          "credit_owed"
         elsif balance.zero?
-          'paid'
+          "paid"
         end
       end
 
@@ -216,11 +216,11 @@ module OrderManagement
       def track_payment_state_change(last_payment_state)
         return if last_payment_state == order.payment_state
 
-        order.state_changed('payment')
+        order.state_changed("payment")
       end
 
       def canceled_and_not_paid_for?
-        order.state == 'canceled' && order.payment_total.zero?
+        order.state == "canceled" && order.payment_total.zero?
       end
 
       def failed_payments?
@@ -242,14 +242,17 @@ module OrderManagement
         # We only want to update complete order pending payment when it's a cash payment. We assume
         # that if the payment was a credit card it would alread have been processed, so we don't
         # bother checking the payment type
-        return unless order.state.in? ["payment", "confirmation", "complete"]
+        return unless order.state.in?(["payment", "confirmation", "complete"])
         return unless order.pending_payments.any?
 
         # Customer credit payment should not be updated, as they are based on the available credit
         # at the time the order was started
-        @payment = order.pending_payments.reject { |p|
-          p.payment_method_id == Spree::PaymentMethod.customer_credit.id
-        }.first
+        @payment = order
+          .pending_payments
+          .reject { |p|
+            p.payment_method_id == Spree::PaymentMethod.customer_credit.id
+          }
+          .first
 
         return if @payment.nil?
 
@@ -266,7 +269,7 @@ module OrderManagement
 
       def update_payment
         # Update payment with correct amount
-        @payment.update_attribute :amount, order.outstanding_balance.amount
+        @payment.update_attribute(:amount, order.outstanding_balance.amount)
       end
 
       def update_payment_adjustment(amount)

@@ -7,14 +7,15 @@ module Orders
     def initialize(order, distributor_id)
       @order = order
       @distributor ||= Enterprise.is_distributor.find_by(permalink: distributor_id) ||
-                       Enterprise.is_distributor.find(distributor_id)
+        Enterprise.is_distributor.find(distributor_id)
     end
 
     def reset_distributor
       if order.distributor && order.distributor != distributor
         order.empty!
-        order.assign_order_cycle! nil
+        order.assign_order_cycle!(nil)
       end
+
       order.distributor = distributor
     end
 

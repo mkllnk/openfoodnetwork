@@ -20,9 +20,11 @@ class StockSyncJob < ApplicationJob
     stock_controlled_variants = order.variants.reject(&:on_demand)
     links = SemanticLink.where(subject: stock_controlled_variants)
     semantic_ids = links.pluck(:semantic_id)
-    semantic_ids.map do |product_id|
-      FdcUrlBuilder.new(product_id).catalog_url
-    end.uniq
+    semantic_ids
+      .map do |product_id|
+        FdcUrlBuilder.new(product_id).catalog_url
+      end
+      .uniq
   end
 
   def perform(user, catalog_id)
@@ -48,9 +50,11 @@ class StockSyncJob < ApplicationJob
   end
 
   def linked_variants(enterprises, product_ids)
-    Spree::Variant.where(supplier: enterprises)
-      .includes(:semantic_links).references(:semantic_links)
-      .where(semantic_links: { semantic_id: product_ids })
+    Spree::Variant
+      .where(supplier: enterprises)
+      .includes(:semantic_links)
+      .references(:semantic_links)
+      .where(semantic_links: {semantic_id: product_ids})
   end
 
   def self.sync_catalogs_by_perform_method(order, perform_method)
@@ -61,6 +65,7 @@ class StockSyncJob < ApplicationJob
     catalog_ids(order).each do |catalog_id|
       public_send(perform_method, user, catalog_id)
     end
+
   rescue StandardError => e
     # Errors here shouldn't affect the shopping. So let's report them
     # separately:

@@ -8,7 +8,8 @@ class ResetNegativeNonbackorderableCountOnHandInStockItems < ActiveRecord::Migra
   end
 
   def up
-    Spree::StockItem.where(backorderable: false)
+    Spree::StockItem
+      .where(backorderable: false)
       .where("count_on_hand < 0")
       .update_all(count_on_hand: 0)
   end

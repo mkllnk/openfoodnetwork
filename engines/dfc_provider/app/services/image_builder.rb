@@ -20,7 +20,7 @@ class ImageBuilder < DfcBuilder
   def self.import(image_link)
     url = URI.parse(image_link)
     filename = File.basename(url.path)
-    metadata = { custom: { origin: image_link } }
+    metadata = {custom: {origin: image_link}}
 
     Spree::Image.new.tap do |image|
       PrivateAddressCheck.only_public_connections do
@@ -29,6 +29,7 @@ class ImageBuilder < DfcBuilder
         image.attachment.attach(io:, filename:, metadata:, content_type:)
       end
     end
+
   rescue StandardError
     # Any URL parsing or network error shouldn't impact the product import
     # at all. Maybe we'll add UX for error handling later.

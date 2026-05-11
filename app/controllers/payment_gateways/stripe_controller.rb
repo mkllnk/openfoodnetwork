@@ -12,7 +12,7 @@ module PaymentGateways
     def confirm
       validate_stock
 
-      return redirect_to order_failed_route if @any_out_of_stock == true
+      return redirect_to(order_failed_route) if @any_out_of_stock == true
 
       process_payment_completion!
     end
@@ -25,10 +25,10 @@ module PaymentGateways
       result = ProcessPaymentIntent.new(params["payment_intent"], @order).call!
 
       unless result.success?
-        flash.now[:error] = "#{I18n.t('payment_could_not_process')}. #{result.error}"
+        flash.now[:error] = "#{I18n.t("payment_could_not_process")}. #{result.error}"
       end
 
-      redirect_to order_path(@order)
+      redirect_to(order_path(@order))
     end
 
     private
@@ -40,9 +40,9 @@ module PaymentGateways
       @order = Spree::Order.find_by(number: params[:order_number]) || current_order
 
       if @order
-        authorize! :edit, @order, session[:access_token]
+        authorize!(:edit, @order, session[:access_token])
       else
-        authorize! :create, Spree::Order
+        authorize!(:create, Spree::Order)
       end
     end
 
@@ -50,7 +50,7 @@ module PaymentGateways
       return if session[:access_token] || params[:order_token] || spree_current_user
 
       flash[:error] = I18n.t("spree.orders.edit.login_to_view_order")
-      redirect_to root_path(anchor: "login", after_login: request.original_fullpath)
+      redirect_to(root_path(anchor: "login", after_login: request.original_fullpath))
     end
 
     def validate_stock
@@ -64,12 +64,12 @@ module PaymentGateways
       return if valid_payment_intent?
 
       processing_failed
-      redirect_to order_failed_route
+      redirect_to(order_failed_route)
     end
 
     def valid_payment_intent?
       @valid_payment_intent ||= params["payment_intent"]&.starts_with?("pi_") &&
-                                order_and_payment_valid?
+        order_and_payment_valid?
     end
 
     def order_and_payment_valid?
@@ -89,6 +89,7 @@ module PaymentGateways
         payment.void_transaction!
         payment.adjustment&.update_columns(eligible: false, state: "finalized")
       end
+
       flash[:notice] = I18n.t("checkout.payment_cancelled_due_to_stock")
     end
   end

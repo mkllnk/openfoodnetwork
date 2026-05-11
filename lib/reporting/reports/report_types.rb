@@ -8,8 +8,10 @@ module Reporting
       def orders_and_fulfillment_report_types
         [
           [i18n_translate("supplier_totals"), :order_cycle_supplier_totals],
-          [i18n_translate("supplier_totals_by_distributor"),
-           :order_cycle_supplier_totals_by_distributor],
+          [
+            i18n_translate("supplier_totals_by_distributor"),
+            :order_cycle_supplier_totals_by_distributor
+          ],
           [i18n_translate("totals_by_supplier"), :order_cycle_distributor_totals_by_supplier],
           [i18n_translate("customer_totals"), :order_cycle_customer_totals]
         ]
@@ -18,7 +20,7 @@ module Reporting
       def products_and_inventory_report_types
         [
           [i18n_translate("all_products"), :all_products],
-          [i18n_translate("inventory"), :inventory, { deprecated: true }],
+          [i18n_translate("inventory"), :inventory, {deprecated: true}],
           [i18n_translate("lettuce_share"), :lettuce_share]
         ]
       end
@@ -33,15 +35,15 @@ module Reporting
 
       def enterprise_fee_summary
         [
-          [i18n_translate('enterprise_fee_summary.name'), :fee_summary],
+          [i18n_translate("enterprise_fee_summary.name"), :fee_summary],
           [
-            i18n_translate('enterprise_fees_with_tax_report_by_order'),
+            i18n_translate("enterprise_fees_with_tax_report_by_order"),
             :enterprise_fees_with_tax_report_by_order
           ],
           [
-            i18n_translate('enterprise_fees_with_tax_report_by_producer'),
+            i18n_translate("enterprise_fees_with_tax_report_by_producer"),
             :enterprise_fees_with_tax_report_by_producer
-          ],
+          ]
         ]
       end
 
@@ -71,8 +73,8 @@ module Reporting
 
       def xero_report_types
         [
-          [I18n.t(:summary), 'summary'],
-          [I18n.t(:detailed), 'detailed']
+          [I18n.t(:summary), "summary"],
+          [I18n.t(:detailed), "detailed"]
         ]
       end
 

@@ -38,7 +38,7 @@ module Reporting
     private
 
     def computed_data
-      return @computed_data if defined? @computed_data
+      return @computed_data if defined?(@computed_data)
 
       @computed_data = report.query_result.map { |item|
         row = @builder.build_row(item)
@@ -67,6 +67,7 @@ module Reporting
           result << group_or_row.row
         end
       end
+
       result
     end
 
@@ -104,15 +105,17 @@ module Reporting
     end
 
     def sort_groups_with_rule(groups, rule)
-      groups.sort_by do |group_key, _items|
-        # By default sort with the group_key if no sort_by rule is present
-        if rule[:sort_by].present?
-          rule[:sort_by].call(group_key)
-        else
-          # downcase for better comparaison
-          group_key.is_a?(String) ? group_key.downcase : group_key.to_s
+      groups
+        .sort_by do |group_key, _items|
+          # By default sort with the group_key if no sort_by rule is present
+          if rule[:sort_by].present?
+            rule[:sort_by].call(group_key)
+          else
+            # downcase for better comparaison
+            group_key.is_a?(String) ? group_key.downcase : group_key.to_s
+          end
         end
-      end.to_h
+        .to_h
     end
   end
 end

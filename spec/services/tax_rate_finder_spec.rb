@@ -22,36 +22,36 @@ RSpec.describe TaxRateFinder do
 
     it "finds the tax rate of a shipping fee" do
       rates = subject.tax_rates(tax_rate, shipment)
-      expect(rates).to eq [tax_rate]
+      expect(rates).to(eq([tax_rate]))
     end
 
     it "finds the tax rate of a shipping_method fee" do
       rates = subject.tax_rates(shipping_method, shipment)
-      expect(rates).to eq [tax_rate_shipping]
+      expect(rates).to(eq([tax_rate_shipping]))
     end
 
     it "deals with soft-deleted tax rates" do
       tax_rate.destroy
       rates = subject.tax_rates(tax_rate, shipment)
-      expect(rates).to eq [tax_rate]
+      expect(rates).to(eq([tax_rate]))
     end
 
     it "finds the tax rate of an enterprise fee" do
       rates = subject.tax_rates(enterprise_fee, order)
-      expect(rates).to eq [tax_rate]
+      expect(rates).to(eq([tax_rate]))
     end
 
     it "deals with a soft-deleted line item" do
       line_item.destroy
       rates = subject.tax_rates(enterprise_fee, line_item)
-      expect(rates).to eq [tax_rate]
+      expect(rates).to(eq([tax_rate]))
     end
 
-    context "when the given adjustment has no associated tax" do
+    context("when the given adjustment has no associated tax") do
       let(:adjustment) { create(:adjustment) }
 
       it "returns an empty array" do
-        expect(subject.tax_rates(adjustment.originator, adjustment.adjustable)).to eq []
+        expect(subject.tax_rates(adjustment.originator, adjustment.adjustable)).to(eq([]))
       end
     end
   end

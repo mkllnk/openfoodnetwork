@@ -4,7 +4,8 @@
 # The stock-checking includes on_demand and stock level overrides from variant_overrides.
 
 module OrderCycles
-  class DistributedProductsService # rubocop:disable Metrics/ClassLength
+  # rubocop:disable Metrics/ClassLength
+  class DistributedProductsService
     def initialize(distributor, order_cycle, customer, **options)
       @distributor = distributor
       @order_cycle = order_cycle
@@ -25,10 +26,10 @@ module OrderCycles
     end
 
     def variants_relation
-      order_cycle.
-        variants_distributed_by(distributor).
-        merge(variants).
-        select("DISTINCT spree_variants.*")
+      order_cycle
+        .variants_distributed_by(distributor)
+        .merge(variants)
+        .select("DISTINCT spree_variants.*")
     end
 
     private
@@ -44,26 +45,30 @@ module OrderCycles
         #
         # Caveat, the supplier sorting won't work properly if there are multiple variant with
         # different supplier for a given product.
-        query.
-          joins("LEFT JOIN (SELECT DISTINCT ON(product_id) id, product_id, supplier_id
+        query
+          .joins(
+            "LEFT JOIN (SELECT DISTINCT ON(product_id) id, product_id, supplier_id
                             FROM spree_variants WHERE deleted_at IS NULL) first_variant
-                            ON spree_products.id = first_variant.product_id").
-          select("spree_products.*, first_variant.supplier_id").
-          group("spree_products.id, first_variant.supplier_id")
+                            ON spree_products.id = first_variant.product_id"
+          )
+          .select("spree_products.*, first_variant.supplier_id")
+          .group("spree_products.id, first_variant.supplier_id")
       elsif sorting == "by_category"
         # Joins on the first product variant to allow us to filter product by taxon.  # This is so
         # enterprise can display product sorted by category in a custom order on their shopfront.
         #
         # Caveat, the category sorting won't work properly if there are multiple variant with
         # different category for a given product.
-        query.
-          joins("LEFT JOIN (
+        query
+          .joins(
+            "LEFT JOIN (
                    SELECT DISTINCT ON(product_id) id, product_id, primary_taxon_id,
                    supplier_id
                    FROM spree_variants WHERE deleted_at IS NULL
-                 ) first_variant ON spree_products.id = first_variant.product_id").
-          select("spree_products.*, first_variant.primary_taxon_id").
-          group("spree_products.id, first_variant.primary_taxon_id")
+                 ) first_variant ON spree_products.id = first_variant.product_id"
+          )
+          .select("spree_products.*, first_variant.primary_taxon_id")
+          .group("spree_products.id, first_variant.primary_taxon_id")
       else
         query.group("spree_products.id")
       end
@@ -84,24 +89,28 @@ module OrderCycles
     end
 
     def supplier_property_join(query)
-      query.joins("
+      query.joins(
+        "
         JOIN enterprises ON enterprises.id = first_variant.supplier_id
         LEFT OUTER JOIN producer_properties ON producer_properties.producer_id = enterprises.id
-      ")
+      "
+      )
     end
 
     def order
       if sorting_by_producer?
         order_by_producer = distributor
           .preferred_shopfront_producer_order
-          .split(",").map { |id| "first_variant.supplier_id=#{id} DESC" }
+          .split(",")
+          .map { |id| "first_variant.supplier_id=#{id} DESC" }
           .join(", ")
 
         "#{order_by_producer}, spree_products.name ASC, spree_products.id ASC"
       elsif sorting_by_category?
         order_by_category = distributor
           .preferred_shopfront_taxon_order
-          .split(",").map { |id| "first_variant.primary_taxon_id=#{id} DESC" }
+          .split(",")
+          .map { |id| "first_variant.primary_taxon_id=#{id} DESC" }
           .join(", ")
 
         "#{order_by_category}, spree_products.name ASC, spree_products.id ASC"
@@ -111,10 +120,10 @@ module OrderCycles
     end
 
     def stocked_products
-      order_cycle.
-        variants_distributed_by(distributor).
-        merge(variants).
-        select("DISTINCT spree_variants.product_id")
+      order_cycle
+        .variants_distributed_by(distributor)
+        .merge(variants)
+        .select("DISTINCT spree_variants.product_id")
     end
 
     def variants
@@ -130,16 +139,23 @@ module OrderCycles
     end
 
     def tag_rule_filtered_variants
-      VariantTagRulesFilterer.new(distributor:, customer:,
-                                  variants_relation: stocked_variants).call
+      VariantTagRulesFilterer
+        .new(
+          distributor:,
+          customer:,
+          variants_relation: stocked_variants
+        )
+        .call
     end
 
     def stocked_variants_and_overrides
-      stocked_variants = Spree::Variant.
-        joins("LEFT OUTER JOIN variant_overrides ON variant_overrides.variant_id = spree_variants.id
-              AND variant_overrides.hub_id = #{distributor.id}").
-        joins(:stock_items).
-        where(query_stock_with_overrides)
+      stocked_variants = Spree::Variant
+        .joins(
+          "LEFT OUTER JOIN variant_overrides ON variant_overrides.variant_id = spree_variants.id
+              AND variant_overrides.hub_id = #{distributor.id}"
+        )
+        .joins(:stock_items)
+        .where(query_stock_with_overrides)
 
       ProductTagRulesFilterer.new(distributor, customer, stocked_variants).call
     end

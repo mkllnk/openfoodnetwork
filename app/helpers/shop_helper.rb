@@ -2,7 +2,7 @@
 
 module ShopHelper
   def oc_select_options(order_cycles)
-    order_cycles.map { |oc| { time: pickup_time(oc), id: oc.id } }
+    order_cycles.map { |oc| {time: pickup_time(oc), id: oc.id} }
   end
 
   def require_customer?
@@ -10,25 +10,33 @@ module ShopHelper
   end
 
   def user_is_related_to_distributor?
-    spree_current_user.present? && (
-      spree_current_user.admin? ||
-      spree_current_user.enterprises.include?(current_distributor) ||
-      spree_current_user.customer_of(current_distributor)
-    )
+    spree_current_user.present? &&
+      (spree_current_user.admin? ||
+        spree_current_user.enterprises.include?(current_distributor) ||
+        spree_current_user.customer_of(current_distributor))
   end
 
   def shop_tabs
     [
-      { name: 'home', title: t(:shopping_tabs_home), show: show_home_tab?,
-        default: show_home_tab? },
-      { name: 'shop', title: t(:shopping_tabs_shop), show: !require_customer?,
-        default: !show_home_tab?, shop: true },
-      { name: 'about', title: t(:shopping_tabs_about), show: true },
-      { name: 'producers', title: t(:shopping_tabs_producers), show: true },
-      { name: 'contact', title: t(:shopping_tabs_contact), show: true },
-      { name: 'groups', title: t(:shopping_tabs_groups), show: show_groups_tabs? },
-      custom_tab,
-    ].select{ |tab| tab[:show] }
+      {
+        name: "home",
+        title: t(:shopping_tabs_home),
+        show: show_home_tab?,
+        default: show_home_tab?
+      },
+      {
+        name: "shop",
+        title: t(:shopping_tabs_shop),
+        show: !require_customer?,
+        default: !show_home_tab?,
+        shop: true
+      },
+      {name: "about", title: t(:shopping_tabs_about), show: true},
+      {name: "producers", title: t(:shopping_tabs_producers), show: true},
+      {name: "contact", title: t(:shopping_tabs_contact), show: true},
+      {name: "groups", title: t(:shopping_tabs_groups), show: show_groups_tabs?},
+      custom_tab
+    ].select { |tab| tab[:show] }
   end
 
   def custom_tab
@@ -36,7 +44,7 @@ module ShopHelper
       name: "custom_#{current_distributor.custom_tab&.title&.parameterize}",
       title: current_distributor.custom_tab&.title,
       show: current_distributor.custom_tab.present?,
-      custom: true,
+      custom: true
     }
   end
 
@@ -56,8 +64,10 @@ module ShopHelper
   def show_shopping_cta?
     return false if current_page?(main_app.shops_path) && current_distributor.blank?
 
-    return false if current_distributor.present? &&
-                    current_page?(main_app.enterprise_shop_path(current_distributor))
+    if current_distributor.present? &&
+        current_page?(main_app.enterprise_shop_path(current_distributor))
+      return false
+    end
 
     true
   end

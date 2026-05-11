@@ -11,7 +11,6 @@ class ApplicationJob < ActiveJob::Base
   private
 
   def enable_active_storage_urls
-    ActiveStorage::Current.url_options ||=
-      Rails.application.routes.default_url_options
+    ActiveStorage::Current.url_options ||= Rails.application.routes.default_url_options
   end
 end

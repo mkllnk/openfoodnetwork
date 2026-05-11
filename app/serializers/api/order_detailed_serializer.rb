@@ -13,9 +13,12 @@ module Api
     attributes :adjustments, :customer_id
 
     def adjustments
-      adjustments = object.all_adjustments.where(
-        adjustable_type: ["Spree::Order", "Spree::Shipment", "Spree::Payment"]
-      ).order(label: :desc)
+      adjustments = object
+        .all_adjustments
+        .where(
+          adjustable_type: ["Spree::Order", "Spree::Shipment", "Spree::Payment"]
+        )
+        .order(label: :desc)
       ActiveModel::ArraySerializer.new(adjustments, each_serializer: Api::AdjustmentSerializer)
     end
   end

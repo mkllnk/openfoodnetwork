@@ -9,11 +9,13 @@ RSpec.describe BatchTaggableTagsQuery do
     tags = BatchTaggableTagsQuery.call(
       Customer.where(id: [customer_i, customer_ii, customer_iii])
     )
-    expect(tags).to eq(
-      {
-        customer_i.id => ["member", "volunteer"],
-        customer_ii.id => ["member"],
-      }
+    expect(tags).to(
+      eq(
+        {
+          customer_i.id => ["member", "volunteer"],
+          customer_ii.id => ["member"]
+        }
+      )
     )
   end
 end

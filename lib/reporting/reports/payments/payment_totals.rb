@@ -22,9 +22,15 @@ module Reporting
         private
 
         def total_by_payment_method(orders, pay_method)
-          orders.map(&:payments).flatten.select { |payment|
-            payment.completed? && payment.payment_method&.name.to_s.include?(pay_method)
-          }.map(&:amount).compact.sum
+          orders
+            .map(&:payments)
+            .flatten
+            .select { |payment|
+              payment.completed? && payment.payment_method&.name.to_s.include?(pay_method)
+            }
+            .map(&:amount)
+            .compact
+            .sum
         end
       end
     end

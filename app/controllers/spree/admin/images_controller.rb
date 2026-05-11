@@ -8,7 +8,7 @@ module Spree
       # This will make resource controller redirect correctly after deleting product images.
       # This can be removed after upgrading to Spree 2.1.
       # See here https://github.com/spree/spree/commit/334a011d2b8e16355e4ae77ae07cd93f7cbc8fd1
-      belongs_to 'spree/product'
+      belongs_to "spree/product"
 
       before_action :load_data
 
@@ -20,8 +20,8 @@ module Spree
         @url_filters = ::ProductFilters.new.extract(request.query_parameters)
 
         respond_with do |format|
-          format.turbo_stream { render :edit }
-          format.all { render layout: !request.xhr? }
+          format.turbo_stream { render(:edit) }
+          format.all { render(layout: !request.xhr?) }
         end
       end
 
@@ -39,8 +39,8 @@ module Spree
           flash[:success] = flash_message_for(@object, :successfully_created)
 
           respond_to do |format|
-            format.html { redirect_to location_after_save }
-            format.turbo_stream { render :update }
+            format.html { redirect_to(location_after_save) }
+            format.turbo_stream { render(:update) }
           end
         else
           respond_with_error(@object.errors)
@@ -55,7 +55,7 @@ module Spree
           flash[:success] = flash_message_for(@object, :successfully_updated)
 
           respond_to do |format|
-            format.html { redirect_to location_after_save }
+            format.html { redirect_to(location_after_save) }
             format.turbo_stream
           end
         else
@@ -71,7 +71,7 @@ module Spree
           flash[:success] = Spree.t(:successfully_removed)
         end
 
-        redirect_to location_after_save
+        redirect_to(location_after_save)
       end
 
       private
@@ -97,7 +97,7 @@ module Spree
       end
 
       def set_viewable
-        @image.viewable_type = 'Spree::Product'
+        @image.viewable_type = "Spree::Product"
         @image.viewable_id = params[:image][:viewable_id]
       end
 
@@ -107,7 +107,9 @@ module Spree
 
       def permitted_resource_params
         params.require(:image).permit(
-          :attachment, :viewable_id, :alt
+          :attachment,
+          :viewable_id,
+          :alt
         )
       end
 
@@ -115,7 +117,7 @@ module Spree
         @errors = errors.map(&:full_message)
         respond_to do |format|
           format.html { respond_with(@object) }
-          format.turbo_stream { render :edit }
+          format.turbo_stream { render(:edit) }
         end
       end
     end

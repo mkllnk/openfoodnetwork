@@ -10,7 +10,7 @@
 class Customer < ApplicationRecord
   include SetUnusedAddressFields
 
-  self.ignored_columns += ['name']
+  self.ignored_columns += ["name"]
 
   acts_as_taggable
 
@@ -35,17 +35,24 @@ class Customer < ApplicationRecord
   alias_method :shipping_address=, :ship_address=
   accepts_nested_attributes_for :ship_address
 
-  validates :code, uniqueness: { scope: :enterprise_id, allow_nil: true }
-  validates :email, presence: true, 'valid_email_2/email': true,
-                    uniqueness: {
-                      scope: :enterprise_id,
-                      message: I18n.t('validation_msg_is_associated_with_an_exising_customer')
-                    }
+  validates :code, uniqueness: {scope: :enterprise_id, allow_nil: true}
+  validates(
+    :email,
+    presence: true,
+    'valid_email_2/email': true,
+    uniqueness: {
+      scope: :enterprise_id,
+      message: I18n.t("validation_msg_is_associated_with_an_exising_customer")
+    }
+  )
 
-  scope :of, ->(enterprise) { where(enterprise_id: enterprise) }
-  scope :managed_by, ->(user) {
-    user&.persisted? ? where(user:).or(of(Enterprise.managed_by(user))) : none
-  }
+  scope :of, -> (enterprise) { where(enterprise_id: enterprise) }
+  scope(
+    :managed_by,
+    -> (user) {
+      user&.persisted? ? where(user:).or(of(Enterprise.managed_by(user))) : none
+    }
+  )
   scope :created_manually, -> { where(created_manually: true) }
   scope :visible, -> { where(id: Spree::Order.complete.select(:customer_id)).or(created_manually) }
 
@@ -75,9 +82,10 @@ class Customer < ApplicationRecord
 
   def update_orders_and_delete_canceled_subscriptions
     if Subscription.where(customer_id: id).not_canceled.any?
-      errors.add(:base, I18n.t('admin.customers.destroy.has_associated_subscriptions'))
-      throw :abort
+      errors.add(:base, I18n.t("admin.customers.destroy.has_associated_subscriptions"))
+      throw(:abort)
     end
+
     Subscription.where(customer_id: id).destroy_all
   end
 end

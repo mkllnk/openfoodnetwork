@@ -9,7 +9,7 @@ module DfcProvider
       return not_found unless authorized(address)
 
       dfc_address = AddressBuilder.address(address)
-      render json: DfcIo.export(dfc_address)
+      render(json: DfcIo.export(dfc_address))
     end
 
     private
@@ -35,12 +35,12 @@ module DfcProvider
           customer_address(address),
           public_enterprise_group_address(address),
           public_enterprise_address(address),
-          managed_enterprise_address(address),
+          managed_enterprise_address(address)
         ].any?(&:exists?)
     end
 
     def user_address(address)
-      return false if current_user.is_a? ApiUser
+      return false if current_user.is_a?(ApiUser)
 
       current_user.ship_address_id == address.id ||
         current_user.bill_address_id == address.id

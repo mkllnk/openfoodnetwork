@@ -1,13 +1,19 @@
 # frozen_string_literal: true
 
-RSpec.describe 'checkout endpoints' do
-  include ShopWorkflow
+RSpec.describe "checkout endpoints" do
+  include(ShopWorkflow)
 
   let!(:shop) { create(:enterprise) }
   let!(:order_cycle) { create(:simple_order_cycle) }
   let!(:exchange) {
-    create(:exchange, order_cycle:, sender: order_cycle.coordinator, receiver: shop,
-                      incoming: false, pickup_time: "Monday")
+    create(
+      :exchange,
+      order_cycle:,
+      sender: order_cycle.coordinator,
+      receiver: shop,
+      incoming: false,
+      pickup_time: "Monday"
+    )
   }
   let!(:line_item) { create(:line_item, order:, quantity: 3, price: 5.00) }
   let!(:payment_method) {
@@ -24,24 +30,28 @@ RSpec.describe 'checkout endpoints' do
 
   before do
     order_cycle_distributed_variants = double(:order_cycle_distributed_variants)
-    allow(OrderCycles::DistributedVariantsService).to receive(:new)
-      .and_return(order_cycle_distributed_variants)
-    allow(order_cycle_distributed_variants).to receive(:distributes_order_variants?)
-      .and_return(true)
+    allow(OrderCycles::DistributedVariantsService).to(
+      receive(:new)
+        .and_return(order_cycle_distributed_variants)
+    )
+    allow(order_cycle_distributed_variants).to(
+      receive(:distributes_order_variants?)
+        .and_return(true)
+    )
 
-    pick_order order
+    pick_order(order)
   end
 
-  context "when getting the cart `/checkout/cart`" do
+  context("when getting the cart `/checkout/cart`") do
     let(:path) { "/checkout/cart" }
 
     it "redirect to the checkout" do
-      get path
-      expect(response.status).to redirect_to("/checkout")
+      get(path)
+      expect(response.status).to(redirect_to("/checkout"))
 
       # follow the redirect
-      get response.redirect_url
-      expect(response.status).to redirect_to("/checkout/details")
+      get(response.redirect_url)
+      expect(response.status).to(redirect_to("/checkout/details"))
     end
   end
 end

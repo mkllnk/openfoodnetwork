@@ -25,7 +25,7 @@ module Admin
         scaled_unit_value,
         precision: nil,
         strip_insignificant_zeros: true,
-        significant: false,
+        significant: false
       )
 
       [precised_unit_value, variant.unit_description].compact_blank.join(" ")
@@ -48,12 +48,14 @@ module Admin
     end
 
     def allowed_source_producers
-      @allowed_source_producers ||= OpenFoodNetwork::Permissions.new(spree_current_user)
+      @allowed_source_producers ||= OpenFoodNetwork::Permissions
+        .new(spree_current_user)
         .enterprises_granting_linked_variants
     end
 
     def managed_product_enterprises
-      @managed_product_enterprises ||= OpenFoodNetwork::Permissions.new(spree_current_user)
+      @managed_product_enterprises ||= OpenFoodNetwork::Permissions
+        .new(spree_current_user)
         .managed_product_enterprises
     end
 

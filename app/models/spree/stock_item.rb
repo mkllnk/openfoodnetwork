@@ -6,10 +6,10 @@ module Spree
 
     acts_as_paranoid
 
-    belongs_to :variant, -> { with_deleted }, class_name: 'Spree::Variant', inverse_of: :stock_items
+    belongs_to :variant, -> { with_deleted }, class_name: "Spree::Variant", inverse_of: :stock_items
 
-    validates :variant_id, uniqueness: { scope: [:deleted_at] }
-    validates :count_on_hand, numericality: { greater_than_or_equal_to: 0, unless: :backorderable? }
+    validates :variant_id, uniqueness: {scope: [:deleted_at]}
+    validates :count_on_hand, numericality: {greater_than_or_equal_to: 0, unless: :backorderable?}
 
     delegate :weight, to: :variant
     delegate :name, to: :variant, prefix: true

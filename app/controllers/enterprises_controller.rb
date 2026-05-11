@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/enterprise_injection_data'
+require "open_food_network/enterprise_injection_data"
 
 class EnterprisesController < BaseController
   layout "darkswarm"
@@ -19,12 +19,12 @@ class EnterprisesController < BaseController
   respond_to :js, only: :permalink_checker
 
   def shop
-    return redirect_to main_app.cart_path unless enough_stock?
+    return redirect_to(main_app.cart_path) unless enough_stock?
 
     set_noindex_meta_tag
 
     @enterprise = current_distributor
-    store_location_for :spree_user, request.original_fullpath
+    store_location_for(:spree_user, request.original_fullpath)
   end
 
   def relatives
@@ -33,23 +33,25 @@ class EnterprisesController < BaseController
     respond_to do |format|
       format.json do
         enterprises = @enterprise&.relatives&.activated
-        render(json: enterprises,
-               each_serializer: Api::EnterpriseSerializer,
-               data: OpenFoodNetwork::EnterpriseInjectionData.new)
+        render(
+          json: enterprises,
+          each_serializer: Api::EnterpriseSerializer,
+          data: OpenFoodNetwork::EnterpriseInjectionData.new
+        )
       end
     end
   end
 
   def check_permalink
-    if Enterprise.find_by permalink: params[:permalink]
+    if Enterprise.find_by(permalink: params[:permalink])
       render(plain: params[:permalink], status: :conflict) && return
     end
 
     begin
-      Rails.application.routes.recognize_path( "/#{params[:permalink]}" )
-      render plain: params[:permalink], status: :conflict
+      Rails.application.routes.recognize_path("/#{params[:permalink]}")
+      render(plain: params[:permalink], status: :conflict)
     rescue ActionController::RoutingError
-      render plain: params[:permalink], status: :ok
+      render(plain: params[:permalink], status: :ok)
     end
   end
 
@@ -76,7 +78,7 @@ class EnterprisesController < BaseController
     order_cart_reset.reset_other!(spree_current_user, current_customer)
   rescue ActiveRecord::RecordNotFound
     flash[:error] = I18n.t(:enterprise_shop_show_error)
-    redirect_to shops_path
+    redirect_to(shops_path)
   end
 
   def set_noindex_meta_tag

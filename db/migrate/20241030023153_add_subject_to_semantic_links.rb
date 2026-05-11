@@ -9,6 +9,6 @@
 class AddSubjectToSemanticLinks < ActiveRecord::Migration[7.0]
   def change
     # We allow `null` until we filled the new columns with existing data.
-    add_reference :semantic_links, :subject, polymorphic: true, null: true
+    add_reference(:semantic_links, :subject, polymorphic: true, null: true)
   end
 end

@@ -11,7 +11,7 @@ class ContentScrubber < Rails::Html::PermitScrubber
   end
 
   def scrub(node)
-    if node.name == 'p' && (node.children.empty? || node.text.blank?)
+    if node.name == "p" && (node.children.empty? || node.text.blank?)
       node.remove
     else
       super

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/column_preference_defaults'
+require "open_food_network/column_preference_defaults"
 
 class ColumnPreference < ApplicationRecord
   extend OpenFoodNetwork::ColumnPreferenceDefaults
@@ -11,10 +11,13 @@ class ColumnPreference < ApplicationRecord
 
   belongs_to :user, class_name: "Spree::User"
 
-  validates :action_name, presence: true, inclusion: { in: proc { known_actions } }
-  validates :column_name, presence: true,
-                          inclusion: { in: proc { |p| valid_columns_for(p.action_name, p.user) } }
-  scope :bulk_edit_product, -> { where(action_name: 'products_v3_index') }
+  validates :action_name, presence: true, inclusion: {in: proc { known_actions }}
+  validates(
+    :column_name,
+    presence: true,
+    inclusion: {in: proc { |p| valid_columns_for(p.action_name, p.user) }}
+  )
+  scope :bulk_edit_product, -> { where(action_name: "products_v3_index") }
 
   def self.for(user, action_name)
     stored_preferences = where(user_id: user.id, action_name:)
@@ -23,13 +26,18 @@ class ColumnPreference < ApplicationRecord
     default_preferences.each_with_object([]) do |(column_name, default_attributes), preferences|
       stored_preference = stored_preferences.find_by(column_name:)
       if stored_preference
-        stored_preference.assign_attributes(default_attributes.select{ |k, _v|
-                                              stored_preference[k].nil?
-                                            } )
+        stored_preference.assign_attributes(
+          default_attributes.select { |k, _v|
+            stored_preference[k].nil?
+          }
+        )
         preferences << stored_preference
       else
-        attributes = default_attributes.merge(user_id: user.id, action_name:,
-                                              column_name:)
+        attributes = default_attributes.merge(
+          user_id: user.id,
+          action_name:,
+          column_name:
+        )
         preferences << ColumnPreference.new(attributes)
       end
     end
@@ -40,13 +48,15 @@ class ColumnPreference < ApplicationRecord
   end
 
   def self.known_actions
-    OpenFoodNetwork::ColumnPreferenceDefaults.private_instance_methods
-      .select{ |m| m.to_s.end_with?("_columns") }.map{ |m| m.to_s.sub /_columns$/, '' }
+    OpenFoodNetwork::ColumnPreferenceDefaults
+      .private_instance_methods
+      .select { |m| m.to_s.end_with?("_columns") }
+      .map { |m| m.to_s.sub(/_columns$/, "") }
   end
 
   # Arbitrary filtering of default_preferences
   def self.filter(default_preferences, user, action_name)
-    return unless action_name == 'order_cycles_index'
+    return unless action_name == "order_cycles_index"
 
     return if user.admin? || user.enterprises.where(enable_subscriptions: true).any?
 
@@ -55,7 +65,7 @@ class ColumnPreference < ApplicationRecord
 
   def self.get_default_preferences(action_name, user)
     case action_name
-    when 'products_v3_index'
+    when "products_v3_index"
       products_v3_index_columns(user)
     else
       __send__("#{action_name}_columns")

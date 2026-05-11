@@ -1,127 +1,129 @@
 Openfoodnetwork::Application.routes.draw do
 
-  root :to => 'home#index'
+  root(:to => "home#index")
 
   # Redirects from old URLs avoid server errors and helps search engines
-  get "/enterprises", to: redirect("/")
-  get "/products", to: redirect("/")
-  get "/products/:id", to: redirect("/")
-  get "/about_us", to: redirect(ContentConfig.footer_about_url)
+  get("/enterprises", to: redirect("/"))
+  get("/products", to: redirect("/"))
+  get("/products/:id", to: redirect("/"))
+  get("/about_us", to: redirect(ContentConfig.footer_about_url))
 
-  get "/login", to: redirect("/#/login")
-  get '/unauthorized', :to => 'home#unauthorized', :as => :unauthorized
+  get("/login", to: redirect("/#/login"))
+  get("/unauthorized", :to => "home#unauthorized", :as => :unauthorized)
 
-  get "/map", to: "map#index", as: :map
-  get "/sell", to: "home#sell", as: :sell
+  get("/map", to: "map#index", as: :map)
+  get("/sell", to: "home#sell", as: :sell)
 
-  get "/register", to: "registration#index", as: :registration
-  get "/register/auth", to: "registration#authenticate", as: :registration_auth
-  resources :locales, only: [:show]
+  get("/register", to: "registration#index", as: :registration)
+  get("/register/auth", to: "registration#authenticate", as: :registration_auth)
+  resources(:locales, only: [:show])
 
   # Redirects to global website
-  get "/connect", to: redirect("https://openfoodnetwork.org/#{ENV['DEFAULT_COUNTRY_CODE']&.downcase}/connect/")
-  get "/learn", to: redirect("https://openfoodnetwork.org/#{ENV['DEFAULT_COUNTRY_CODE']&.downcase}/learn/")
+  get("/connect", to: redirect("https://openfoodnetwork.org/#{ENV["DEFAULT_COUNTRY_CODE"]&.downcase}/connect/"))
+  get("/learn", to: redirect("https://openfoodnetwork.org/#{ENV["DEFAULT_COUNTRY_CODE"]&.downcase}/learn/"))
 
-  get "/cart", :to => "spree/orders#edit", :as => :cart
-  patch "/cart", :to => "spree/orders#update", :as => :update_cart
-  put "/cart/empty", :to => 'spree/orders#empty', :as => :empty_cart
-  get '/orders/:id/token/:token' => 'spree/orders#show', :as => :token_order
-  get '/payments/:id/authorize' => 'payments#redirect_to_authorize', as: "authorize_payment"
+  get("/cart", :to => "spree/orders#edit", :as => :cart)
+  patch("/cart", :to => "spree/orders#update", :as => :update_cart)
+  put("/cart/empty", :to => "spree/orders#empty", :as => :empty_cart)
+  get("/orders/:id/token/:token" => "spree/orders#show", :as => :token_order)
+  get("/payments/:id/authorize" => "payments#redirect_to_authorize", :as => "authorize_payment")
 
   # Well known paths
-  get "/.well-known/dfc/", to: "well_known#dfc"
+  get("/.well-known/dfc/", to: "well_known#dfc")
 
-  resource :cart, controller: "cart" do
-    post :populate
+  resource(:cart, controller: "cart") do
+    post(:populate)
   end
 
-  resource :shop, controller: "shop" do
-    post :order_cycle
-    get :order_cycle
-    get :changeable_orders_alert
+  resource(:shop, controller: "shop") do
+    post(:order_cycle)
+    get(:order_cycle)
+    get(:changeable_orders_alert)
   end
 
-  resources :producers, only: [:index] do
+  resources(:producers, only: [:index]) do
     collection do
-      get :signup
+      get(:signup)
     end
   end
 
-  resources :shops, only: [:index] do
+  resources(:shops, only: [:index]) do
     collection do
-      get :signup
+      get(:signup)
     end
   end
 
-  resources :line_items, only: [:destroy] do
-    get :bought, on: :collection
+  resources(:line_items, only: [:destroy]) do
+    get(:bought, on: :collection)
   end
 
-  resources :groups, only: [:index, :show] do
+  resources(:groups, only: [:index, :show]) do
     collection do
-      get :signup
+      get(:signup)
     end
   end
 
-  namespace :stripe do
-    resources :callbacks, only: [:index]
-    resources :webhooks, only: [:create]
+  namespace(:stripe) do
+    resources(:callbacks, only: [:index])
+    resources(:webhooks, only: [:create])
   end
 
   # Temporary re-routing for any pending Stripe payments still using the old return URLs
-  constraints ->(request) { request["payment_intent"]&.start_with?("pm_") } do
-    match "/checkout", via: :get, controller: "payment_gateways/stripe", action: "confirm"
-    match "/orders/:order_number", via: :get, controller: "payment_gateways/stripe", action: "authorize"
+  constraints(-> (request) { request["payment_intent"]&.start_with?("pm_") }) do
+    match("/checkout", via: :get, controller: "payment_gateways/stripe", action: "confirm")
+    match("/orders/:order_number", via: :get, controller: "payment_gateways/stripe", action: "authorize")
   end
 
-  namespace :payment_gateways do
-    get "/paypal", to: "paypal#express", as: :paypal_express
-    get "/paypal/confirm", to: "paypal#confirm", as: :confirm_paypal
-    get "/paypal/cancel", to: "paypal#cancel", as: :cancel_paypal
+  namespace(:payment_gateways) do
+    get("/paypal", to: "paypal#express", as: :paypal_express)
+    get("/paypal/confirm", to: "paypal#confirm", as: :confirm_paypal)
+    get("/paypal/cancel", to: "paypal#cancel", as: :cancel_paypal)
 
-    get "/stripe/confirm", to: "stripe#confirm", as: :confirm_stripe
-    get "/stripe/authorize/:order_number", to: "stripe#authorize", as: :authorize_stripe
+    get("/stripe/confirm", to: "stripe#confirm", as: :confirm_stripe)
+    get("/stripe/authorize/:order_number", to: "stripe#authorize", as: :authorize_stripe)
 
-    get "/taler/:payment_id", to: "taler#confirm", as: :confirm_taler
+    get("/taler/:payment_id", to: "taler#confirm", as: :confirm_taler)
   end
 
-  get '/checkout', to: 'checkout#edit'
+  get("/checkout", to: "checkout#edit")
 
-  constraints step: /(details|payment|summary)/ do
-    get '/checkout/:step', to: 'checkout#edit', as: :checkout_step
-    put '/checkout/:step', to: 'checkout#update', as: :checkout_update
+  constraints(step: /(details|payment|summary)/) do
+    get("/checkout/:step", to: "checkout#edit", as: :checkout_step)
+    put("/checkout/:step", to: "checkout#update", as: :checkout_update)
   end
 
   # Redirects to the new checkout for any other 'step' (ie. /checkout/cart from the legacy checkout)
-  get '/checkout/:other', to: redirect('/checkout')
+  get("/checkout/:other", to: redirect("/checkout"))
 
-  get 'embedded_shopfront/shopfront_session', to: 'application#shopfront_session'
-  post 'embedded_shopfront/enable', to: 'application#enable_embedded_styles'
-  post 'embedded_shopfront/disable', to: 'application#disable_embedded_styles'
+  get("embedded_shopfront/shopfront_session", to: "application#shopfront_session")
+  post("embedded_shopfront/enable", to: "application#enable_embedded_styles")
+  post("embedded_shopfront/disable", to: "application#disable_embedded_styles")
 
-  resources :enterprises do
+  resources(:enterprises) do
     collection do
-      post :search
-      get :check_permalink
+      post(:search)
+      get(:check_permalink)
     end
 
     member do
-      get :shop
-      get :relatives
+      get(:shop)
+      get(:relatives)
     end
   end
-  get '/:id/shop', to: 'enterprises#shop', as: 'enterprise_shop'
-  get "/enterprises/:permalink", to: redirect("/") # Legacy enterprise URL
 
-  resources :voucher_adjustments, only: [:create, :destroy]
+  get("/:id/shop", to: "enterprises#shop", as: "enterprise_shop")
+  # Legacy enterprise URL
+  get("/enterprises/:permalink", to: redirect("/"))
 
-  get 'sitemap.xml', to: 'sitemap#index', defaults: { format: 'xml' }
+  resources(:voucher_adjustments, only: [:create, :destroy])
+
+  get("sitemap.xml", to: "sitemap#index", defaults: {format: "xml"})
 
   # Mount Spree's routes
-  mount Spree::Core::Engine, :at => '/'
+  mount(Spree::Core::Engine, :at => "/")
 
   # Errors controller
-  match '/404' => 'errors#not_found', via: :all
-  match '/500' => 'errors#internal_server_error', via: :all
-  match '/422' => 'errors#unprocessable_entity', via: :all
+  match("/404" => "errors#not_found", :via => :all)
+  match("/500" => "errors#internal_server_error", :via => :all)
+  match("/422" => "errors#unprocessable_entity", :via => :all)
 end

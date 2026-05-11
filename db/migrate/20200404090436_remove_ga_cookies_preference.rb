@@ -1,9 +1,10 @@
 class RemoveGaCookiesPreference < ActiveRecord::Migration[4.2]
-  class Spree::Preference < ActiveRecord::Base; end
+  class Spree::Preference < ActiveRecord::Base
+  end
 
   def up
     Spree::Preference
-      .where( key: 'spree/app_configuration/cookies_policy_ga_section')
+      .where(key: "spree/app_configuration/cookies_policy_ga_section")
       .destroy_all
   end
 

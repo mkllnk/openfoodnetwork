@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/enterprise_injection_data'
+require "open_food_network/enterprise_injection_data"
 
 module InjectionHelper
   include SerializerHelper
@@ -14,19 +14,24 @@ module InjectionHelper
       "enterprises",
       enterprises,
       Api::EnterpriseSerializer,
-      enterprise_injection_data(enterprises.map(&:id)),
+      enterprise_injection_data(enterprises.map(&:id))
     )
   end
 
   def inject_groups
-    select_only = required_attributes EnterpriseGroup, Api::GroupListSerializer
+    select_only = required_attributes(EnterpriseGroup, Api::GroupListSerializer)
 
     inject_json_array(
       "groups",
-      EnterpriseGroup.on_front_page.by_position.select(select_only).
-        includes(enterprises: [:shipping_methods, { address: [:state, :country] }],
-                 address: :state).
-        all,
+      EnterpriseGroup
+        .on_front_page
+        .by_position
+        .select(select_only)
+        .includes(
+          enterprises: [:shipping_methods, {address: [:state, :country]}],
+          address: :state
+        )
+        .all,
       Api::GroupListSerializer
     )
   end
@@ -40,7 +45,7 @@ module InjectionHelper
   end
 
   def inject_enterprise_shopfront_list
-    select_only = required_attributes Enterprise, Api::EnterpriseShopfrontListSerializer
+    select_only = required_attributes(Enterprise, Api::EnterpriseShopfrontListSerializer)
 
     inject_json_array(
       "enterprises",
@@ -50,16 +55,18 @@ module InjectionHelper
   end
 
   def inject_enterprise_and_relatives
-    enterprises_and_relatives = current_distributor.
-      relatives_including_self.
-      activated.
-      includes(:properties, address: [:state, :country], supplied_products: :properties).
-      all
+    enterprises_and_relatives = current_distributor
+      .relatives_including_self
+      .activated
+      .includes(:properties, address: [:state, :country], supplied_products: :properties)
+      .all
 
-    inject_json_array "enterprises",
-                      enterprises_and_relatives,
-                      Api::EnterpriseSerializer,
-                      enterprise_injection_data(enterprises_and_relatives.map(&:id))
+    inject_json_array(
+      "enterprises",
+      enterprises_and_relatives,
+      Api::EnterpriseSerializer,
+      enterprise_injection_data(enterprises_and_relatives.map(&:id))
+    )
   end
 
   def inject_group_enterprises(group)
@@ -68,77 +75,85 @@ module InjectionHelper
       "enterprises",
       enterprises,
       Api::EnterpriseSerializer,
-      enterprise_injection_data(enterprises.map(&:id)),
+      enterprise_injection_data(enterprises.map(&:id))
     )
   end
 
   def inject_current_hub
-    inject_json "currentHub",
-                current_distributor,
-                Api::EnterpriseSerializer,
-                enterprise_injection_data(current_distributor ? [current_distributor.id] : nil)
+    inject_json(
+      "currentHub",
+      current_distributor,
+      Api::EnterpriseSerializer,
+      enterprise_injection_data(current_distributor ? [current_distributor.id] : nil)
+    )
   end
 
   def inject_current_order
-    inject_json "currentOrder",
-                current_order,
-                Api::CurrentOrderSerializer,
-                current_distributor:,
-                current_order_cycle:
+    inject_json(
+      "currentOrder",
+      current_order,
+      Api::CurrentOrderSerializer,
+      current_distributor:,
+      current_order_cycle:
+    )
   end
 
   def inject_current_order_cycle
     serializer = Api::OrderCycleSerializer.new(current_order_cycle)
     json = serializer.object.present? ? serializer.to_json : "{}"
-    render partial: "json/injection_ams", locals: { name: "orderCycleData", json: }
+    render(partial: "json/injection_ams", locals: {name: "orderCycleData", json:})
   end
 
   def inject_taxons
-    inject_json_array "taxons", Spree::Taxon.all.to_a, Api::TaxonSerializer
+    inject_json_array("taxons", Spree::Taxon.all.to_a, Api::TaxonSerializer)
   end
 
   def inject_properties
-    inject_json_array "properties", Spree::Property.all.to_a, Api::PropertySerializer
+    inject_json_array("properties", Spree::Property.all.to_a, Api::PropertySerializer)
   end
 
   def inject_currency_config
-    inject_json "currencyConfig", {}, Api::CurrencyConfigSerializer
+    inject_json("currencyConfig", {}, Api::CurrencyConfigSerializer)
   end
 
   def inject_open_street_map_config
-    inject_json "openStreetMapConfig", {}, Api::OpenStreetMapConfigSerializer
+    inject_json("openStreetMapConfig", {}, Api::OpenStreetMapConfigSerializer)
   end
 
   def inject_spree_api_key(spree_api_key)
-    render partial: "json/injection_ams",
-           locals: { name: 'spreeApiKey', json: "'#{spree_api_key}'" }
+    render(
+      partial: "json/injection_ams",
+      locals: {name: "spreeApiKey", json: "'#{spree_api_key}'"}
+    )
   end
 
   def inject_available_countries
-    inject_json_array "availableCountries", available_countries, Api::CountrySerializer
+    inject_json_array("availableCountries", available_countries, Api::CountrySerializer)
   end
 
   def inject_enterprise_attributes(enterprise_attributes)
-    render partial: "json/injection_ams",
-           locals: { name: 'enterpriseAttributes', json: enterprise_attributes.to_json }
+    render(
+      partial: "json/injection_ams",
+      locals: {name: "enterpriseAttributes", json: enterprise_attributes.to_json}
+    )
   end
 
   def inject_saved_credit_cards
     data = spree_current_user ? spree_current_user.credit_cards.with_payment_profile.all : []
 
-    inject_json_array "savedCreditCards", data, Api::CreditCardSerializer
+    inject_json_array("savedCreditCards", data, Api::CreditCardSerializer)
   end
 
   def inject_current_user
-    inject_json "user", spree_current_user, Api::UserSerializer
+    inject_json("user", spree_current_user, Api::UserSerializer)
   end
 
   def inject_rails_flash
-    inject_json "railsFlash", OpenStruct.new(flash.to_hash), Api::RailsFlashSerializer
+    inject_json("railsFlash", OpenStruct.new(flash.to_hash), Api::RailsFlashSerializer)
   end
 
   def inject_json_array(name, data, serializer, opts = {})
-    opts = { each_serializer: serializer }.merge(opts)
+    opts = {each_serializer: serializer}.merge(opts)
     serializer = ActiveModel::ArraySerializer
 
     inject_json(name, data, serializer, opts)
@@ -147,7 +162,7 @@ module InjectionHelper
   def inject_json(name, data, serializer, opts = {})
     serializer_instance = serializer.new(data, opts)
     json = serializer_instance.to_json
-    render partial: "json/injection_ams", locals: { name:, json: }
+    render(partial: "json/injection_ams", locals: {name:, json:})
   end
 
   private

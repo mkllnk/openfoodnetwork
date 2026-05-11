@@ -7,10 +7,10 @@ module Api
 
     let(:admin_user) { create(:admin_user) }
     let(:enterprise_owner) { create(:user) }
-    let(:enterprise) { create(:enterprise, owner: enterprise_owner ) }
+    let(:enterprise) { create(:enterprise, owner: enterprise_owner) }
     let(:enterprise_manager) { create(:user, enterprise_limit: 10, enterprises: [enterprise]) }
     let(:other_enterprise_owner) { create(:user) }
-    let(:other_enterprise) { create(:enterprise, owner: other_enterprise_owner ) }
+    let(:other_enterprise) { create(:enterprise, owner: other_enterprise_owner) }
     let(:other_enterprise_manager) {
       create(:user, enterprise_limit: 10, enterprises: [other_enterprise])
     }
@@ -43,7 +43,7 @@ module Api
             spree_delete :destroy, enterprise_id: enterprise
 
             expect(response).to have_http_status(:conflict)
-            expect(json_response['error']).to eq 'Logo does not exist'
+            expect(json_response["error"]).to eq "Logo does not exist"
           end
         end
       end

@@ -64,6 +64,7 @@ class IntegerArrayValidator < ActiveModel::EachValidator
     array.each do |element|
       Integer(element)
     end
+
   rescue ArgumentError
     record.errors.add(attribute, IntegerArrayValidator.invalid_element_error)
   end

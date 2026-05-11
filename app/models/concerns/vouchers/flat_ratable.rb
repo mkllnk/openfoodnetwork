@@ -7,9 +7,11 @@ module Vouchers
     extend ActiveSupport::Concern
 
     included do
-      validates :amount,
-                presence: true,
-                numericality: { greater_than: 0 }
+      validates(
+        :amount,
+        presence: true,
+        numericality: {greater_than: 0}
+      )
     end
 
     def display_value

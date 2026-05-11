@@ -29,7 +29,7 @@ module Reporting
       default_values = {
         header_class: "h2",
         summary_row_class: "text-bold",
-        summary_row_label: I18n.t('admin.reports.total')
+        summary_row_label: I18n.t("admin.reports.total")
       }
       rule.reverse_merge(default_values)
     end
@@ -44,6 +44,7 @@ module Reporting
       when proc { |r| r.is_a?(Array) }
         handle_shortcut_header_array(rule)
       end
+
       rule[:fields_used_in_header] ||= [rule[:group_by]] if rule[:group_by].is_a?(Symbol)
     end
 
@@ -59,7 +60,7 @@ module Reporting
       rule[:fields_used_in_header] ||= rule[:header]
       fields = rule[:header]
       rule[:header] = proc do |_key, _items, rows|
-        fields.map { |field| rows.first[field] }.compact_blank.join(' ')
+        fields.map { |field| rows.first[field] }.compact_blank.join(" ")
       end
     end
   end

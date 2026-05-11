@@ -85,7 +85,7 @@ class JsonApiSchema
     end
 
     def get_attributes(extra_fields_result)
-      if [extra_fields_result, attributes].all?{ |obj| obj.respond_to?(:merge) }
+      if [extra_fields_result, attributes].all? { |obj| obj.respond_to?(:merge) }
         attributes.merge(extra_fields_result)
       else
         attributes

@@ -6,7 +6,7 @@ RSpec.describe Vine::JwtService do
     let(:vine_secret) { "some_secret" }
 
     it "generate a jwt token" do
-      expect(subject.generate_token).to be_a String
+      expect(subject.generate_token).to(be_a(String))
     end
 
     it "includes issuing body" do
@@ -14,7 +14,7 @@ RSpec.describe Vine::JwtService do
 
       payload = decode(token, vine_secret)
 
-      expect(payload["iss"]).to eq("openfoodnetwork")
+      expect(payload["iss"]).to(eq("openfoodnetwork"))
     end
 
     it "includes issuing time" do
@@ -24,7 +24,7 @@ RSpec.describe Vine::JwtService do
 
         payload = decode(token, vine_secret)
 
-        expect(payload["iat"].to_i).to eq(generate_time.to_i)
+        expect(payload["iat"].to_i).to(eq(generate_time.to_i))
       end
     end
 
@@ -35,16 +35,19 @@ RSpec.describe Vine::JwtService do
 
         payload = decode(token, vine_secret)
 
-        expect(payload["exp"].to_i).to eq((generate_time + 1.minute).to_i)
+        expect(payload["exp"].to_i).to(eq((generate_time + 1.minute).to_i))
       end
     end
   end
 
   def decode(token, secret)
-    JWT.decode(
-      token,
-      secret,
-      true, { algorithm: "HS256" }
-    ).first
+    JWT
+      .decode(
+        token,
+        secret,
+        true,
+        {algorithm: "HS256"}
+      )
+      .first
   end
 end

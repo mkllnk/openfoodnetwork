@@ -4,8 +4,10 @@ module Calculator
   class FlatPercentItemTotal < Spree::Calculator
     preference :flat_percent, :decimal, default: 0
 
-    validates :preferred_flat_percent,
-              numericality: true
+    validates(
+      :preferred_flat_percent,
+      numericality: true
+    )
 
     def self.description
       Spree.t(:flat_percent)

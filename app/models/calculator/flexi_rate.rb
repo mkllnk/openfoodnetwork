@@ -2,13 +2,15 @@
 
 module Calculator
   class FlexiRate < Spree::Calculator
-    preference :first_item,      :decimal, default: 0.0
+    preference :first_item, :decimal, default: 0.0
     preference :additional_item, :decimal, default: 0.0
-    preference :max_items,       :integer, default: 0
+    preference :max_items, :integer, default: 0
 
-    validates :preferred_first_item,
-              :preferred_additional_item,
-              numericality: true
+    validates(
+      :preferred_first_item,
+      :preferred_additional_item,
+      numericality: true
+    )
 
     def self.description
       I18n.t(:flexible_rate)

@@ -5,12 +5,43 @@ module Api
   class EnterpriseShopfrontSerializer < ActiveModel::Serializer
     include SerializerHelper
 
-    attributes :name, :id, :description, :latitude, :longitude, :long_description, :website,
-               :instagram, :linkedin, :twitter, :facebook, :is_primary_producer, :is_distributor,
-               :phone, :whatsapp_phone, :whatsapp_url, :visible, :email_address, :hash, :logo,
-               :promo_image, :path, :category, :active, :producers, :orders_close_at, :hubs,
-               :taxons, :supplied_taxons, :pickup, :delivery, :preferred_product_low_stock_display,
-               :hide_ofn_navigation, :white_label_logo, :white_label_logo_link
+    attributes(
+      :name,
+      :id,
+      :description,
+      :latitude,
+      :longitude,
+      :long_description,
+      :website,
+      :instagram,
+      :linkedin,
+      :twitter,
+      :facebook,
+      :is_primary_producer,
+      :is_distributor,
+      :phone,
+      :whatsapp_phone,
+      :whatsapp_url,
+      :visible,
+      :email_address,
+      :hash,
+      :logo,
+      :promo_image,
+      :path,
+      :category,
+      :active,
+      :producers,
+      :orders_close_at,
+      :hubs,
+      :taxons,
+      :supplied_taxons,
+      :pickup,
+      :delivery,
+      :preferred_product_low_stock_display,
+      :hide_ofn_navigation,
+      :white_label_logo,
+      :white_label_logo_link
+    )
 
     has_one :address, serializer: Api::AddressSerializer
     has_many :supplied_properties, serializer: Api::PropertySerializer
@@ -21,16 +52,15 @@ module Api
     end
 
     def active
-      @active ||=
-        enterprise.ready_for_checkout? && OrderCycle.active.with_distributor(enterprise).exists?
+      @active ||= enterprise.ready_for_checkout? && OrderCycle.active.with_distributor(enterprise).exists?
     end
 
     def pickup
-      shipping_types? :pickup
+      shipping_types?(:pickup)
     end
 
     def delivery
-      shipping_types? :delivery
+      shipping_types?(:delivery)
     end
 
     def email_address
@@ -68,7 +98,8 @@ module Api
 
     def hubs
       ActiveModel::ArraySerializer.new(
-        enterprise.distributors.not_hidden, each_serializer: Api::EnterpriseThinSerializer
+        enterprise.distributors.not_hidden,
+        each_serializer: Api::EnterpriseThinSerializer
       )
     end
 
@@ -76,7 +107,8 @@ module Api
       taxons = active ? enterprise.current_distributed_taxons : enterprise.distributed_taxons
 
       ActiveModel::ArraySerializer.new(
-        taxons, each_serializer: Api::TaxonSerializer
+        taxons,
+        each_serializer: Api::TaxonSerializer
       )
     end
 
@@ -84,7 +116,8 @@ module Api
       return [] unless enterprise.is_primary_producer
 
       ActiveModel::ArraySerializer.new(
-        enterprise.supplied_taxons, each_serializer: Api::TaxonSerializer
+        enterprise.supplied_taxons,
+        each_serializer: Api::TaxonSerializer
       )
     end
 
@@ -103,10 +136,11 @@ module Api
     end
 
     def distributed_product_properties
-      properties = Spree::Property.joins(products: { variants: { exchanges: :order_cycle } })
+      properties = Spree::Property
+        .joins(products: {variants: {exchanges: :order_cycle}})
         .merge(Exchange.outgoing)
         .merge(Exchange.to_enterprise(enterprise))
-        .select('DISTINCT spree_properties.*')
+        .select("DISTINCT spree_properties.*")
 
       return properties.merge(OrderCycle.active) if active
 
@@ -114,13 +148,15 @@ module Api
     end
 
     def distributed_producer_properties
-      properties = Spree::Property.joins(
-        producer_properties: {
-          producer: { supplied_products: { variants: { exchanges: :order_cycle } } }
-        }
-      )
-        .merge(Exchange.outgoing).merge(Exchange.to_enterprise(enterprise))
-        .select('DISTINCT spree_properties.*')
+      properties = Spree::Property
+        .joins(
+          producer_properties: {
+            producer: {supplied_products: {variants: {exchanges: :order_cycle}}}
+          }
+        )
+        .merge(Exchange.outgoing)
+        .merge(Exchange.to_enterprise(enterprise))
+        .select("DISTINCT spree_properties.*")
 
       return properties.merge(OrderCycle.active) if active
 
@@ -142,11 +178,12 @@ module Api
     end
 
     def shipping_types?(type)
-      require_shipping = type == :delivery ? 't' : 'f'
-      Spree::ShippingMethod.
-        joins(:distributor_shipping_methods).
-        where(distributors_shipping_methods: { distributor_id: enterprise.id }).
-        where("spree_shipping_methods.require_ship_address = '#{require_shipping}'").exists?
+      require_shipping = type == :delivery ? "t" : "f"
+      Spree::ShippingMethod
+        .joins(:distributor_shipping_methods)
+        .where(distributors_shipping_methods: {distributor_id: enterprise.id})
+        .where("spree_shipping_methods.require_ship_address = '#{require_shipping}'")
+        .exists?
     end
   end
 end

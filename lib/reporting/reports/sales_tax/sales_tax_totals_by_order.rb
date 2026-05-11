@@ -22,7 +22,8 @@ module Reporting
           # We'll group the line items by
           # [tax_rate_id, order_id]
           orders = report_line_items.list.map(&:order).uniq
-          orders.flat_map(&join_tax_rate)
+          orders
+            .flat_map(&join_tax_rate)
             .group_by(&group_key)
             .map(&change_root_to_order)
         end
@@ -69,7 +70,7 @@ module Reporting
             first_name: :first_name,
             last_name: :last_name,
             code: :code,
-            email: :email,
+            email: :email
           }
         end
 
@@ -82,10 +83,10 @@ module Reporting
         def rules
           [
             {
-              group_by: :distributor,
+              group_by: :distributor
             },
             {
-              group_by: :order_cycle,
+              group_by: :order_cycle
             },
             {
               group_by: :order_number,
@@ -153,10 +154,12 @@ module Reporting
 
         # filtered tax total, relevant when there are more than one tax rate
         def filtered_tax_rate_total(query_result_row)
-          order(query_result_row).all_adjustments
+          order(query_result_row)
+            .all_adjustments
             .tax
             .where(originator_id: tax_rate_id(query_result_row))
-            .pick('sum(amount)') || 0
+            .pick("sum(amount)") ||
+            0
         end
 
         def voucher_tax_adjustment(order)
@@ -192,7 +195,8 @@ module Reporting
         end
 
         def tax_rates(query_result_row)
-          order(query_result_row).all_adjustments
+          order(query_result_row)
+            .all_adjustments
             .tax
             .select("distinct(originator_id)", "originator_type")
             .map(&:originator)

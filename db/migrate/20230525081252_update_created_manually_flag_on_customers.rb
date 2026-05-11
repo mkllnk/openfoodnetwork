@@ -6,7 +6,7 @@ class UpdateCreatedManuallyFlagOnCustomers < ActiveRecord::Migration[7.0]
   end
 
   class Order < ApplicationRecord
-    self.table_name = 'spree_orders'
+    self.table_name = "spree_orders"
   end
 
   def up

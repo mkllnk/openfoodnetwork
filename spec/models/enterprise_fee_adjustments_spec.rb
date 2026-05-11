@@ -6,10 +6,10 @@ RSpec.describe EnterpriseFeeAdjustments do
   let(:line_item2) { create(:line_item) }
   let(:enterprise_fee) { create(:enterprise_fee, tax_category: tax_rate.tax_category) }
   let(:fee_adjustment) {
-    create( :adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
+    create(:adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
   }
   let(:fee_adjustment2) {
-    create( :adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
+    create(:adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
   }
 
   describe "#total_additional_tax" do
@@ -33,18 +33,18 @@ RSpec.describe EnterpriseFeeAdjustments do
 
       enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment, fee_adjustment2])
 
-      expect(enterprise_fee_adjustments.total_additional_tax).to eq(15.0)
+      expect(enterprise_fee_adjustments.total_additional_tax).to(eq(15.0))
     end
 
-    context "with no tax adjustment" do
+    context("with no tax adjustment") do
       it "returns 0.0" do
         enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment])
 
-        expect(enterprise_fee_adjustments.total_additional_tax).to eq(0.0)
+        expect(enterprise_fee_adjustments.total_additional_tax).to(eq(0.0))
       end
     end
 
-    context "with tax included in price" do
+    context("with tax included in price") do
       it "returns 0.0" do
         create(
           :adjustment,
@@ -57,7 +57,7 @@ RSpec.describe EnterpriseFeeAdjustments do
 
         enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment])
 
-        expect(enterprise_fee_adjustments.total_additional_tax).to eq(0.0)
+        expect(enterprise_fee_adjustments.total_additional_tax).to(eq(0.0))
       end
     end
   end
@@ -83,18 +83,18 @@ RSpec.describe EnterpriseFeeAdjustments do
 
       enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment, fee_adjustment2])
 
-      expect(enterprise_fee_adjustments.total_included_tax).to eq(15.0)
+      expect(enterprise_fee_adjustments.total_included_tax).to(eq(15.0))
     end
 
-    context "with no tax adjustment" do
+    context("with no tax adjustment") do
       it "returns 0.0" do
         enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment])
 
-        expect(enterprise_fee_adjustments.total_additional_tax).to eq(0.0)
+        expect(enterprise_fee_adjustments.total_additional_tax).to(eq(0.0))
       end
     end
 
-    context "with tax excluded from price" do
+    context("with tax excluded from price") do
       it "returns 0.0" do
         create(
           :adjustment,
@@ -107,7 +107,7 @@ RSpec.describe EnterpriseFeeAdjustments do
 
         enterprise_fee_adjustments = EnterpriseFeeAdjustments.new([fee_adjustment])
 
-        expect(enterprise_fee_adjustments.total_included_tax).to eq(0.0)
+        expect(enterprise_fee_adjustments.total_included_tax).to(eq(0.0))
       end
     end
   end

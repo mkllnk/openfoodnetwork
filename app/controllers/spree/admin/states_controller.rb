@@ -3,13 +3,13 @@
 module Spree
   module Admin
     class StatesController < ::Admin::ResourceController
-      belongs_to 'spree/country'
+      belongs_to "spree/country"
       before_action :load_data
 
       def index
         respond_with(@collection) do |format|
           format.html
-          format.js { render partial: 'state_list' }
+          format.js { render(partial: "state_list") }
         end
       end
 

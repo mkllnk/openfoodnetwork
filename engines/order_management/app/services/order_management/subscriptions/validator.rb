@@ -56,7 +56,7 @@ module OrderManagement
 
       def payment_method_type_allowed?
         return false unless payment_method
-        return false if Subscription::ALLOWED_PAYMENT_METHOD_TYPES.include? payment_method.type
+        return false if Subscription::ALLOWED_PAYMENT_METHOD_TYPES.include?(payment_method.type)
 
         errors.add(:payment_method, :invalid_type)
       end
@@ -97,9 +97,11 @@ module OrderManagement
       end
 
       def subscription_line_items_present?
-        return false if subscription_line_items.any? { |sli|
-          sli.quantity > 0 && !sli.marked_for_destruction?
-        }
+        if subscription_line_items.any? { |sli|
+            sli.quantity > 0 && !sli.marked_for_destruction?
+          }
+          return false
+        end
 
         errors.add(:subscription_line_items, :at_least_one_product)
       end
@@ -113,7 +115,7 @@ module OrderManagement
       end
 
       def verify_availability_of(variant)
-        return if available_variant_ids.include? variant.id
+        return if available_variant_ids.include?(variant.id)
 
         name = "#{variant.product.name} - #{variant.full_name}"
         errors.add(:subscription_line_items, :not_available, name:)
@@ -124,7 +126,9 @@ module OrderManagement
 
         subscription_variant_ids = subscription_line_items.map(&:variant_id)
         @available_variant_ids = OrderManagement::Subscriptions::VariantsList
-          .eligible_variants(shop).where(id: subscription_variant_ids).pluck(:id)
+          .eligible_variants(shop)
+          .where(id: subscription_variant_ids)
+          .pluck(:id)
       end
 
       def build_msg_from(key, msg)

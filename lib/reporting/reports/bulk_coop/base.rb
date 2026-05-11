@@ -57,10 +57,12 @@ module Reporting
         end
 
         def max_quantity_amount(line_items)
-          line_items.map do |line_item|
-            max_quantity = [line_item.max_quantity || 0, line_item.quantity || 0].max
-            max_quantity * scaled_unit_value(line_item.variant)
-          end.sum(&:to_i)
+          line_items
+            .map do |line_item|
+              max_quantity = [line_item.max_quantity || 0, line_item.quantity || 0].max
+              max_quantity * scaled_unit_value(line_item.variant)
+            end
+            .sum(&:to_i)
         end
 
         def scaled_unit_value(variant)
@@ -90,13 +92,16 @@ module Reporting
 
         def remainder(line_items)
           remainder = total_available(line_items) - total_amount(line_items)
-          remainder >= 0 ? remainder : ''
+          remainder >= 0 ? remainder : ""
         end
 
         def total_amount(line_items)
-          line_items.map { |li|
-            scaled_final_weight_volume(li)
-          }.sum(&:to_f).round(3)
+          line_items
+            .map { |li|
+              scaled_final_weight_volume(li)
+            }
+            .sum(&:to_f)
+            .round(3)
         end
 
         def scaled_final_weight_volume(line_item)
@@ -111,7 +116,7 @@ module Reporting
           if group_buy_unit_size(line_items).zero?
             0
           else
-            ( total_amount(line_items) / group_buy_unit_size(line_items) ).ceil
+            (total_amount(line_items) / group_buy_unit_size(line_items)).ceil
           end
         end
 

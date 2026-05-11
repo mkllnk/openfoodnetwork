@@ -8,14 +8,19 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
   let(:enterprise) {
     create(
       :distributor_enterprise,
-      id: 10_000, owner: user, name: "Fred's Farm", description: "Beautiful",
-      address: build(:address, id: 40_000),
+      id: 10_000,
+      owner: user,
+      name: "Fred's Farm",
+      description: "Beautiful",
+      address: build(:address, id: 40_000)
     )
   }
   let(:product) {
     create(
       :base_product,
-      id: 90_000, name: "Apple", description: "Red",
+      id: 90_000,
+      name: "Apple",
+      description: "Red",
       variants: [variant],
       primary_taxon: non_local_vegetable
     )
@@ -29,98 +34,105 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
   }
   let(:variant) { build(:base_variant, id: 10_001, unit_value: 1, sku: "AR", supplier: enterprise) }
 
-  before { login_as user }
+  before { login_as(user) }
 
-  path "/api/dfc/enterprises/{enterprise_id}/catalog_items" do
-    parameter name: :enterprise_id, in: :path, type: :string
+  path("/api/dfc/enterprises/{enterprise_id}/catalog_items") do
+    parameter(name: :enterprise_id, in: :path, type: :string)
 
-    get "List CatalogItems" do
-      produces "application/json"
-      security [{ oidc_token: [] }]
+    get("List CatalogItems") do
+      produces("application/json")
+      security([{oidc_token: []}])
 
-      response "404", "not found" do
-        context "as platform user" do
-          include_context "authenticated as platform"
+      response("404", "not found") do
+        context("as platform user") do
+          include_context("authenticated as platform")
           let(:enterprise_id) { 10_000 }
           run_test!
         end
 
-        context "without enterprises" do
+        context("without enterprises") do
           let(:enterprise_id) { "default" }
 
           run_test!
         end
 
-        context "with unrelated enterprise" do
+        context("with unrelated enterprise") do
           let(:enterprise_id) { create(:enterprise).id }
 
           run_test!
         end
       end
 
-      response "200", "success" do
+      response("200", "success") do
         before { product }
 
-        context "as platform user" do
-          include_context "authenticated as platform"
+        context("as platform user") do
+          include_context("authenticated as platform")
 
           let(:enterprise_id) { 10_000 }
 
           before {
             DfcPermission.create!(
-              user:, enterprise_id:,
-              scope: "ReadEnterprise", grantee: "cqcm-dev",
+              user:,
+              enterprise_id:,
+              scope: "ReadEnterprise",
+              grantee: "cqcm-dev"
             )
             DfcPermission.create!(
-              user:, enterprise_id:,
-              scope: "ReadProducts", grantee: "cqcm-dev",
+              user:,
+              enterprise_id:,
+              scope: "ReadProducts",
+              grantee: "cqcm-dev"
             )
           }
 
           run_test!
         end
 
-        context "with a second enterprise" do
+        context("with a second enterprise") do
           let(:enterprise_id) { 10_000 }
 
           before do
             create(
               :distributor_enterprise,
-              id: 10_001, owner: user, name: "Fred's Icecream", description: "Yum",
-              address: build(:address, id: 40_001),
+              id: 10_001,
+              owner: user,
+              name: "Fred's Icecream",
+              description: "Yum",
+              address: build(:address, id: 40_001)
             )
           end
 
           run_test! do
-            expect(response.body).to include "Apple"
-            expect(response.body).not_to include "Icecream"
+            expect(response.body).to(include("Apple"))
+            expect(response.body).not_to(include("Icecream"))
           end
         end
 
-        context "with default enterprise id" do
+        context("with default enterprise id") do
           let(:enterprise_id) { "default" }
 
           run_test! do
-            expect(response.body).to include "Apple"
-            expect(response.body).to include "AR"
-            expect(response.body).to include "offers/10001"
+            expect(response.body).to(include("Apple"))
+            expect(response.body).to(include("AR"))
+            expect(response.body).to(include("offers/10001"))
           end
         end
 
-        context "with given enterprise id" do
+        context("with given enterprise id") do
           let(:enterprise_id) { 10_000 }
 
           run_test! do
-            expect(response.body).to include "Apple"
-            expect(response.body).to include "AR"
-            expect(response.body).to include "offers/10001"
+            expect(response.body).to(include("Apple"))
+            expect(response.body).to(include("AR"))
+            expect(response.body).to(include("offers/10001"))
           end
         end
       end
 
-      response "401", "unauthorized" do
-        context "as platform user" do
-          include_context "authenticated as platform"
+      response("401", "unauthorized") do
+        context("as platform user") do
+          include_context("authenticated as platform")
 
           let(:enterprise_id) { 10_000 }
 
@@ -128,8 +140,10 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
             product
 
             DfcPermission.create!(
-              user:, enterprise_id:,
-              scope: "ReadEnterprise", grantee: "cqcm-dev",
+              user:,
+              enterprise_id:,
+              scope: "ReadEnterprise",
+              grantee: "cqcm-dev"
             )
             # But no ReadProducts permission.
           }
@@ -137,10 +151,10 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
           run_test!
         end
 
-        context "without authorisation" do
+        context("without authorisation") do
           let(:enterprise_id) { "default" }
 
-          before { login_as nil }
+          before { login_as(nil) }
 
           run_test!
         end
@@ -148,26 +162,26 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
     end
   end
 
-  path "/api/dfc/enterprises/{enterprise_id}/catalog_items/{id}" do
-    parameter name: :enterprise_id, in: :path, type: :string
-    parameter name: :id, in: :path, type: :string
+  path("/api/dfc/enterprises/{enterprise_id}/catalog_items/{id}") do
+    parameter(name: :enterprise_id, in: :path, type: :string)
+    parameter(name: :id, in: :path, type: :string)
 
-    get "Show CatalogItem" do
-      produces "application/json"
+    get("Show CatalogItem") do
+      produces("application/json")
 
       before { product }
 
-      response "200", "success" do
+      response("200", "success") do
         let(:enterprise_id) { 10_000 }
         let(:id) { 10_001 }
 
         run_test! do
-          expect(response.body).to include "dfc-b:CatalogItem"
-          expect(response.body).to include "offers/10001"
+          expect(response.body).to(include("dfc-b:CatalogItem"))
+          expect(response.body).to(include("offers/10001"))
         end
       end
 
-      response "404", "not found" do
+      response("404", "not found") do
         let(:enterprise_id) { 10_000 }
         let(:id) { create(:variant).id }
 
@@ -175,16 +189,20 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
       end
     end
 
-    put "Update CatalogItem" do
-      consumes "application/json"
+    put("Update CatalogItem") do
+      consumes("application/json")
 
-      parameter name: :catalog_item, in: :body, schema: {
-        example: ExampleJson.read("patch_catalog_item")
-      }
+      parameter(
+        name: :catalog_item,
+        in: :body,
+        schema: {
+          example: ExampleJson.read("patch_catalog_item")
+        }
+      )
 
       before { product }
 
-      response "204", "no content" do
+      response("204", "no content") do
         let(:enterprise_id) { 10_000 }
         let(:id) { 10_001 }
         let(:catalog_item) do |example|
@@ -195,8 +213,12 @@ RSpec.describe "CatalogItems", swagger_doc: "dfc.yaml" do
           expect {
             submit_request(example.metadata)
             variant.reload
-          }.to change { variant.on_hand }.to(3)
-            .and change { variant.sku }.to("new-sku")
+          }
+            .to(
+              change { variant.on_hand }
+                .to(3)
+                .and(change { variant.sku }.to("new-sku"))
+            )
         end
       end
     end

@@ -6,24 +6,24 @@ module DfcProvider
       def create
         group = EnterpriseGroup.find(params[:enterprise_group_id])
 
-        authorize! :update, group
+        authorize!(:update, group)
 
         enterprise_uri = RDF::URI.new(params[:@id])
 
-        return head :bad_request unless enterprise_uri.valid?
+        return head(:bad_request) unless enterprise_uri.valid?
 
         enterprise_id = ofn_id_from_uri(enterprise_uri)
         enterprise = Enterprise.find(enterprise_id)
 
         group.enterprises << enterprise
 
-        head :created
+        head(:created)
       end
 
       def destroy
         group = EnterpriseGroup.find(params[:enterprise_group_id])
 
-        authorize! :update, group
+        authorize!(:update, group)
 
         group.enterprises.delete(params[:id])
       end

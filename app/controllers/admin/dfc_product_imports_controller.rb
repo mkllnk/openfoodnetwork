@@ -22,20 +22,20 @@ module Admin
       @items = list_products(catalog)
       @absent_items = importer(catalog).absent_variants
     rescue URI::InvalidURIError
-      flash[:error] = t ".invalid_url"
-      redirect_to admin_product_import_path
+      flash[:error] = t(".invalid_url")
+      redirect_to(admin_product_import_path)
     rescue Faraday::Error,
-           Addressable::URI::InvalidURIError,
-           ActionController::ParameterMissing => e
+      Addressable::URI::InvalidURIError,
+      ActionController::ParameterMissing => e
       flash[:error] = e.message
-      redirect_to admin_product_import_path
+      redirect_to(admin_product_import_path)
     rescue Rack::OAuth2::Client::Error
       oidc_settings_link = helpers.link_to(
-        t('spree.admin.tab.oidc_settings'),
+        t("spree.admin.tab.oidc_settings"),
         admin_oidc_settings_path
       )
       flash[:error] = t(".connection_invalid_html", oidc_settings_link:)
-      redirect_to admin_product_import_path
+      redirect_to(admin_product_import_path)
     end
 
     def import
@@ -61,7 +61,7 @@ module Admin
       @reset_count = importer(catalog).reset_absent_variants.count
     rescue ActionController::ParameterMissing => e
       flash[:error] = e.message
-      redirect_to admin_product_import_path
+      redirect_to(admin_product_import_path)
     end
 
     private
@@ -71,8 +71,10 @@ module Admin
     end
 
     def load_enterprise
-      @enterprise = OpenFoodNetwork::Permissions.new(spree_current_user)
-        .managed_product_enterprises.is_primary_producer
+      @enterprise = OpenFoodNetwork::Permissions
+        .new(spree_current_user)
+        .managed_product_enterprises
+        .is_primary_producer
         .find(params.require(:enterprise_id))
     end
 

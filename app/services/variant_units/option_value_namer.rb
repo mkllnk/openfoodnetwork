@@ -11,12 +11,12 @@ module VariantUnits
 
     def name
       value, unit = option_value_value_unit
-      separator = value_scaled? ? '' : ' '
+      separator = value_scaled? ? "" : " "
 
       name_fields = []
       name_fields << "#{value}#{separator}#{unit}" if value.present? && unit.present?
       name_fields << @nameable.unit_description if @nameable.unit_description.present?
-      name_fields.join ' '
+      name_fields.join(" ")
     end
 
     def value
@@ -37,7 +37,7 @@ module VariantUnits
 
     def option_value_value_unit
       if @nameable.unit_value.present?
-        if %w(weight volume).include? @nameable.variant_unit
+        if %w[weight volume].include?(@nameable.variant_unit)
           value, unit_name = option_value_value_unit_scaled
         else
           value = @nameable.unit_value

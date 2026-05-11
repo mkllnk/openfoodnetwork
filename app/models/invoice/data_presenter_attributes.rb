@@ -18,10 +18,14 @@ class Invoice
           instance_variable = instance_variable_get("@#{attribute}")
           return instance_variable if instance_variable
 
-          instance_variable_set("@#{attribute}",
-                                Invoice::DataPresenter.const_get(
-                                  class_name.presence || attribute.to_s.classify
-                                ).new(data&.[](attribute)))
+          instance_variable_set(
+            "@#{attribute}",
+            Invoice::DataPresenter
+              .const_get(
+                class_name.presence || attribute.to_s.classify
+              )
+              .new(data&.[](attribute))
+          )
         end
       end
     end
@@ -31,10 +35,12 @@ class Invoice
         instance_variable = instance_variable_get("@#{attribute_name}")
         return instance_variable if instance_variable
 
-        instance_variable_set("@#{attribute_name}",
-                              data&.[](attribute_name)&.map { |item|
-                                Invoice::DataPresenter.const_get(class_name).new(item)
-                              })
+        instance_variable_set(
+          "@#{attribute_name}",
+          data&.[](attribute_name)&.map { |item|
+            Invoice::DataPresenter.const_get(class_name).new(item)
+          }
+        )
       end
     end
 

@@ -6,8 +6,8 @@ class UpdateAssociations < ActiveRecord::Migration[5.0]
 
   def up
     # Updates any adjustments missing an order association
-    Spree::Adjustment.
-      where(order_id: nil, adjustable_type: "Spree::Order").
-      update_all("order_id = adjustable_id")
+    Spree::Adjustment
+      .where(order_id: nil, adjustable_type: "Spree::Order")
+      .update_all("order_id = adjustable_id")
   end
 end

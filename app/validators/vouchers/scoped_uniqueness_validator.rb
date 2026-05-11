@@ -10,7 +10,7 @@ module Vouchers
 
       return unless unique_voucher_code_per_enterprise?
 
-      record.errors.add :code, :taken, value: @record.code
+      record.errors.add(:code, :taken, value: @record.code)
     end
 
     private

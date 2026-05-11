@@ -18,9 +18,12 @@ module Sets
       @saved_count = 0
 
       # Attempt to save all records, collecting model errors.
-      @collection_hash.each_value.map do |product_attributes|
-        update_product_attributes(product_attributes)
-      end.all?
+      @collection_hash
+        .each_value
+        .map do |product_attributes|
+          update_product_attributes(product_attributes)
+        end
+        .all?
     end
 
     def collection_attributes=(attributes)
@@ -81,7 +84,7 @@ module Sets
     end
 
     def validate_presence_of_unit_value_in_variant(product, variant)
-      return unless %w(weight volume).include?(product.variant_unit)
+      return unless %w[weight volume].include?(product.variant_unit)
       return if variant.unit_value.present?
 
       product.errors.add(:unit_value, "can't be blank")
@@ -97,6 +100,7 @@ module Sets
       variants_attributes.each do |attributes|
         create_or_update_variant(product, attributes)
       end
+
       product.errors.empty?
     end
 
@@ -116,6 +120,7 @@ module Sets
         # The name is namespaced to avoid confusion with product attrs of same name.
         product.errors.add(:"variant_#{error.attribute}", error.message)
       end
+
       variant&.errors.blank?
     end
 
@@ -136,6 +141,7 @@ module Sets
         else
           create_stock_for_variant_from_desired(variant)
         end
+
       rescue StandardError => e
         notify_bugsnag(e, product, variant, variant_attributes)
         raise e
@@ -149,10 +155,15 @@ module Sets
     end
 
     def notify_bugsnag(error, product, variant, variant_attributes)
-      Alert.raise(error) do |report|
-        report.add_metadata( :product_set,
-                             { product: product.attributes, variant_attributes:,
-                               variant: variant.attributes } )
+      Alert.raise error do |report|
+        report.add_metadata(
+          :product_set,
+          {
+            product: product.attributes,
+            variant_attributes:,
+            variant: variant.attributes
+          }
+        )
         report.add_metadata(:product_set, :product_error, product.errors.first) if !product.valid?
         report.add_metadata(:product_set, :variant_error, variant.errors.first) if !variant.valid?
       end

@@ -9,19 +9,19 @@ RSpec.describe DfcRequest do
   let(:account) { user.oidc_account }
 
   it "gets a DFC document" do
-    stub_request(:get, "http://example.net/api").
-      to_return(status: 200, body: '{"@context":"/"}')
+    stub_request(:get, "http://example.net/api").to_return(status: 200, body: "{\"@context\":\"/\"}")
 
-    expect(api.call("http://example.net/api")).to eq '{"@context":"/"}'
+    expect(api.call("http://example.net/api")).to(eq("{\"@context\":\"/\"}"))
   end
 
   it "posts a DFC document" do
-    json = '{"name":"new season apples"}'
-    stub_request(:post, "http://example.net/api").
-      with(body: json).
-      to_return(status: 201) # Created
+    json = "{\"name\":\"new season apples\"}"
+    stub_request(:post, "http://example.net/api")
+      .with(body: json)
+      # Created
+      .to_return(status: 201)
 
-    expect(api.call("http://example.net/api", json)).to eq ""
+    expect(api.call("http://example.net/api", json)).to(eq(""))
   end
 
   it "refreshes the access token on fail", vcr: true do
@@ -31,28 +31,29 @@ RSpec.describe DfcRequest do
     # - OPENID_REFRESH_TOKEN
     # You can set them in the .env.test.local file.
 
-    stub_request(:get, "http://example.net/api").
-      to_return(status: 401)
+    stub_request(:get, "http://example.net/api").to_return(status: 401)
 
     # A refresh is only attempted if the token is stale.
     account.refresh_token = ENV.fetch("OPENID_REFRESH_TOKEN")
     account.updated_at = 1.day.ago
 
     expect { api.call("http://example.net/api") }
-      .to raise_error(Faraday::UnauthorizedError)
-      .and change { account.token }
-      .and change { account.refresh_token }
+      .to(
+        raise_error(Faraday::UnauthorizedError)
+          .and(
+            change { account.token }
+              .and(change { account.refresh_token })
+          )
+      )
   end
 
   it "doesn't try to refresh the token when it's still fresh" do
-    stub_request(:get, "http://example.net/api").
-      to_return(status: 401)
+    stub_request(:get, "http://example.net/api").to_return(status: 401)
 
     user.oidc_account.updated_at = 1.minute.ago
 
     expect { api.call("http://example.net/api") }
-      .to raise_error(Faraday::UnauthorizedError)
-
+      .to(raise_error(Faraday::UnauthorizedError))
     # Trying to reach the OIDC server via network request to refresh the token
     # would raise errors because we didn't setup Webmock or VCR.
     # The absence of errors makes this test pass.
@@ -65,9 +66,9 @@ RSpec.describe DfcRequest do
     account.updated_at = 1.day.ago
 
     expect { api.call("http://example.net/api") }
-      .to raise_error(Rack::OAuth2::Client::Error)
+      .to(raise_error(Rack::OAuth2::Client::Error))
 
-    expect(account.refresh_token).to eq nil
+    expect(account.refresh_token).to(eq(nil))
   end
 
   it "refreshes the access token and retrieves the FDC catalog", vcr: true do
@@ -81,25 +82,31 @@ RSpec.describe DfcRequest do
       response = api.call(
         "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts"
       )
-    }.to change {
-      account.token
-    }.and change {
-      account.refresh_token
     }
+      .to(
+        change {
+          account.token
+        }
+          .and(
+            change {
+              account.refresh_token
+            }
+          )
+      )
 
     json = JSON.parse(response)
 
     graph = DfcIo.import(json)
     products = graph.select { |s| s.semanticType == "dfc-b:SuppliedProduct" }
-    expect(products).to be_present
+    expect(products).to(be_present)
   end
 
   it "reports and raises server errors" do
     stub_request(:get, "http://example.net/api").to_return(status: 500)
 
-    expect(Bugsnag).to receive(:notify)
+    expect(Bugsnag).to(receive(:notify))
 
     expect { api.call("http://example.net/api") }
-      .to raise_error(Faraday::ServerError)
+      .to(raise_error(Faraday::ServerError))
   end
 end

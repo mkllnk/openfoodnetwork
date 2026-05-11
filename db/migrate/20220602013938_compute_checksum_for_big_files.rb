@@ -10,8 +10,8 @@ class ComputeChecksumForBigFiles < ActiveRecord::Migration[6.1]
   end
 
   def blobs_with_incorrect_checksum
-    ActiveStorage::Blob.
-      where(service_name: "amazon").
-      where("byte_size >= 20000000")
+    ActiveStorage::Blob
+      .where(service_name: "amazon")
+      .where("byte_size >= 20000000")
   end
 end

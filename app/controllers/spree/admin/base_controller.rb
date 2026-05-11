@@ -3,17 +3,17 @@
 module Spree
   module Admin
     class BaseController < ApplicationController
-      helper 'shared'
-      helper 'spree/admin/navigation'
-      helper 'spree/admin/orders'
-      helper 'admin/injection'
-      helper 'admin/orders'
-      helper 'admin/enterprises'
-      helper 'admin/terms_of_service'
-      helper 'enterprise_fees'
-      helper 'angular_form'
+      helper "shared"
+      helper "spree/admin/navigation"
+      helper "spree/admin/orders"
+      helper "admin/injection"
+      helper "admin/orders"
+      helper "admin/enterprises"
+      helper "admin/terms_of_service"
+      helper "enterprise_fees"
+      helper "angular_form"
 
-      layout 'spree/layouts/admin'
+      layout "spree/layouts/admin"
 
       include I18nHelper
 
@@ -52,12 +52,19 @@ module Spree
         else
           # This allows specificity for each non-resource controller
           #   (to be consistent with "authorize_resource :class => false", see https://github.com/ryanb/cancan/blob/60cf6a67ef59c0c9b63bc27ea0101125c4193ea6/lib/cancan/controller_resource.rb#L146)
-          record = self.class.to_s.
-            sub("Controller", "").
-            underscore.split('/').last.singularize.to_sym
+          record = self
+            .class
+            .to_s
+            .sub("Controller", "")
+            .underscore
+            .split("/")
+            .last
+            .singularize
+            .to_sym
         end
-        authorize! :admin, record
-        authorize! resource_authorize_action, record
+
+        authorize!(:admin, record)
+        authorize!(resource_authorize_action, record)
       end
 
       def resource_authorize_action
@@ -65,7 +72,7 @@ module Spree
       end
 
       def flash_message_for(object, event_sym)
-        resource_desc  = object.class.model_name.human
+        resource_desc = object.class.model_name.human
         resource_desc += " \"#{object.name}\"" if object.respond_to?(:name) && object.name.present?
         Spree.t(event_sym, resource: resource_desc)
       end
@@ -79,13 +86,13 @@ module Spree
         auth_token = params[request_forgery_protection_token]
         return if auth_token && form_authenticity_token == CGI.unescape(auth_token)
 
-        raise(ActionController::InvalidAuthenticityToken)
+        raise ActionController::InvalidAuthenticityToken
       end
 
       private
 
       def page_load_request?
-        return false if request.format.include?('turbo')
+        return false if request.format.include?("turbo")
 
         html_request?
       end
@@ -99,16 +106,16 @@ module Spree
       end
 
       def render_as_json(data, options = {})
-        ams_prefix = options.delete :ams_prefix
+        ams_prefix = options.delete(:ams_prefix)
         if each_serializer_required?(data)
-          render options.merge(json: data, each_serializer: serializer(ams_prefix))
+          render(options.merge(json: data, each_serializer: serializer(ams_prefix)))
         else
-          render options.merge(json: data, serializer: serializer(ams_prefix))
+          render(options.merge(json: data, serializer: serializer(ams_prefix)))
         end
       end
 
       def each_serializer_required?(data)
-        ['Array', 'ActiveRecord::Relation'].include?(data.class.name)
+        ["Array", "ActiveRecord::Relation"].include?(data.class.name)
       end
 
       def serializer(ams_prefix)

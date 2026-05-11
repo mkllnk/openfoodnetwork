@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'open_food_network/address_finder'
+require "open_food_network/address_finder"
 
 class CheckoutController < BaseController
-  layout 'darkswarm'
+  layout "darkswarm"
 
   include OrderStockCheck
   include Spree::BaseHelper
@@ -14,9 +14,9 @@ class CheckoutController < BaseController
   include WhiteLabel
   include CustomerCredit
 
-  helper 'terms_and_conditions'
-  helper 'checkout'
-  helper 'spree/orders'
+  helper "terms_and_conditions"
+  helper "checkout"
+  helper "spree/orders"
   helper EnterprisesHelper
   helper OrderHelper
 
@@ -38,12 +38,11 @@ class CheckoutController < BaseController
 
     return if available_shipping_methods.any?
 
-    flash[:error] = I18n.t('checkout.errors.no_shipping_methods_available')
+    flash[:error] = I18n.t("checkout.errors.no_shipping_methods_available")
   end
 
   def update
-    return render cable_ready: cable_car.redirect_to(url: checkout_step_path(:details)) \
-      unless sufficient_stock?
+    return render(cable_ready: cable_car.redirect_to(url: checkout_step_path(:details))) unless sufficient_stock?
 
     if confirm_order || update_order
       return if performed?
@@ -55,10 +54,11 @@ class CheckoutController < BaseController
     else
       render_error
     end
+
   rescue Spree::Core::GatewayError => e
     flash[:error] = I18n.t(:spree_gateway_error_flash_for_checkout, error: e.message)
     @order.update_column(:state, "payment")
-    render cable_ready: cable_car.redirect_to(url: checkout_step_path(:payment))
+    render(cable_ready: cable_car.redirect_to(url: checkout_step_path(:payment)))
   end
 
   private
@@ -66,11 +66,14 @@ class CheckoutController < BaseController
   def render_error
     @paid_with_credit = calculate_credit(@order) if payment_step? || summary_step?
 
-    flash.now[:error] ||= I18n.t('checkout.errors.saving_failed')
+    flash.now[:error] ||= I18n.t("checkout.errors.saving_failed")
 
-    render status: :unprocessable_entity, cable_ready: cable_car.
-      replace("#checkout", partial("checkout/checkout")).
-      replace("#flashes", partial("shared/flashes", locals: { flashes: flash }))
+    render(
+      status: :unprocessable_entity,
+      cable_ready: cable_car
+        .replace("#checkout", partial("checkout/checkout"))
+        .replace("#flashes", partial("shared/flashes", locals: {flashes: flash}))
+    )
   end
 
   def check_payments_adjustments
@@ -85,17 +88,18 @@ class CheckoutController < BaseController
     return unless summary_step? && @order.confirmation?
     return unless validate_current_step
 
-    @order.customer.touch :terms_and_conditions_accepted_at
+    @order.customer.touch(:terms_and_conditions_accepted_at)
 
     # Redeem VINE voucher
     vine_voucher_redeemer = Vine::VoucherRedeemerService.new(order: @order)
     unless vine_voucher_redeemer.redeem
       # rubocop:disable Rails/DeprecatedActiveModelErrorsMethods
       flash[:error] = if vine_voucher_redeemer.errors.keys.include?(:redeeming_failed)
-                        vine_voucher_redeemer.errors[:redeeming_failed]
-                      else
-                        I18n.t('checkout.errors.voucher_redeeming_error')
-                      end
+        vine_voucher_redeemer.errors[:redeeming_failed]
+      else
+        I18n.t("checkout.errors.voucher_redeeming_error")
+      end
+
       return false
       # rubocop:enable Rails/DeprecatedActiveModelErrorsMethods
     end
@@ -105,14 +109,14 @@ class CheckoutController < BaseController
     @order.process_payments!
     @order.confirm!
     BackorderJob.check_stock(@order)
-    order_completion_reset @order
+    order_completion_reset(@order)
   end
 
   def redirect_to_payment_gateway
     return unless selected_payment_method&.external_gateway?
     return unless (redirect_url = selected_payment_method.external_payment_url(order: @order))
 
-    render cable_ready: cable_car.redirect_to(url: redirect_url)
+    render(cable_ready: cable_car.redirect_to(url: redirect_url))
     true
   end
 

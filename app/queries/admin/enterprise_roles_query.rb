@@ -14,12 +14,14 @@ module Admin
       private
 
       def query_enterprise_roles
-        EnterpriseRole.joins(:user, :enterprise).order('spree_users.email ASC').
-          pluck(:id, :user_id, :enterprise_id, 'spree_users.email', 'enterprises.name').
-          map do |data|
+        EnterpriseRole
+          .joins(:user, :enterprise)
+          .order("spree_users.email ASC")
+          .pluck(:id, :user_id, :enterprise_id, "spree_users.email", "enterprises.name")
+          .map do |data|
             id, user_id, enterprise_id, user_email, enterprise_name = data
 
-            { id:, user_id:, enterprise_id:, user_email:, enterprise_name: }
+            {id:, user_id:, enterprise_id:, user_email:, enterprise_name:}
           end
       end
 
@@ -27,7 +29,7 @@ module Admin
         Spree::User.order(:email).pluck(:id, :email).map do |data|
           id, email = data
 
-          { id:, email: }
+          {id:, email:}
         end
       end
 
@@ -35,7 +37,7 @@ module Admin
         Enterprise.order(:name).pluck(:id, :name).map do |data|
           id, name = data
 
-          { id:, name: }
+          {id:, name:}
         end
       end
     end

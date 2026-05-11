@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 RSpec.describe Admin::ProxyOrdersController do
-  include AuthenticationHelper
+  include(AuthenticationHelper)
 
-  describe 'cancel' do
+  describe "cancel" do
     let!(:user) { create(:user, enterprise_limit: 10) }
     let!(:shop) { create(:distributor_enterprise) }
     let!(:order_cycle) { create(:simple_order_cycle, orders_close_at: 1.day.from_now) }
@@ -13,50 +13,50 @@ RSpec.describe Admin::ProxyOrdersController do
     }
 
     before do
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
 
-    context 'json' do
-      let(:params) { { format: :json, id: proxy_order.id } }
+    context("json") do
+      let(:params) { {format: :json, id: proxy_order.id} }
 
-      context 'as a regular user' do
-        it 'redirects to unauthorized' do
-          spree_put :cancel, params
-          expect(response).to redirect_to unauthorized_path
+      context("as a regular user") do
+        it "redirects to unauthorized" do
+          spree_put(:cancel, params)
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context 'as an enterprise user' do
-        context "without authorisation" do
+      context("as an enterprise user") do
+        context("without authorisation") do
           let!(:shop2) { create(:distributor_enterprise) }
           before { shop2.update(owner: user) }
 
-          it 'redirects to unauthorized' do
-            spree_put :cancel, params
-            expect(response).to redirect_to unauthorized_path
+          it "redirects to unauthorized" do
+            spree_put(:cancel, params)
+            expect(response).to(redirect_to(unauthorized_path))
           end
         end
 
-        context "with authorisation" do
+        context("with authorisation") do
           before { shop.update(owner: user) }
 
-          context "when cancellation succeeds" do
-            it 'renders the cancelled proxy_order as json' do
+          context("when cancellation succeeds") do
+            it "renders the cancelled proxy_order as json" do
               get(:cancel, params:)
               json_response = response.parsed_body
-              expect(json_response['state']).to eq "canceled"
-              expect(json_response['id']).to eq proxy_order.id
-              expect(proxy_order.reload.canceled_at).to be_within(5.seconds).of Time.zone.now
+              expect(json_response["state"]).to(eq("canceled"))
+              expect(json_response["id"]).to(eq(proxy_order.id))
+              expect(proxy_order.reload.canceled_at).to(be_within(5.seconds).of(Time.zone.now))
             end
           end
 
-          context "when cancellation fails" do
+          context("when cancellation fails") do
             before { order_cycle.update(orders_close_at: 1.day.ago) }
 
             it "shows an error" do
               get(:cancel, params:)
               json_response = response.parsed_body
-              expect(json_response['errors']).to eq ['Could not cancel the order']
+              expect(json_response["errors"]).to(eq(["Could not cancel the order"]))
             end
           end
         end
@@ -64,7 +64,7 @@ RSpec.describe Admin::ProxyOrdersController do
     end
   end
 
-  describe 'resume' do
+  describe "resume" do
     let!(:user) { create(:user, enterprise_limit: 10) }
     let!(:shop) { create(:distributor_enterprise) }
     let!(:order_cycle) { create(:simple_order_cycle, orders_close_at: 1.day.from_now) }
@@ -73,6 +73,7 @@ RSpec.describe Admin::ProxyOrdersController do
     let!(:subscription) do
       create(:subscription, shipping_method:, shop:, with_items: true)
     end
+
     let!(:proxy_order) {
       create(:proxy_order, subscription:, order_cycle:)
     }
@@ -80,54 +81,54 @@ RSpec.describe Admin::ProxyOrdersController do
 
     before do
       # Processing order to completion
-      allow(Spree::OrderMailer).to receive(:cancel_email) { double(:email, deliver_later: true) }
+      allow(Spree::OrderMailer).to(receive(:cancel_email) { double(:email, deliver_later: true) })
       Orders::WorkflowService.new(order).complete!
       proxy_order.reload
       proxy_order.cancel
-      allow(controller).to receive(:spree_current_user) { user }
+      allow(controller).to(receive(:spree_current_user) { user })
     end
 
-    context 'json' do
-      let(:params) { { format: :json, id: proxy_order.id } }
+    context("json") do
+      let(:params) { {format: :json, id: proxy_order.id} }
 
-      context 'as a regular user' do
-        it 'redirects to unauthorized' do
-          spree_put :resume, params
-          expect(response).to redirect_to unauthorized_path
+      context("as a regular user") do
+        it "redirects to unauthorized" do
+          spree_put(:resume, params)
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context 'as an enterprise user' do
-        context "without authorisation" do
+      context("as an enterprise user") do
+        context("without authorisation") do
           let!(:shop2) { create(:distributor_enterprise) }
           before { shop2.update(owner: user) }
 
-          it 'redirects to unauthorized' do
-            spree_put :resume, params
-            expect(response).to redirect_to unauthorized_path
+          it "redirects to unauthorized" do
+            spree_put(:resume, params)
+            expect(response).to(redirect_to(unauthorized_path))
           end
         end
 
-        context "with authorisation" do
+        context("with authorisation") do
           before { shop.update(owner: user) }
 
-          context "when resuming succeeds" do
-            it 'renders the resumed proxy_order as json' do
+          context("when resuming succeeds") do
+            it "renders the resumed proxy_order as json" do
               get(:resume, params:)
               json_response = response.parsed_body
-              expect(json_response['state']).to eq "resumed"
-              expect(json_response['id']).to eq proxy_order.id
-              expect(proxy_order.reload.canceled_at).to be nil
+              expect(json_response["state"]).to(eq("resumed"))
+              expect(json_response["id"]).to(eq(proxy_order.id))
+              expect(proxy_order.reload.canceled_at).to(be(nil))
             end
           end
 
-          context "when resuming fails" do
+          context("when resuming fails") do
             before { order_cycle.update(orders_close_at: 1.day.ago) }
 
             it "shows an error" do
               get(:resume, params:)
               json_response = response.parsed_body
-              expect(json_response['errors']).to eq ['Could not resume the order']
+              expect(json_response["errors"]).to(eq(["Could not resume the order"]))
             end
           end
         end

@@ -10,20 +10,20 @@ module Spree
       @user.generate_api_key
 
       if @user.save
-        flash[:success] = t('spree.api.key_generated')
+        flash[:success] = t("spree.api.key_generated")
       end
 
-      redirect_to redirect_path
+      redirect_to(redirect_path)
     end
 
     def destroy
       @user.spree_api_key = nil
 
       if @user.save
-        flash[:success] = t('spree.api.key_cleared')
+        flash[:success] = t("spree.api.key_cleared")
       end
 
-      redirect_to redirect_path
+      redirect_to(redirect_path)
     end
 
     private
@@ -31,9 +31,9 @@ module Spree
     def load_object
       @user ||= find_user
       if @user
-        authorize! :update, @user
+        authorize!(:update, @user)
       else
-        redirect_to main_app.login_path
+        redirect_to(main_app.login_path)
       end
     end
 

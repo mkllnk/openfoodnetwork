@@ -5,9 +5,11 @@
 module ConnectedApps
   class AffiliateSalesData < ConnectedApp
     def connect(_opts)
-      update! data: true # not-nil value indicates it is ready
+      # not-nil value indicates it is ready
+      update!(data: true)
     end
 
-    def disconnect; end
+    def disconnect
+    end
   end
 end

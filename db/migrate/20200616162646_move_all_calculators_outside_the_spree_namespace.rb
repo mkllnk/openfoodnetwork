@@ -22,13 +22,17 @@ class MoveAllCalculatorsOutsideTheSpreeNamespace < ActiveRecord::Migration[4.2]
   private
 
   def convert_calculator(calculator_base_name)
-    update_calculator("Spree::Calculator::" + calculator_base_name,
-                      "Calculator::" + calculator_base_name)
+    update_calculator(
+      "Spree::Calculator::" + calculator_base_name,
+      "Calculator::" + calculator_base_name
+    )
   end
 
   def revert_calculator(calculator_base_name)
-    update_calculator("Calculator::" + calculator_base_name,
-                      "Spree::Calculator::" + calculator_base_name)
+    update_calculator(
+      "Calculator::" + calculator_base_name,
+      "Spree::Calculator::" + calculator_base_name
+    )
   end
 
   def update_calculator(from, to)

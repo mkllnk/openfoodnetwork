@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/tag_rule_applicator'
+require "open_food_network/tag_rule_applicator"
 
 module Orders
   class AvailableShippingMethodsService
@@ -21,8 +21,12 @@ module Orders
     private
 
     def filter_by_category(methods)
-      return methods unless OpenFoodNetwork::FeatureToggle.enabled?(:match_shipping_categories,
-                                                                    distributor&.owner)
+      unless OpenFoodNetwork::FeatureToggle.enabled?(
+          :match_shipping_categories,
+          distributor&.owner
+        )
+        return methods
+      end
 
       required_category_ids = order.variants.pluck(:shipping_category_id).to_set
       return methods if required_category_ids.empty?
@@ -40,18 +44,24 @@ module Orders
         distributor.shipping_methods.where(
           id: available_distributor_shipping_methods_ids
         )
-      end.frontend.to_a.uniq
+      end
+        .frontend
+        .to_a
+        .uniq
     end
 
     def available_distributor_shipping_methods_ids
-      order_cycle.distributor_shipping_methods
+      order_cycle
+        .distributor_shipping_methods
         .where(distributor_id: distributor.id)
         .select(:shipping_method_id)
     end
 
     def tag_rules
       OpenFoodNetwork::TagRuleApplicator.new(
-        distributor, "FilterShippingMethods", customer&.tag_list
+        distributor,
+        "FilterShippingMethods",
+        customer&.tag_list
       )
     end
   end

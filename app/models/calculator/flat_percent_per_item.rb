@@ -8,8 +8,10 @@ class Calculator::FlatPercentPerItem < Spree::Calculator
   # item level first, then multiply by the item quantity.
   preference :flat_percent, :decimal, default: 0
 
-  validates :preferred_flat_percent,
-            numericality: true
+  validates(
+    :preferred_flat_percent,
+    numericality: true
+  )
 
   def self.description
     I18n.t(:flat_percent_per_item)

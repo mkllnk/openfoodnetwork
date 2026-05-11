@@ -16,10 +16,10 @@ module Features
     end
 
     def select_datetime_from(element, datetime)
-      datetime = Time.zone.parse(datetime) if datetime.is_a? String
+      datetime = Time.zone.parse(datetime) if datetime.is_a?(String)
 
       # Wait for timepicker element to be loaded:
-      expect(page).to have_css "#{element}.datetimepicker"
+      expect(page).to(have_css("#{element}.datetimepicker"))
 
       find(element).click
       select_datetime_from_datepicker(datetime)
@@ -27,14 +27,14 @@ module Features
     end
 
     def select_date_from_datepicker(date)
-      within ".flatpickr-calendar.open" do
+      within(".flatpickr-calendar.open") do
         # Unfortunately, flatpickr doesn't notice a change of year when we do
         #
         #     fill_in "Year", with: date.year
         #
         # A working alternative is:
         find(".cur-year").send_keys(date.year.to_s)
-        select date.strftime("%B"), from: "Month"
+        select(date.strftime("%B"), from: "Month")
 
         aria_date = date.strftime("%B %-d, %Y")
         find("[aria-label='#{aria_date}']").click
@@ -43,8 +43,8 @@ module Features
 
     def select_datetime_from_datepicker(datetime)
       select_date_from_datepicker(datetime)
-      fill_in "Hour", with: datetime.strftime("%H")
-      fill_in "Minute", with: datetime.strftime("%M")
+      fill_in("Hour", with: datetime.strftime("%H"))
+      fill_in("Minute", with: datetime.strftime("%M"))
 
       # Flatpickr needs time to update the time.
       # Otherwise submitting the form may not work.
@@ -52,18 +52,18 @@ module Features
       #                     50ms ->  87% success
       #                    100ms -> 100% success in 112 runs
       # Let's double that to reduce flakiness even further.
-      sleep 0.2
+      sleep(0.2)
     end
 
     def pick_datetime(calendar_selector, datetime_selector)
       find(calendar_selector).click
-      select_datetime_from_datepicker datetime_selector
+      select_datetime_from_datepicker(datetime_selector)
       find("body").send_keys(:escape)
     end
 
     def close_datepicker
       within(".flatpickr-calendar.open") do
-        click_button "Close"
+        click_button("Close")
       end
     end
   end

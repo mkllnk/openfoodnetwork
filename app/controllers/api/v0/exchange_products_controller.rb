@@ -34,9 +34,11 @@ module Api
       private
 
       def render_variant_count
-        render plain: {
-          count: variants.count
-        }.to_json
+        render(
+          plain: {
+            count: variants.count
+          }.to_json
+        )
       end
 
       def variants
@@ -48,8 +50,7 @@ module Api
       end
 
       def renderer
-        @renderer ||= ExchangeProductsRenderer.
-          new(@order_cycle, spree_current_user)
+        @renderer ||= ExchangeProductsRenderer.new(@order_cycle, spree_current_user)
       end
 
       def load_data_from_exchange
@@ -64,7 +65,7 @@ module Api
         @enterprise = Enterprise.find_by(id: exchange_params[:enterprise_id])
 
         # This will be a string (eg "true") when it arrives via params, but we want a boolean
-        @incoming = ActiveModel::Type::Boolean.new.cast exchange_params[:incoming]
+        @incoming = ActiveModel::Type::Boolean.new.cast(exchange_params[:incoming])
 
         if exchange_params[:order_cycle_id]
           @order_cycle = OrderCycle.find_by(id: exchange_params[:order_cycle_id])
@@ -77,8 +78,10 @@ module Api
         results = products
 
         if pagination_required?
-          @pagy, results = pagy(results,
-                                limit: params[:per_page] || DEFAULT_PER_PAGE)
+          @pagy, results = pagy(
+            results,
+            limit: params[:per_page] || DEFAULT_PER_PAGE
+          )
         end
 
         serialized_products = ActiveModel::ArraySerializer.new(
@@ -87,15 +90,19 @@ module Api
           order_cycle: @order_cycle
         )
 
-        render json: {
-          products: serialized_products,
-          pagination: pagination_data
-        }
+        render(
+          json: {
+            products: serialized_products,
+            pagination: pagination_data
+          }
+        )
       end
 
       def exchange_params
-        params.permit(:enterprise_id, :exchange_id, :order_cycle_id, :incoming).
-          to_h.with_indifferent_access
+        params
+          .permit(:enterprise_id, :exchange_id, :order_cycle_id, :incoming)
+          .to_h
+          .with_indifferent_access
       end
     end
   end

@@ -2,28 +2,28 @@
 
 module WebHelper
   def have_input(name, opts = {})
-    selector  = "[name='#{name}']"
-    selector += "[placeholder='#{opts[:placeholder]}']" if opts.key? :placeholder
+    selector = "[name='#{name}']"
+    selector += "[placeholder='#{opts[:placeholder]}']" if opts.key?(:placeholder)
 
     visible = opts.key?(:visible) ? opts[:visible] : true
 
     element = page.all(selector, visible:).first
-    expect(element.value).to eq(opts[:with]) if element && opts.key?(:with)
+    expect(element.value).to(eq(opts[:with])) if element && opts.key?(:with)
 
-    have_selector selector, visible:
+    have_selector(selector, visible:)
   end
 
   def select_by_value(value, options = {})
-    from = options.delete :from
+    from = options.delete(:from)
     page.find_by(id: from).find("option[value='#{value}']").select_option
   end
 
   def flash_message
-    find('.flash .msg', visible: false).text(:all).strip
+    find(".flash .msg", visible: false).text(:all).strip
   end
 
   def handle_js_confirm(accept = true)
-    page.execute_script "window.confirm = function(msg) { return #{!!accept}; }"
+    page.execute_script("window.confirm = function(msg) { return #{!!accept}; }")
     yield
   end
 
@@ -39,6 +39,7 @@ module WebHelper
   # Do not use this without good reason. Capybara's built-in waiting is very effective.
   def wait_until(secs = nil)
     require "timeout"
+
     Timeout.timeout(secs || Capybara.default_max_wait_time) do
       sleep(0.1) until value = yield
       value
@@ -53,26 +54,37 @@ module WebHelper
     open_select2("#s2id_#{options[:from]}")
 
     if options[:search]
-      page.find(:xpath, '//body')
-        .find(:css, '.select2-drop-active input.select2-input, ' \
-                    '.select2-dropdown-open input.select2-input')
+      page
+        .find(:xpath, "//body")
+        .find(
+          :css,
+          ".select2-drop-active input.select2-input, " \
+            ".select2-dropdown-open input.select2-input"
+        )
         .set(value)
     end
 
-    page.find(:xpath, '//body')
-      .find(:css, '.select2-drop-active .select2-result-label',
-            text: options[:select_text] || value)
+    page
+      .find(:xpath, "//body")
+      .find(
+        :css,
+        ".select2-drop-active .select2-result-label",
+        text: options[:select_text] || value
+      )
       .click
   end
 
   def open_select2(selector)
-    page.find(selector).scroll_to(page.find(selector))
-      .find(:css, '.select2-choice, .select2-search-field').click
+    page
+      .find(selector)
+      .scroll_to(page.find(selector))
+      .find(:css, ".select2-choice, .select2-search-field")
+      .click
   end
 
   def close_select2
     # A click outside the select2 container should close it
-    page.find(:css, 'body').click
+    page.find(:css, "body").click
   end
 
   def click_on_select2(value, options)
@@ -81,12 +93,21 @@ module WebHelper
   end
 
   def clear_select2(selector)
-    page.find(selector).scroll_to(page.find(selector))
-      .find(:css, '.select2-choice, .select2-search-field').click
-    page.find(selector).scroll_to(page.find(selector))
-      .find(:css, '.select2-choice, .select2-search-field').send_keys :backspace
-    page.find(selector).scroll_to(page.find(selector))
-      .find(:css, '.select2-choice, .select2-search-field').send_keys :backspace
+    page
+      .find(selector)
+      .scroll_to(page.find(selector))
+      .find(:css, ".select2-choice, .select2-search-field")
+      .click
+    page
+      .find(selector)
+      .scroll_to(page.find(selector))
+      .find(:css, ".select2-choice, .select2-search-field")
+      .send_keys(:backspace)
+    page
+      .find(selector)
+      .scroll_to(page.find(selector))
+      .find(:css, ".select2-choice, .select2-search-field")
+      .send_keys(:backspace)
     find("body").send_keys(:escape)
   end
 
@@ -95,10 +116,10 @@ module WebHelper
   end
 
   def fill_in_tag(tag_name, selector = ".tags-input .tags input")
-    expect(page).to have_selector selector
+    expect(page).to(have_selector(selector))
     find(:css, selector).click
-    find(:css, selector).set "#{tag_name}\n"
-    expect(page).to have_selector ".tag-list .tag-item span", text: tag_name
+    find(:css, selector).set("#{tag_name}\n")
+    expect(page).to(have_selector(".tag-list .tag-item span", text: tag_name))
   end
 
   private
@@ -106,7 +127,7 @@ module WebHelper
   # Takes an optional angular controller name eg: "LineItemsCtrl",
   # otherwise finds the first object in the DOM with an angular scope
   def angular_scope(controller = nil)
-    element = controller ? "[ng-controller=#{controller}]" : '.ng-scope'
+    element = controller ? "[ng-controller=#{controller}]" : ".ng-scope"
     "angular.element(document.querySelector('#{element}'))"
   end
 end

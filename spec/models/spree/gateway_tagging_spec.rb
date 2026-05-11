@@ -6,16 +6,16 @@
 #
 # This spec tests several descendants for their taggability. The tests are in
 # a separate file, because they cover one aspect of several classes.
-RSpec.shared_examples "taggable" do |expected_taggable_type|
+RSpec.shared_examples("taggable") do |expected_taggable_type|
   it "provides a tag list" do
-    expect(subject.tag_list).to eq []
+    expect(subject.tag_list).to(eq([]))
   end
 
   it "stores tags for the root taggable type" do
     subject.tag_list.add("one")
     subject.save!
 
-    expect(subject.taggings.last.taggable_type).to eq expected_taggable_type
+    expect(subject.taggings.last.taggable_type).to(eq(expected_taggable_type))
   end
 end
 
@@ -29,6 +29,7 @@ module Spree
         distributor_ids: [shop.id]
       )
     end
+
     subject { valid_subject }
 
     describe PaymentMethod do

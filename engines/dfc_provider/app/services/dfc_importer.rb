@@ -20,7 +20,7 @@ class DfcImporter
     enterprise.save! if enterprise.changed?
     enterprise.address.save! if enterprise.address.changed?
   rescue ActiveRecord::RecordInvalid => e
-    Alert.raise(e, farm: DfcIo.export(farm))
+    Alert.raise e, farm: DfcIo.export(farm)
     @errors ||= []
     @errors << e
   end
@@ -33,7 +33,7 @@ class DfcImporter
 
     Spree::User.create!(
       email:,
-      password: SecureRandom.base58(64),
+      password: SecureRandom.base58(64)
     )
   end
 end

@@ -5,8 +5,16 @@ class Invoice
     class Address < Invoice::DataPresenter::Base
       attributes :firstname, :lastname, :address1, :address2, :city, :zipcode, :company, :phone
       attributes_with_presenter :state
-      invoice_generation_attributes :firstname, :lastname, :address1, :address2, :city, :zipcode,
-                                    :company, :phone
+      invoice_generation_attributes(
+        :firstname,
+        :lastname,
+        :address1,
+        :address2,
+        :city,
+        :zipcode,
+        :company,
+        :phone
+      )
 
       def full_name
         "#{firstname} #{lastname}".strip
@@ -31,7 +39,7 @@ class Invoice
       private
 
       def render_address(address_parts)
-        address_parts.compact_blank.join(', ')
+        address_parts.compact_blank.join(", ")
       end
     end
   end

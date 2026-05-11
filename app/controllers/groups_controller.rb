@@ -3,10 +3,10 @@
 class GroupsController < BaseController
   include EmbeddedPages
 
-  layout 'darkswarm'
+  layout "darkswarm"
 
   def show
-    @hide_menu = true if @shopfront_layout == 'embedded'
+    @hide_menu = true if @shopfront_layout == "embedded"
     @group = EnterpriseGroup.find_by(permalink: params[:id]) || EnterpriseGroup.find(params[:id])
   end
 end

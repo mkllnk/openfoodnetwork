@@ -7,7 +7,7 @@ module Admin
 
       respond_with do |format|
         format.turbo_stream {
-          render :index
+          render(:index)
         }
       end
     end
@@ -15,14 +15,18 @@ module Admin
     # We are using an old version of CanCanCan so I could not get `accessible_by` to work properly,
     # so we are doing our own authorization before calling 'accessible_by'
     def collection
-      allowed = OpenFoodNetwork::Permissions.new(spree_current_user)
-        .managed_enterprises.joins(:customers)
-        .where(customers: { id: params[:customer_id].to_i })
+      allowed = OpenFoodNetwork::Permissions
+        .new(spree_current_user)
+        .managed_enterprises
+        .joins(:customers)
+        .where(customers: {id: params[:customer_id].to_i})
         .exists?
       raise CanCan::AccessDenied unless allowed
 
-      CustomerAccountTransaction.accessible_by(current_ability, action)
-        .where(customer_id: params[:customer_id]).order(id: :desc)
+      CustomerAccountTransaction
+        .accessible_by(current_ability, action)
+        .where(customer_id: params[:customer_id])
+        .order(id: :desc)
     end
   end
 end

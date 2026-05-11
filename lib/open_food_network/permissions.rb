@@ -8,23 +8,23 @@ module OpenFoodNetwork
 
     def can_manage_complex_order_cycles?
       managed_and_related_enterprises_granting(:add_to_order_cycle).any? do |e|
-        e.sells == 'any'
+        e.sells == "any"
       end
     end
 
     # Enterprises that an admin is allowed to add to an order cycle
     def visible_enterprises_for_order_reports
-      managed_and_related_enterprises_with :add_to_order_cycle
+      managed_and_related_enterprises_with(:add_to_order_cycle)
     end
 
     # Enterprises that the user manages and those that have granted P-OC to managed enterprises
     def visible_enterprises
-      managed_and_related_enterprises_granting :add_to_order_cycle
+      managed_and_related_enterprises_granting(:add_to_order_cycle)
     end
 
     # Enterprises for which an admin is allowed to edit their profile
     def editable_enterprises
-      managed_and_related_enterprises_granting :edit_profile
+      managed_and_related_enterprises_granting(:edit_profile)
     end
 
     def variant_override_hubs
@@ -43,12 +43,11 @@ module OpenFoodNetwork
       hubs = variant_override_hubs
 
       # Permissions granted by create_variant_overrides relationship from producer to hub
-      permissions =
-        EnterpriseRelationship.
-          permitting(hubs.select("enterprises.id")).
-          with_permission(:create_variant_overrides).
-          group_by(&:child_id).
-          transform_values { |ers| ers.map(&:parent_id) }
+      permissions = EnterpriseRelationship
+        .permitting(hubs.select("enterprises.id"))
+        .with_permission(:create_variant_overrides)
+        .group_by(&:child_id)
+        .transform_values { |ers| ers.map(&:parent_id) }
 
       # Allow a producer hub to override it's own products without explicit permission
       hubs.is_primary_producer.each do |hub|
@@ -62,9 +61,9 @@ module OpenFoodNetwork
     def editable_products
       return Spree::Product.all if admin?
 
-      product_with_variants.where(spree_variants: { supplier_id: @user.enterprises }).or(
+      product_with_variants.where(spree_variants: {supplier_id: @user.enterprises}).or(
         product_with_variants.where(
-          spree_variants: { supplier_id: related_enterprises_granting(:manage_products) }
+          spree_variants: {supplier_id: related_enterprises_granting(:manage_products)}
         )
       )
     end
@@ -72,7 +71,7 @@ module OpenFoodNetwork
     def visible_products
       return Spree::Product.all if admin?
 
-      product_with_variants.where(spree_variants: { supplier_id: @user.enterprises }).or(
+      product_with_variants.where(spree_variants: {supplier_id: @user.enterprises}).or(
         product_with_variants.where(
           spree_variants: {
             supplier_id: related_enterprises_granting(:manage_products) |
@@ -83,11 +82,11 @@ module OpenFoodNetwork
     end
 
     def managed_product_enterprises
-      managed_and_related_enterprises_granting :manage_products
+      managed_and_related_enterprises_granting(:manage_products)
     end
 
     def enterprises_granting_linked_variants
-      related_enterprises_granting :create_linked_variants
+      related_enterprises_granting(:create_linked_variants)
     end
 
     def manages_one_enterprise?
@@ -95,17 +94,17 @@ module OpenFoodNetwork
     end
 
     def editable_schedules
-      Schedule.
-        joins(:order_cycles).
-        where(order_cycles: { id: OrderCycle.managed_by(@user).select("order_cycles.id") }).
-        select("DISTINCT schedules.*")
+      Schedule
+        .joins(:order_cycles)
+        .where(order_cycles: {id: OrderCycle.managed_by(@user).select("order_cycles.id")})
+        .select("DISTINCT schedules.*")
     end
 
     def visible_schedules
-      Schedule.
-        joins(:order_cycles).
-        where(order_cycles: { id: OrderCycle.managed_by(@user).select("order_cycles.id") }).
-        select("DISTINCT schedules.*")
+      Schedule
+        .joins(:order_cycles)
+        .where(order_cycles: {id: OrderCycle.managed_by(@user).select("order_cycles.id")})
+        .select("DISTINCT schedules.*")
     end
 
     def editable_subscriptions
@@ -129,19 +128,19 @@ module OpenFoodNetwork
     end
 
     def related_enterprises_granting(permission, options = {})
-      parent_ids = EnterpriseRelationship.
-        permitting(options[:to] || managed_enterprises.select("enterprises.id")).
-        with_permission(permission).
-        select(:parent_id)
+      parent_ids = EnterpriseRelationship
+        .permitting(options[:to] || managed_enterprises.select("enterprises.id"))
+        .with_permission(permission)
+        .select(:parent_id)
 
       (options[:scope] || Enterprise).where(id: parent_ids).select("enterprises.id")
     end
 
     def related_enterprises_granted(permission, options = {})
-      child_ids = EnterpriseRelationship.
-        permitted_by(options[:by] || managed_enterprises.select("enterprises.id")).
-        with_permission(permission).
-        select(:child_id)
+      child_ids = EnterpriseRelationship
+        .permitted_by(options[:by] || managed_enterprises.select("enterprises.id"))
+        .with_permission(permission)
+        .select(:child_id)
 
       (options[:scope] || Enterprise).where(id: child_ids).select("enterprises.id")
     end
@@ -158,7 +157,7 @@ module OpenFoodNetwork
       else
         Enterprise.where(
           id: managed_enterprises.select("enterprises.id") |
-                related_enterprises_granting(permission)
+            related_enterprises_granting(permission)
         )
       end
     end

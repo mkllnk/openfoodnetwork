@@ -14,7 +14,8 @@ class UnitPrice
       @variant.unit_value / 453.6
     when "kg"
       @variant.unit_value / 1000
-    else # Liters
+      # Liters
+    else
       @variant.unit_value
     end
   end

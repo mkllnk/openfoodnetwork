@@ -5,140 +5,140 @@ RSpec.describe I18nHelper do
   let(:cookies) { {} }
 
   before do
-    allow(helper).to receive(:cookies) { cookies }
+    allow(helper).to(receive(:cookies) { cookies })
   end
 
-  context "as guest" do
+  context("as guest") do
     before do
-      allow(helper).to receive(:spree_current_user) { nil }
+      allow(helper).to(receive(:spree_current_user) { nil })
     end
 
     it "sets the default locale" do
       helper.set_locale
-      expect(I18n.locale).to eq :en_TST
+      expect(I18n.locale).to(eq(:en_TST))
     end
 
     it "sets the chosen locale" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "remembers the chosen locale" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "ignores unavailable locales" do
-      allow(helper).to receive(:params) { { locale: "xx" } }
+      allow(helper).to(receive(:params) { {locale: "xx"} })
       helper.set_locale
-      expect(I18n.locale).to eq :en_TST
+      expect(I18n.locale).to(eq(:en_TST))
     end
 
     it "remembers the last chosen locale" do
-      allow(helper).to receive(:params) { { locale: "en_TST" } }
+      allow(helper).to(receive(:params) { {locale: "en_TST"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "remembers the chosen locale after logging in" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
       # log in
-      allow(helper).to receive(:spree_current_user) { user }
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:spree_current_user) { user })
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "forgets the chosen locale without cookies" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
       # clean up cookies
-      cookies.delete :locale
+      cookies.delete(:locale)
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :en_TST
+      expect(I18n.locale).to(eq(:en_TST))
     end
   end
 
-  context "logged in" do
+  context("logged in") do
     before do
-      allow(helper).to receive(:spree_current_user) { user }
+      allow(helper).to(receive(:spree_current_user) { user })
     end
 
     it "sets the default locale" do
       helper.set_locale
-      expect(I18n.locale).to eq :en_TST
+      expect(I18n.locale).to(eq(:en_TST))
     end
 
     it "sets the chosen locale" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
-      expect(user.locale).to eq "es"
+      expect(I18n.locale).to(eq(:es))
+      expect(user.locale).to(eq("es"))
     end
 
     it "remembers the chosen locale" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "remembers the last chosen locale" do
-      allow(helper).to receive(:params) { { locale: "en_TST" } }
+      allow(helper).to(receive(:params) { {locale: "en_TST"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "remembers the chosen locale after logging out" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
 
       # log out
-      allow(helper).to receive(:spree_current_user) { nil }
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:spree_current_user) { nil })
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
 
     it "remembers the chosen locale on another computer" do
-      allow(helper).to receive(:params) { { locale: "es" } }
+      allow(helper).to(receive(:params) { {locale: "es"} })
       helper.set_locale
-      expect(cookies.fetch(:locale)).to eq "es"
+      expect(cookies.fetch(:locale)).to(eq("es"))
 
       # switch computer / browser or loose cookies
-      cookies.delete :locale
+      cookies.delete(:locale)
 
-      allow(helper).to receive(:params) { {} }
+      allow(helper).to(receive(:params) { {} })
       helper.set_locale
-      expect(I18n.locale).to eq :es
+      expect(I18n.locale).to(eq(:es))
     end
   end
 
-  context "#valid_locale" do
+  context("#valid_locale") do
     around do |example|
       original_default_locale = I18n.default_locale
       original_available_locales = Rails.application.config.i18n.available_locales
@@ -152,21 +152,21 @@ RSpec.describe I18nHelper do
     let(:user) { build(:user) }
 
     it "returns default locale if given user is nil" do
-      expect(helper.valid_locale(nil)).to eq I18n.default_locale
+      expect(helper.valid_locale(nil)).to(eq(I18n.default_locale))
     end
 
     it "returns default locale if locale of given user is nil" do
-      expect(helper.valid_locale(user)).to eq I18n.default_locale
+      expect(helper.valid_locale(user)).to(eq(I18n.default_locale))
     end
 
     it "returns default locale if locale of given user is not available" do
       user.locale = "cn"
-      expect(helper.valid_locale(user)).to eq I18n.default_locale
+      expect(helper.valid_locale(user)).to(eq(I18n.default_locale))
     end
 
     it "returns the locale of the given user if available" do
       user.locale = "pt"
-      expect(helper.valid_locale(user)).to eq "pt"
+      expect(helper.valid_locale(user)).to(eq("pt"))
     end
   end
 end

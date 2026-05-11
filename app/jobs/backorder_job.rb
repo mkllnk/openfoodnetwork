@@ -6,7 +6,7 @@ class BackorderJob < ApplicationJob
   # levels after the market. This should be done within four hours.
   SALE_SESSION_DELAYS = {
     # https://openfoodnetwork.org.uk/handleyfarm/shop
-    "https://openfoodnetwork.org.uk/api/dfc/enterprises/203468" => 4.hours,
+    "https://openfoodnetwork.org.uk/api/dfc/enterprises/203468" => 4.hours
   }.freeze
 
   queue_as :default
@@ -26,6 +26,7 @@ class BackorderJob < ApplicationJob
     OrderLocker.lock_order_and_variants(order) do
       place_backorder(order)
     end
+
   rescue StandardError
     # If the backordering fails, we need to tell the shop owner because they
     # need to organgise more stock.
@@ -112,9 +113,11 @@ class BackorderJob < ApplicationJob
     variant = line_item.variant
 
     if variant.on_demand
-      -1 * variant.on_hand # on_hand is negative and we need to replenish it.
+      # on_hand is negative and we need to replenish it.
+      -1 * variant.on_hand
     else
-      line_item.quantity # We need to order exactly what's we sold.
+      # We need to order exactly what's we sold.
+      line_item.quantity
     end
   end
 
@@ -130,9 +133,13 @@ class BackorderJob < ApplicationJob
 
     delay = SALE_SESSION_DELAYS.fetch(backorder.client, 1.minute)
     wait_until = order.order_cycle.orders_close_at + delay
-    CompleteBackorderJob.set(wait_until:)
+    CompleteBackorderJob
+      .set(wait_until:)
       .perform_later(
-        user, order.distributor, order.order_cycle, placed_order.semanticId
+        user,
+        order.distributor,
+        order.order_cycle,
+        placed_order.semanticId
       )
 
     order.exchange.semantic_links.create!(semantic_id: placed_order.semanticId)

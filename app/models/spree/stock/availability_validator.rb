@@ -40,16 +40,21 @@ module Spree
       def validate_quantity(line_item, quantity)
         line_item.scoper.scope(line_item.variant)
 
-        add_out_of_stock_error(line_item) unless line_item.variant.can_supply? quantity
+        add_out_of_stock_error(line_item) unless line_item.variant.can_supply?(quantity)
       end
 
       def add_out_of_stock_error(line_item)
         variant = line_item.variant
         display_name = variant.name.to_s
-        display_name += %{(#{variant.options_text})} if variant.options_text.present?
-        line_item.errors.add(:quantity, Spree.t(:out_of_stock,
-                                                scope: :order_populator,
-                                                item: display_name.inspect))
+        display_name += "(#{variant.options_text})" if variant.options_text.present?
+        line_item.errors.add(
+          :quantity,
+          Spree.t(
+            :out_of_stock,
+            scope: :order_populator,
+            item: display_name.inspect
+          )
+        )
       end
     end
   end

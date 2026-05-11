@@ -1,77 +1,77 @@
 # frozen_string_literal: true
 
 RSpec.describe Api::Admin::OrderSerializer do
-  let(:serializer) { described_class.new order }
+  let(:serializer) { described_class.new(order) }
   let(:order) { build(:order) }
 
   describe "#display_outstanding_balance" do
     let(:order) { create(:order) }
 
     it "returns empty string" do
-      expect(serializer.display_outstanding_balance).to eql("")
+      expect(serializer.display_outstanding_balance).to(eql(""))
     end
 
-    context "with outstanding payments" do
+    context("with outstanding payments") do
       let(:order) { create(:order_without_full_payment, unpaid_amount: 10) }
 
       it "generates the outstanding balance" do
-        expect(serializer.display_outstanding_balance).to eql("$10.00")
+        expect(serializer.display_outstanding_balance).to(eql("$10.00"))
       end
     end
 
-    context "with credit owed" do
+    context("with credit owed") do
       let(:order) { create(:order_with_credit_payment, credit_amount: 20) }
 
       it "generates the outstanding balance" do
-        expect(serializer.display_outstanding_balance).to eql("$-20.00")
+        expect(serializer.display_outstanding_balance).to(eql("$-20.00"))
       end
     end
   end
 
-  describe '#ready_to_capture' do
+  describe "#ready_to_capture" do
     let(:order) { create(:order) }
 
     before do
-      allow(order).to receive(:payment_required?) { true }
+      allow(order).to(receive(:payment_required?) { true })
     end
 
-    context "there is a payment requiring authorization" do
+    context("there is a payment requiring authorization") do
       let!(:payment) do
         create(
           :payment,
           order:,
-          state: 'requires_authorization',
+          state: "requires_authorization",
           amount: 123.45,
           redirect_auth_url: "https://stripe.com/redirect"
         )
       end
 
       it "returns false" do
-        expect(serializer.ready_to_capture).to be false
+        expect(serializer.ready_to_capture).to(be(false))
       end
     end
 
-    context "there is a pending payment but it does not require authorization" do
+    context("there is a pending payment but it does not require authorization") do
       let!(:pending_payment) do
         create(
           :payment,
           order:,
-          state: 'pending',
-          amount: 123.45,
+          state: "pending",
+          amount: 123.45
         )
       end
 
       it "returns true" do
-        expect(serializer.ready_to_capture).to be true
+        expect(serializer.ready_to_capture).to(be(true))
       end
     end
   end
 
   describe "#completed_at" do
-    let(:order) { build(:order, state: 'complete', completed_at: DateTime.parse("2021-04-02")) }
+    let(:order) { build(:order, state: "complete", completed_at: DateTime.parse("2021-04-02")) }
 
     it "formats the date" do
-      expect(serializer.completed_at).to eq("April 02, 2021")
+      expect(serializer.completed_at).to(eq("April 02, 2021"))
     end
   end
 
@@ -79,13 +79,13 @@ RSpec.describe Api::Admin::OrderSerializer do
     before { order.distributor = build(:distributor_enterprise) }
 
     it "returns distributor object with id key" do
-      expect(serializer.distributor.id).to eq(order.distributor.id)
+      expect(serializer.distributor.id).to(eq(order.distributor.id))
     end
   end
 
   describe "#number" do
     it "returns the order number" do
-      expect(serializer.number).to eq(order.number)
+      expect(serializer.number).to(eq(order.number))
     end
   end
 end

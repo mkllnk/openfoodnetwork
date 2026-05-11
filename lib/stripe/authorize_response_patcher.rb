@@ -10,7 +10,7 @@ module Stripe
 
     def call!
       if (url = url_for_authorization(@response)) && field_to_patch(@response).present?
-        field_to_patch(@response)['redirect_auth_url'] = url
+        field_to_patch(@response)["redirect_auth_url"] = url
       end
 
       @response
@@ -19,13 +19,13 @@ module Stripe
     private
 
     def url_for_authorization(response)
-      return unless %w(requires_source_action requires_action).include?(response.params["status"])
+      return unless %w[requires_source_action requires_action].include?(response.params["status"])
 
       next_action = response.params["next_source_action"] || response.params["next_action"]
       return if next_action.blank?
 
       next_action_type = next_action["type"]
-      return unless %w(authorize_with_url redirect_to_url).include?(next_action_type)
+      return unless %w[authorize_with_url redirect_to_url].include?(next_action_type)
 
       url = URI(next_action[next_action_type]["url"])
       # Check the URL is from a stripe subdomain

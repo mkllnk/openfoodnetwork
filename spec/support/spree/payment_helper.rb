@@ -7,7 +7,7 @@ module Spree
         object: "payment_intent",
         amount:,
         status:,
-        charges: { data: [{ id: "ch_1234", amount: }] },
+        charges: {data: [{id: "ch_1234", amount:}]},
         id: "12345",
         livemode: false
       )

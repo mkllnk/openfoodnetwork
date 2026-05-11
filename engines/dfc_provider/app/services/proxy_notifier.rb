@@ -7,7 +7,7 @@ class ProxyNotifier
     data = {
       eventType: "refresh",
       enterpriseUrlid: enterprise_url,
-      scope: "ReadEnterprise",
+      scope: "ReadEnterprise"
     }
     api = DfcPlatformRequest.new(platform)
     api.call(endpoint, data)

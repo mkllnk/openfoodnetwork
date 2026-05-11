@@ -3,6 +3,7 @@
 require_relative "boot"
 
 require "rails"
+
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_job/railtie"
@@ -10,23 +11,26 @@ require "active_record/railtie"
 require "active_storage/engine"
 require "action_controller/railtie"
 require "action_mailer/railtie"
+
 # require "action_mailbox/engine"
 # require "action_text/engine"
 require "action_view/railtie"
 require "action_cable/engine"
 require "rails/test_unit/railtie"
-require "sprockets/railtie" # Disable this after migrating to Webpacker
+
+# Disable this after migrating to Webpacker
+require "sprockets/railtie"
 
 require_relative "../lib/open_food_network/i18n_config"
-require_relative '../lib/spree/core/environment'
-require_relative '../lib/spree/core/mail_interceptor'
+require_relative "../lib/spree/core/environment"
+require_relative "../lib/spree/core/mail_interceptor"
 require_relative "../lib/i18n_digests"
 require_relative "../lib/git_utils"
 require_relative "../lib/session_cookie_upgrader"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups(assets: %w(development test)))
+Bundler.require(*Rails.groups(assets: %w[development test]))
 
 module Openfoodnetwork
   class Application < Rails::Application
@@ -35,9 +39,13 @@ module Openfoodnetwork
     config.action_view.form_with_generates_remote_forms = false
     config.active_record.cache_versioning = false
     config.active_record.has_many_inversing = false
-    config.active_record.yaml_column_permitted_classes = [BigDecimal, Symbol, Time,
-                                                          ActiveSupport::TimeWithZone,
-                                                          ActiveSupport::TimeZone]
+    config.active_record.yaml_column_permitted_classes = [
+      BigDecimal,
+      Symbol,
+      Time,
+      ActiveSupport::TimeWithZone,
+      ActiveSupport::TimeZone
+    ]
     config.active_support.cache_format_version = 7.0
 
     # this used to migrate cookie from :mashal serializer to :json serializer,
@@ -56,15 +64,21 @@ module Openfoodnetwork
     # in config/environments, which are processed later.
     #
 
-    config.middleware.insert_before(
-      ActionDispatch::Cookies,
-      SessionCookieUpgrader, {
-        old_key: "_ofn_session_id",
-        new_key: "_h-ofn_session_id",
-        domain: ENV.fetch("SITE_URL", nil),
-        attrs: { http_only: true, secure: true },
-      }
-    ) if Rails.env.staging? || Rails.env.production?
+    if 
+Rails.env.staging? || Rails.env.production?
+      config
+        .middleware
+        .insert_before(
+          ActionDispatch::Cookies,
+          SessionCookieUpgrader,
+          {
+            old_key: "_ofn_session_id",
+            new_key: "_h-ofn_session_id",
+            domain: ENV.fetch("SITE_URL", nil),
+            attrs: {http_only: true, secure: true}
+          }
+        )
+    end
 
     config.time_zone = ENV.fetch("TIMEZONE", nil)
     # config.eager_load_paths << Rails.root.join("extras")
@@ -75,8 +89,7 @@ module Openfoodnetwork
     config.after_initialize do
       # We need this here because the test env file loads before the Spree engine is loaded
       if Rails.env.test?
-        Spree::Core::Engine.routes.default_url_options[:host] =
-          ENV.fetch("SITE_URL", nil)
+        Spree::Core::Engine.routes.default_url_options[:host] = ENV.fetch("SITE_URL", nil)
       end
     end
 
@@ -87,14 +100,16 @@ module Openfoodnetwork
 
       # Subscribe to payment transition events
       ActiveSupport::Notifications.subscribe(
-        "ofn.payment_transition", Payments::StatusChangedListenerService.new
+        "ofn.payment_transition",
+        Payments::StatusChangedListenerService.new
       )
     end
 
     initializer "spree.environment", before: :load_config_initializers do |app|
       Rails.application.reloader.to_prepare do
         app.config.spree = Spree::Core::Environment.new
-        Spree::Config = app.config.spree.preferences # legacy access
+        # legacy access
+        Spree::Config = app.config.spree.preferences
       end
     end
 
@@ -118,7 +133,7 @@ module Openfoodnetwork
           Calculator::None
         ]
 
-        app.config.spree.calculators.add_class('enterprise_fees')
+        app.config.spree.calculators.add_class("enterprise_fees")
         app.config.spree.calculators.enterprise_fees = [
           Calculator::FlatPercentPerItem,
           Calculator::FlatRate,
@@ -128,7 +143,7 @@ module Openfoodnetwork
           Calculator::Weight
         ]
 
-        app.config.spree.calculators.add_class('payment_methods')
+        app.config.spree.calculators.add_class("payment_methods")
         app.config.spree.calculators.payment_methods = [
           Calculator::FlatPercentItemTotal,
           Calculator::FlatRate,
@@ -138,7 +153,7 @@ module Openfoodnetwork
           Calculator::None
         ]
 
-        app.config.spree.calculators.add_class('tax_rates')
+        app.config.spree.calculators.add_class("tax_rates")
         app.config.spree.calculators.tax_rates = [
           Calculator::DefaultTax
         ]
@@ -146,29 +161,33 @@ module Openfoodnetwork
     end
 
     initializer "ofn.reports" do |_app|
-      module ::Reporting; end
+      module ::Reporting
+      end
+
       Rails.application.reloader.to_prepare do
         next if defined?(::Reporting::Errors)
 
         loader = Zeitwerk::Loader.new
-        loader.push_dir("#{Rails.root.join('lib/reporting')}", namespace: ::Reporting)
+        loader.push_dir("#{Rails.root.join("lib/reporting")}", namespace: ::Reporting)
         loader.enable_reloading
         loader.setup
         loader.eager_load
 
         if Rails.env.development?
-          require 'listen'
+          require "listen"
+
           Listen.to("lib/reporting") { loader.reload }.start
         end
       end
     end
 
-    config.paths["config/routes.rb"] = %w(
+    config.paths["config/routes.rb"] = %w[
       config/routes/api.rb
       config/routes.rb
       config/routes/admin.rb
       config/routes/spree.rb
-    ).map { |relative_path| Rails.root.join(relative_path) }
+    ]
+      .map { |relative_path| Rails.root.join(relative_path) }
 
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
@@ -215,18 +234,18 @@ module Openfoodnetwork
     Rails.application.routes.default_url_options[:host] = ENV.fetch("SITE_URL", nil)
     DfcProvider::Engine.routes.default_url_options[:host] = ENV.fetch("SITE_URL", nil)
 
-    Rails.autoloaders.main.ignore(Rails.root.join('app/webpacker'))
+    Rails.autoloaders.main.ignore(Rails.root.join("app/webpacker"))
 
-    config.active_storage.service =
-      if ENV["S3_BUCKET"].present?
-        if ENV["S3_ENDPOINT"].present?
-          :s3_compatible_storage
-        else
-          :amazon
-        end
+    config.active_storage.service = if ENV["S3_BUCKET"].present?
+      if ENV["S3_ENDPOINT"].present?
+        :s3_compatible_storage
       else
-        :local
+        :amazon
       end
+    else
+      :local
+    end
+
     config.active_storage.content_types_to_serve_as_binary -= ["image/svg+xml"]
     config.active_storage.variable_content_types += ["image/svg+xml"]
     config.active_storage.url_options = config.action_controller.default_url_options
@@ -234,17 +253,21 @@ module Openfoodnetwork
 
     config.exceptions_app = routes
 
-    config.view_component.generate.sidecar = true # Always generate components in subfolders
+    # Always generate components in subfolders
+    config.view_component.generate.sidecar = true
 
     # Database encryption configuration, required for VINE connected app
     config.active_record.encryption.primary_key = ENV.fetch(
-      "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY", nil
+      "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY",
+      nil
     )
     config.active_record.encryption.deterministic_key = ENV.fetch(
-      "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY", nil
+      "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY",
+      nil
     )
     config.active_record.encryption.key_derivation_salt = ENV.fetch(
-      "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT", nil
+      "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT",
+      nil
     )
   end
 end

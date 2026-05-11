@@ -12,8 +12,7 @@ module Stripe
       card.user.customers.each do |customer|
         next unless stripe_account = customer.enterprise.stripe_account&.stripe_user_id
 
-        customer_id, _payment_method_id =
-          Stripe::CreditCardCloneFinder.new(card, stripe_account).find_cloned_card
+        customer_id, _payment_method_id = Stripe::CreditCardCloneFinder.new(card, stripe_account).find_cloned_card
         next unless customer_id
 
         stripe_customer = Stripe::Customer.retrieve(customer_id, stripe_account:)

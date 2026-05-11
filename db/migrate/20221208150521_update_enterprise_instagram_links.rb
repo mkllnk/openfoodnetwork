@@ -3,16 +3,22 @@
 class UpdateEnterpriseInstagramLinks < ActiveRecord::Migration[6.1]
   class Enterprise < ActiveRecord::Base
     def strip_url(url)
-      url&.sub(%r{(https?://)?}, '')
+      url&.sub(%r{(https?://)?}, "")
     end
 
     def correct_instagram_url(url)
-      url && strip_url(url.downcase).sub(%r{www.instagram.com/}, '').sub(%r{instagram.com/},
-                                                                         '').delete("@")
+      url &&
+        strip_url(url.downcase)
+          .sub(%r{www.instagram.com/}, "")
+          .sub(
+            %r{instagram.com/},
+            ""
+          )
+          .delete("@")
     end
 
     def instagram
-      correct_instagram_url self[:instagram]
+      correct_instagram_url(self[:instagram])
     end
   end
 

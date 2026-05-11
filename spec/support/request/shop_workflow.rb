@@ -8,10 +8,10 @@ module ShopWorkflow
   end
 
   def wait_for_cart
-    within find_body do
+    within(find_body) do
       # We ignore visibility in case the cart dropdown is not open.
-      within '.cart-sidebar', visible: false do
-        expect(page).not_to have_link "Updating cart...", visible: false
+      within(".cart-sidebar", visible: false) do
+        expect(page).not_to(have_link("Updating cart...", visible: false))
       end
     end
   end
@@ -19,14 +19,15 @@ module ShopWorkflow
   def edit_cart
     wait_for_cart
     toggle_cart
-    within '.cart-sidebar' do
-      expect(page).to have_link 'Edit cart'
+    within(".cart-sidebar") do
+      expect(page).to(have_link("Edit cart"))
     end
+
     first("a.edit-cart").click
   end
 
   def have_price(price)
-    have_selector ".variant-price", text: price
+    have_selector(".variant-price", text: price)
   end
 
   def add_enterprise_fee(enterprise_fee)
@@ -34,14 +35,17 @@ module ShopWorkflow
   end
 
   def pick_order(order)
-    allow_any_instance_of(ApplicationController).to receive(:session).and_return(
-      order_id: order.id, access_token: order.token
+    allow_any_instance_of(ApplicationController).to(
+      receive(:session).and_return(
+        order_id: order.id,
+        access_token: order.token
+      )
     )
   end
 
   def add_product_to_cart(order, product, quantity: 1)
     cart_service = CartService.new(order)
-    cart_service.populate(variants: { product.variants.first.id => quantity })
+    cart_service.populate(variants: {product.variants.first.id => quantity})
 
     # Recalculate fee totals
     order.recreate_all_fees!
@@ -50,28 +54,32 @@ module ShopWorkflow
   # Add an item to the cart
   def click_add_to_cart(variant = nil, quantity = 1)
     within_variant(variant) do
-      click_button "Add"
-      (quantity - 1).times { click_button increase_quantity_symbol }
+      click_button("Add")
+      (quantity - 1).times { click_button(increase_quantity_symbol) }
     end
+
     wait_for_cart
   end
 
   def click_remove_from_cart(variant = nil, quantity = 1)
     within_variant(variant) do
-      quantity.times { click_button decrease_quantity_symbol }
+      quantity.times { click_button(decrease_quantity_symbol) }
     end
+
     wait_for_cart
   end
 
   def click_add_bulk_to_cart(variant = nil, quantity = 1)
     within_variant(variant) do
-      click_button "Add"
+      click_button("Add")
     end
+
     within(".reveal-modal") do
       (quantity - 1).times do
         first(:button, increase_quantity_symbol).click
       end
     end
+
     wait_for_cart
   end
 
@@ -81,12 +89,13 @@ module ShopWorkflow
         page.all("button", text: increase_quantity_symbol).last.click
       end
     end
+
     wait_for_cart
   end
 
   def within_variant(variant = nil, &)
     selector = variant ? "#variant-#{variant.id}" : ".variants"
-    expect(page).to have_selector selector
+    expect(page).to(have_selector(selector))
     within(selector, &)
   end
 
@@ -126,7 +135,12 @@ module ShopWorkflow
     oc = exchange.order_cycle
     return unless oc.exchanges.from_enterprise(supplier).incoming.empty?
 
-    create(:exchange, order_cycle: oc, incoming: true,
-                      sender: supplier, receiver: oc.coordinator)
+    create(
+      :exchange,
+      order_cycle: oc,
+      incoming: true,
+      sender: supplier,
+      receiver: oc.coordinator
+    )
   end
 end

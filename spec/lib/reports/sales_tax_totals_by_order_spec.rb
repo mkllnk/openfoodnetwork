@@ -6,45 +6,68 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   let(:user) { create(:user) }
   let(:state_zone) { create(:zone_with_state_member) }
   let(:country_zone) { create(:zone_with_member) }
-  let(:tax_category) { create(:tax_category, name: 'GST Food') }
+  let(:tax_category) { create(:tax_category, name: "GST Food") }
   let!(:state_tax_rate) do
-    create(:tax_rate, zone: state_zone, tax_category:, name: 'State', amount: 0.02)
+    create(:tax_rate, zone: state_zone, tax_category:, name: "State", amount: 0.02)
   end
+
   let!(:country_tax_rate) do
-    create(:tax_rate, zone: country_zone, tax_category:, name: 'Country', amount: 0.01)
+    create(:tax_rate, zone: country_zone, tax_category:, name: "Country", amount: 0.01)
   end
+
   let(:ship_address) do
-    create(:ship_address, state: state_zone.members.first.zoneable,
-                          country: country_zone.members.first.zoneable)
+    create(
+      :ship_address,
+      state: state_zone.members.first.zoneable,
+      country: country_zone.members.first.zoneable
+    )
   end
-  let(:variant) { create(:variant, tax_category: ) }
+
+  let(:variant) { create(:variant, tax_category:) }
   let(:product) { variant.product }
   let(:supplier) do
-    create(:supplier_enterprise, name: 'SupplierEnterprise', charges_sales_tax: true)
+    create(:supplier_enterprise, name: "SupplierEnterprise", charges_sales_tax: true)
   end
+
   let(:distributor) do
     create(
       :distributor_enterprise_with_tax,
-      name: 'DistributorEnterpriseWithTax',
+      name: "DistributorEnterpriseWithTax",
       charges_sales_tax: true
-    ).tap do |distributor|
-      distributor.shipping_methods << shipping_method
-      distributor.payment_methods << payment_method
-    end
+    )
+      .tap do |distributor|
+        distributor.shipping_methods << shipping_method
+        distributor.payment_methods << payment_method
+      end
   end
+
   let(:payment_method) { create(:payment_method, :flat_rate) }
   let(:shipping_method) do
     create(:shipping_method, :flat_rate, amount: 10, tax_category_id: tax_category.id)
   end
+
   let(:order) { create(:order_with_distributor, distributor:) }
   let(:order_cycle) do
-    create(:simple_order_cycle, name: 'oc1', suppliers: [supplier], distributors: [distributor],
-                                variants: [variant])
+    create(
+      :simple_order_cycle,
+      name: "oc1",
+      suppliers: [supplier],
+      distributors: [distributor],
+      variants: [variant]
+    )
   end
+
   let(:customer1) do
-    create(:customer, enterprise: create(:enterprise), user: create(:user),
-                      first_name: 'cfname', last_name: 'clname', code: 'ABC123')
+    create(
+      :customer,
+      enterprise: create(:enterprise),
+      user: create(:user),
+      first_name: "cfname",
+      last_name: "clname",
+      code: "ABC123"
+    )
   end
+
   let(:query_row) do
     [
       [state_tax_rate.id, order.id],
@@ -53,14 +76,14 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   end
 
   before do
-    variant.update!(supplier: )
+    variant.update!(supplier:)
 
     order.update!(
-      number: 'ORDER_NUMBER_1',
+      number: "ORDER_NUMBER_1",
       order_cycle_id: order_cycle.id,
       ship_address_id: ship_address.id,
       customer_id: customer1.id,
-      email: 'order1@example.com'
+      email: "order1@example.com"
     )
     order.line_items.create(variant:, quantity: 1, price: 100)
 
@@ -83,10 +106,10 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
 
       filtered_tax_total = report.filtered_tax_rate_total(query_row)
 
-      expect(filtered_tax_total).not_to eq(order.total_tax)
+      expect(filtered_tax_total).not_to(eq(order.total_tax))
 
       # 10 % of 10.00 shipment cost + 10 % of 100.00 line item price
-      expect(filtered_tax_total).to eq(0.1 + 1)
+      expect(filtered_tax_total).to(eq(0.1 + 1))
     end
   end
 
@@ -97,15 +120,15 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
 
       tax_total = report.tax_rate_total(query_row)
 
-      expect(tax_total).not_to eq(order.total_tax)
+      expect(tax_total).not_to(eq(order.total_tax))
 
       # 20 % of 10.00 shipment cost + 20 % of 100.00 line item price
-      expect(tax_total).to eq(0.2 + 2)
+      expect(tax_total).to(eq(0.2 + 2))
     end
 
-    context "with a voucher" do
+    context("with a voucher") do
       let(:voucher) do
-        create(:voucher_flat_rate, code: 'some_code', enterprise: order.distributor, amount: 10)
+        create(:voucher_flat_rate, code: "some_code", enterprise: order.distributor, amount: 10)
       end
 
       it "returns the tax amount adjusted with voucher tax discount" do
@@ -115,7 +138,7 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
         tax_total = report.tax_rate_total(query_row)
 
         # 20 % of 10.00 shipment cost + 20 % of 100.00 line item price - voucher tax
-        expect(tax_total).to eq(0.2 + 2 - 0.29)
+        expect(tax_total).to(eq(0.2 + 2 - 0.29))
       end
     end
   end
@@ -128,12 +151,12 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
       total = report.total_excl_tax(query_row)
 
       # order.total - order.total_tax
-      expect(total).to eq(113.3 - 3.3)
+      expect(total).to(eq(113.3 - 3.3))
     end
 
-    context "with a voucher" do
+    context("with a voucher") do
       let(:voucher) do
-        create(:voucher_flat_rate, code: 'some_code', enterprise: order.distributor, amount: 10)
+        create(:voucher_flat_rate, code: "some_code", enterprise: order.distributor, amount: 10)
       end
 
       it "returns the total exluding tax and indcluding voucher tax discount" do
@@ -144,7 +167,7 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
 
         # discounted order total - discounted order tax
         # (113.3 - 10) - (3.3 - 0.29)
-        expect(total).to eq 100.29
+        expect(total).to(eq(100.29))
       end
     end
   end
@@ -157,7 +180,7 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
       total = report.total_incl_tax(query_row)
 
       # order.total - order.total_tax + filtered tax
-      expect(total).to eq(113.3 - 3.3 + 2.2)
+      expect(total).to(eq(113.3 - 3.3 + 2.2))
     end
   end
 
@@ -171,10 +194,10 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
 
       expected_rules = [
         {
-          group_by: :distributor,
+          group_by: :distributor
         },
         {
-          group_by: :order_cycle,
+          group_by: :order_cycle
         },
         {
           group_by: :order_number,
@@ -182,7 +205,7 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
         }
       ]
 
-      expect(report.rules).to match(expected_rules)
+      expect(report.rules).to(match(expected_rules))
     end
 
     describe "summary_row" do
@@ -195,22 +218,24 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
         item = [[state_tax_rate.id, order.id], order]
         summary_row = rules.third[:summary_row].call(nil, [item], nil)
 
-        expect(summary_row).to eq(
-          {
-            total_excl_tax: 110.00,
-            tax: 3.3,
-            total_incl_tax: 113.30,
-            first_name: "cfname",
-            last_name: "clname",
-            code: "ABC123",
-            email: "order1@example.com"
-          }
+        expect(summary_row).to(
+          eq(
+            {
+              total_excl_tax: 110.00,
+              tax: 3.3,
+              total_incl_tax: 113.30,
+              first_name: "cfname",
+              last_name: "clname",
+              code: "ABC123",
+              email: "order1@example.com"
+            }
+          )
         )
       end
 
-      context "with a voucher" do
+      context("with a voucher") do
         let(:voucher) do
-          create(:voucher_flat_rate, code: 'some_code', enterprise: order.distributor, amount: 10)
+          create(:voucher_flat_rate, code: "some_code", enterprise: order.distributor, amount: 10)
         end
 
         it "adjusts total_excl_tax and tax with voucher tax" do
@@ -235,34 +260,34 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
           item = [[state_tax_rate.id, order.id], order]
           summary_row = rules.third[:summary_row].call(nil, [item], nil)
 
-          expect(summary_row).to eq(expected_summary)
+          expect(summary_row).to(eq(expected_summary))
         end
       end
     end
   end
 
   describe "#voucher_tax_adjustment" do
-    context "with tax excluded from price" do
+    context("with tax excluded from price") do
       it "returns the tax related voucher adjustment" do
         mock_voucher_adjustment_service(excluded_tax: -0.1)
 
-        expect(report.voucher_tax_adjustment(order)).to eq(-0.1)
+        expect(report.voucher_tax_adjustment(order)).to(eq(-0.1))
       end
     end
 
-    context "with tax included in price" do
+    context("with tax included in price") do
       it "returns the tax part of the voucher adjustment" do
         mock_voucher_adjustment_service(included_tax: -0.2)
 
-        expect(report.voucher_tax_adjustment(order)).to eq(-0.2)
+        expect(report.voucher_tax_adjustment(order)).to(eq(-0.2))
       end
     end
 
-    context "with both type of tax" do
+    context("with both type of tax") do
       it "returns sum of the tax part of voucher adjustment and tax related voucher adjusment" do
         mock_voucher_adjustment_service(included_tax: -0.5, excluded_tax: -0.1)
 
-        expect(report.voucher_tax_adjustment(order)).to eq(-0.6)
+        expect(report.voucher_tax_adjustment(order)).to(eq(-0.6))
       end
     end
   end
@@ -282,6 +307,6 @@ RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
       voucher_excluded_tax: excluded_tax
     )
 
-    allow(VoucherAdjustmentsService).to receive(:new).and_return(service)
+    allow(VoucherAdjustmentsService).to(receive(:new).and_return(service))
   end
 end

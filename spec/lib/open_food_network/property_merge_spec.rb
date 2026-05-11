@@ -2,9 +2,9 @@
 
 module OpenFoodNetwork
   RSpec.describe PropertyMerge do
-    let(:property) { create(:property, presentation: 'One') }
-    let(:duplicate_property) { create(:property, presentation: 'One') }
-    let(:different_property) { create(:property, presentation: 'Two') }
+    let(:property) { create(:property, presentation: "One") }
+    let(:duplicate_property) { create(:property, presentation: "One") }
+    let(:different_property) { create(:property, presentation: "Two") }
 
     describe "merging Spree::Properties" do
       it "merges properties" do

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'ostruct'
+require "ostruct"
 
 module Spree
   class Shipment < ApplicationRecord
     self.belongs_to_required_by_default = false
     self.ignored_columns += [:stock_location_id]
 
-    belongs_to :order, class_name: 'Spree::Order'
-    belongs_to :address, class_name: 'Spree::Address'
+    belongs_to :order, class_name: "Spree::Order"
+    belongs_to :address, class_name: "Spree::Address"
 
     has_many :shipping_rates, dependent: :delete_all
     has_many :shipping_methods, through: :shipping_rates
@@ -28,20 +28,24 @@ module Spree
 
     make_permalink field: :number
 
-    scope :shipped, -> { with_state('shipped') }
-    scope :ready,   -> { with_state('ready') }
-    scope :pending, -> { with_state('pending') }
-    scope :with_state, ->(*s) { where(state: s) }
+    scope :shipped, -> { with_state("shipped") }
+    scope :ready, -> { with_state("ready") }
+    scope :pending, -> { with_state("pending") }
+    scope :with_state, -> (*s) { where(state: s) }
     scope :trackable, -> { where("tracking IS NOT NULL AND tracking != ''") }
 
     # Shipment state machine
     # See http://github.com/pluginaweek/state_machine/tree/master for details
     state_machine initial: :pending, use_transactions: false do
       event :ready do
-        transition from: :pending, to: :ready, if: lambda { |shipment|
-          # Fix for #2040
-          shipment.determine_state(shipment.order) == 'ready'
-        }
+        transition(
+          from: :pending,
+          to: :ready,
+          if: lambda { |shipment|
+            # Fix for #2040
+            shipment.determine_state(shipment.order) == "ready"
+          }
+        )
       end
 
       event :pend do
@@ -51,22 +55,33 @@ module Spree
       event :ship do
         transition from: :ready, to: :shipped
       end
+
       after_transition to: :shipped, do: :after_ship
 
       event :cancel do
         transition to: :canceled, from: [:pending, :ready]
       end
+
       after_transition to: :canceled, do: :after_cancel
 
       event :resume do
-        transition from: :canceled, to: :ready, if: lambda { |shipment|
-          shipment.determine_state(shipment.order) == :ready
-        }
-        transition from: :canceled, to: :pending, if: lambda { |shipment|
-          shipment.determine_state(shipment.order) == :ready
-        }
+        transition(
+          from: :canceled,
+          to: :ready,
+          if: lambda { |shipment|
+            shipment.determine_state(shipment.order) == :ready
+          }
+        )
+        transition(
+          from: :canceled,
+          to: :pending,
+          if: lambda { |shipment|
+            shipment.determine_state(shipment.order) == :ready
+          }
+        )
         transition from: :canceled, to: :pending
       end
+
       after_transition from: :canceled, to: [:pending, :ready], do: :after_resume
     end
 
@@ -80,7 +95,7 @@ module Spree
     end
 
     def shipped=(value)
-      return unless value == '1' && shipped_at.nil?
+      return unless value == "1" && shipped_at.nil?
 
       self.shipped_at = Time.zone.now
     end
@@ -123,8 +138,9 @@ module Spree
       distributor_shipping_rates = estimator.shipping_rates(to_package)
 
       if original_shipping_method_id.present? &&
-         distributor_shipping_rates.map(&:shipping_method_id)
-             .exclude?(original_shipping_method_id)
+          distributor_shipping_rates
+            .map(&:shipping_method_id)
+            .exclude?(original_shipping_method_id)
         cost = estimator.calculate_cost(shipping_method, to_package)
         unless cost.nil?
           original_shipping_rate = shipping_method.shipping_rates.new(cost:)
@@ -229,7 +245,7 @@ module Spree
         state: new_state,
         updated_at: Time.zone.now
       )
-      after_ship if new_state == 'shipped' && old_state != 'shipped'
+      after_ship if new_state == "shipped" && old_state != "shipped"
     end
 
     # Determines the appropriate +state+ according to the following logic:
@@ -238,12 +254,12 @@ module Spree
     # shipped    if already shipped (ie. does not change the state)
     # ready      all other cases
     def determine_state(order)
-      return 'canceled' if order.canceled?
-      return 'pending' unless order.can_ship?
-      return 'pending' if inventory_units.any?(&:backordered?)
-      return 'shipped' if state == 'shipped'
+      return "canceled" if order.canceled?
+      return "pending" unless order.can_ship?
+      return "pending" if inventory_units.any?(&:backordered?)
+      return "shipped" if state == "shipped"
 
-      order.paid? ? 'ready' : 'pending'
+      order.paid? ? "ready" : "pending"
     end
 
     def tracking_url
@@ -263,9 +279,11 @@ module Spree
       grouped_inventory_units = inventory_units.includes(:variant).group_by do |iu|
         [iu.variant, iu.state_name]
       end
+
       grouped_inventory_units.each do |(variant, state_name), inventory_units|
-        package.add variant, inventory_units.count, state_name
+        package.add(variant, inventory_units.count, state_name)
       end
+
       package
     end
 
@@ -285,18 +303,21 @@ module Spree
         fee_adjustment.save!
         fee_adjustment.reload
       elsif shipping_method
-        shipping_method.create_adjustment(adjustment_label,
-                                          self,
-                                          true,
-                                          "open")
-        reload # ensure adjustment is present on later saves
+        shipping_method.create_adjustment(
+          adjustment_label,
+          self,
+          true,
+          "open"
+        )
+        # ensure adjustment is present on later saves
+        reload
       end
 
       update_amounts
     end
 
     def adjustment_label
-      I18n.t('shipping')
+      I18n.t("shipping")
     end
 
     def can_modify?
@@ -330,6 +351,7 @@ module Spree
         random = "H#{Array.new(11) { rand(9) }.join}"
         record = self.class.default_scoped.find_by(number: random)
       end
+
       self.number = random
     end
 
@@ -342,14 +364,14 @@ module Spree
 
       return if shipping_method.include?(address)
 
-      errors.add :shipping_method, Spree.t(:is_not_available_to_shipment_address)
+      errors.add(:shipping_method, Spree.t(:is_not_available_to_shipment_address))
     end
 
     def after_ship
       inventory_units.each(&:ship!)
       fee_adjustment.finalize!
       send_shipped_email if order.send_shipment_email
-      touch :shipped_at
+      touch(:shipped_at)
       update_order_shipment_state
     end
 
@@ -357,7 +379,7 @@ module Spree
       new_state = order.updater.update_shipment_state
       order.update_columns(
         shipment_state: new_state,
-        updated_at: Time.zone.now,
+        updated_at: Time.zone.now
       )
     end
 
@@ -367,7 +389,7 @@ module Spree
     end
 
     def update_adjustments
-      return unless cost_changed? && state != 'shipped'
+      return unless cost_changed? && state != "shipped"
 
       recalculate_adjustments
     end

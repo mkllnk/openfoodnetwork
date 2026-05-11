@@ -7,15 +7,19 @@ module PaymentGateways
 
     before_action :load_checkout_order, only: [:express, :confirm]
     before_action :handle_insufficient_stock, only: [:express, :confirm]
-    before_action -> { check_order_cycle_expiry(should_empty_order: false) }, only: [
-      :express, :confirm
-    ]
+    before_action(
+      -> { check_order_cycle_expiry(should_empty_order: false) },
+      only: [
+        :express,
+        :confirm
+      ]
+    )
     before_action :permit_parameters!
 
     after_action :reset_order_when_complete, only: :confirm
 
     def express
-      return redirect_to order_failed_route if @any_out_of_stock == true
+      return redirect_to(order_failed_route) if @any_out_of_stock == true
 
       pp_request = provider.build_set_express_checkout(
         express_checkout_request_details(@order)
@@ -27,36 +31,36 @@ module PaymentGateways
           # At this point Paypal has *provisionally* accepted that the payment can now be placed,
           # and the user will be redirected to a Paypal payment page. On completion, the user is
           # sent back and the response is handled in the #confirm action in this controller.
-          redirect_to provider.express_checkout_url(pp_response, useraction: 'commit')
+          redirect_to(provider.express_checkout_url(pp_response, useraction: "commit"))
         else
           Rails.logger.error(
-            "PaypalController#express: #{pp_response.errors.map(&:long_message).join(' ')}"
+            "PaypalController#express: #{pp_response.errors.map(&:long_message).join(" ")}"
           )
           Alert.raise_with_record(pp_response.errors, @order)
-          flash[:error] =
-            Spree.t(
-              'flash.generic_error',
-              scope: 'paypal',
-              reasons: pp_response.errors.map(&:long_message).join(" "),
-            )
-          redirect_to main_app.checkout_step_path(:payment)
+          flash[:error] = Spree.t(
+            "flash.generic_error",
+            scope: "paypal",
+            reasons: pp_response.errors.map(&:long_message).join(" ")
+          )
+          redirect_to(main_app.checkout_step_path(:payment))
         end
+
       rescue SocketError
-        flash[:error] = Spree.t('flash.connection_failed', scope: 'paypal')
-        redirect_to main_app.checkout_step_path(:payment)
+        flash[:error] = Spree.t("flash.connection_failed", scope: "paypal")
+        redirect_to(main_app.checkout_step_path(:payment))
       end
     end
 
     def confirm
-      return redirect_to order_failed_route if @any_out_of_stock == true
+      return redirect_to(order_failed_route) if @any_out_of_stock == true
 
       # At this point the user has come back from the Paypal form, and we get one
       # last chance to interact with the payment process before the money moves...
       last_payment = Orders::FindPaymentService.new(@order).last_pending_paypal_payment
 
       if last_payment.nil?
-        flash[:error] = Spree.t('flash.no_payment_found', scope: 'paypal')
-        return redirect_to main_app.checkout_step_path(:payment)
+        flash[:error] = Spree.t("flash.no_payment_found", scope: "paypal")
+        return redirect_to(main_app.checkout_step_path(:payment))
       end
 
       last_payment.update!(
@@ -70,8 +74,8 @@ module PaymentGateways
     end
 
     def cancel
-      flash[:notice] = Spree.t('flash.cancel', scope: 'paypal')
-      redirect_to main_app.checkout_path
+      flash[:notice] = Spree.t("flash.cancel", scope: "paypal")
+      redirect_to(main_app.checkout_path)
     end
 
     private
@@ -82,7 +86,8 @@ module PaymentGateways
           InvoiceID: order.number,
           BuyerEmail: order.email,
           ReturnURL: payment_gateways_confirm_paypal_url(
-            payment_method_id: params[:payment_method_id], utm_nooverride: 1
+            payment_method_id: params[:payment_method_id],
+            utm_nooverride: 1
           ),
           CancelURL: payment_gateways_cancel_paypal_url,
           SolutionType: payment_method.preferred_solution.presence || "Mark",
@@ -117,7 +122,7 @@ module PaymentGateways
     end
 
     def address_required?
-      payment_method.preferred_solution.eql?('Sole')
+      payment_method.preferred_solution.eql?("Sole")
     end
   end
 end

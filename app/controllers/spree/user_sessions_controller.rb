@@ -10,7 +10,7 @@ module Spree
     include Spree::Core::ControllerHelpers::Common
     include Spree::Core::ControllerHelpers::Order
 
-    helper 'spree/base'
+    helper "spree/base"
 
     prepend_before_action :handle_unconfirmed_email
     before_action :set_checkout_redirect, only: :create
@@ -21,14 +21,19 @@ module Spree
       authenticate_spree_user!
 
       if spree_user_signed_in?
-        flash[:success] = t('devise.success.logged_in_succesfully')
+        flash[:success] = t("devise.success.logged_in_succesfully")
 
-        redirect_to return_url_or_default(after_sign_in_path_for(spree_current_user))
+        redirect_to(return_url_or_default(after_sign_in_path_for(spree_current_user)))
       else
-        message = t('devise.failure.invalid')
-        render turbo_stream: turbo_stream.update(
-          'login-feedback', partial: 'layouts/alert', locals: { message:, type: 'alert' }
-        ), status: :unprocessable_entity
+        message = t("devise.failure.invalid")
+        render(
+          turbo_stream: turbo_stream.update(
+            "login-feedback",
+            partial: "layouts/alert",
+            locals: {message:, type: "alert"}
+          ),
+          status: :unprocessable_entity
+        )
       end
     end
 
@@ -59,19 +64,27 @@ module Spree
     def render_unconfirmed_response
       message = t(:email_unconfirmed)
 
-      render turbo_stream: turbo_stream.update(
-        'login-feedback',
-        partial: 'layouts/alert', locals: { type: "alert", message:, unconfirmed: true,
-                                            tab: "login", email: params.dig(:spree_user, :email) }
-      ), status: :unprocessable_entity
+      render(
+        turbo_stream: turbo_stream.update(
+          "login-feedback",
+          partial: "layouts/alert",
+          locals: {
+            type: "alert",
+            message:,
+            unconfirmed: true,
+            tab: "login",
+            email: params.dig(:spree_user, :email)
+          }
+        ),
+        status: :unprocessable_entity
+      )
     end
 
     def ensure_valid_locale_persisted
       # When creating a new user session we have to wait until after a successful
       # login to be able to persist a selected locale on the current user
 
-      UserLocaleSetter.new(spree_current_user, params[:locale], cookies).
-        ensure_valid_locale_persisted
+      UserLocaleSetter.new(spree_current_user, params[:locale], cookies).ensure_valid_locale_persisted
     end
   end
 end

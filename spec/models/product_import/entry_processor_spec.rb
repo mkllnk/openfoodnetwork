@@ -21,17 +21,17 @@ RSpec.describe ProductImport::EntryProcessor do
     )
   end
 
-  describe '#reset_absent_items' do
+  describe "#reset_absent_items" do
     let(:reset_absent) do
       instance_double(ProductImport::ResetAbsent, call: true)
     end
 
     before do
-      allow(ProductImport::ResetAbsent).to receive(:new) { reset_absent }
-      allow(ProductImport::Settings).to receive(:new) { settings }
+      allow(ProductImport::ResetAbsent).to(receive(:new) { reset_absent })
+      allow(ProductImport::Settings).to(receive(:new) { settings })
     end
 
-    context 'when there is no data' do
+    context("when there is no data") do
       let(:settings) do
         instance_double(
           ProductImport::Settings,
@@ -40,13 +40,13 @@ RSpec.describe ProductImport::EntryProcessor do
         )
       end
 
-      it 'does not call ResetAbsent' do
+      it "does not call ResetAbsent" do
         entry_processor.reset_absent_items
-        expect(reset_absent).not_to have_received(:call)
+        expect(reset_absent).not_to(have_received(:call))
       end
     end
 
-    context 'when reset_all_absent is not set' do
+    context("when reset_all_absent is not set") do
       let(:settings) do
         instance_double(
           ProductImport::Settings,
@@ -55,13 +55,13 @@ RSpec.describe ProductImport::EntryProcessor do
         )
       end
 
-      it 'does not call ResetAbsent' do
+      it "does not call ResetAbsent" do
         entry_processor.reset_absent_items
-        expect(reset_absent).not_to have_received(:call)
+        expect(reset_absent).not_to(have_received(:call))
       end
     end
 
-    context 'when there is data and reset_all_absent is set' do
+    context("when there is data and reset_all_absent is set") do
       let(:settings) do
         instance_double(
           ProductImport::Settings,
@@ -71,51 +71,55 @@ RSpec.describe ProductImport::EntryProcessor do
         )
       end
 
-      context 'when importing into inventory' do
+      context("when importing into inventory") do
         let(:reset_stock_strategy) do
           instance_double(ProductImport::InventoryResetStrategy)
         end
 
         before do
-          allow(settings).to receive(:importing_into_inventory?) { true }
+          allow(settings).to(receive(:importing_into_inventory?) { true })
 
           allow(ProductImport::InventoryResetStrategy)
-            .to receive(:new).with([1]) { reset_stock_strategy }
+            .to(receive(:new).with([1]) { reset_stock_strategy })
         end
 
-        it 'delegates to ResetAbsent passing the appropriate reset_stock_strategy' do
+        it "delegates to ResetAbsent passing the appropriate reset_stock_strategy" do
           entry_processor.reset_absent_items
 
           expect(ProductImport::ResetAbsent)
-            .to have_received(:new)
-            .with(entry_processor, settings, reset_stock_strategy)
+            .to(
+              have_received(:new)
+                .with(entry_processor, settings, reset_stock_strategy)
+            )
         end
       end
 
-      context 'when not importing into inventory' do
+      context("when not importing into inventory") do
         let(:reset_stock_strategy) do
           instance_double(Catalog::ProductImport::ProductsResetStrategy)
         end
 
         before do
-          allow(settings).to receive(:importing_into_inventory?) { false }
+          allow(settings).to(receive(:importing_into_inventory?) { false })
 
           allow(Catalog::ProductImport::ProductsResetStrategy)
-            .to receive(:new).with([1]) { reset_stock_strategy }
+            .to(receive(:new).with([1]) { reset_stock_strategy })
         end
 
-        it 'delegates to ResetAbsent passing the appropriate reset_stock_strategy' do
+        it "delegates to ResetAbsent passing the appropriate reset_stock_strategy" do
           entry_processor.reset_absent_items
 
           expect(ProductImport::ResetAbsent)
-            .to have_received(:new)
-            .with(entry_processor, settings, reset_stock_strategy)
+            .to(
+              have_received(:new)
+                .with(entry_processor, settings, reset_stock_strategy)
+            )
         end
       end
     end
   end
 
-  describe '#products_reset_count' do
+  describe "#products_reset_count" do
     let(:settings) do
       instance_double(
         ProductImport::Settings,
@@ -126,25 +130,25 @@ RSpec.describe ProductImport::EntryProcessor do
       )
     end
 
-    context 'when reset_absent_items was executed' do
+    context("when reset_absent_items was executed") do
       let(:reset_absent) do
         instance_double(ProductImport::ResetAbsent, call: 2)
       end
 
       before do
-        allow(ProductImport::Settings).to receive(:new) { settings }
-        allow(ProductImport::ResetAbsent).to receive(:new) { reset_absent }
+        allow(ProductImport::Settings).to(receive(:new) { settings })
+        allow(ProductImport::ResetAbsent).to(receive(:new) { reset_absent })
       end
 
-      it 'returns the number of items affected by the last reset' do
+      it "returns the number of items affected by the last reset" do
         entry_processor.reset_absent_items
-        expect(entry_processor.products_reset_count).to eq(2)
+        expect(entry_processor.products_reset_count).to(eq(2))
       end
     end
 
-    context 'when ResetAbsent was not called' do
-      it 'returns 0' do
-        expect(entry_processor.products_reset_count).to eq(0)
+    context("when ResetAbsent was not called") do
+      it "returns 0" do
+        expect(entry_processor.products_reset_count).to(eq(0))
       end
     end
   end
@@ -157,18 +161,19 @@ RSpec.describe ProductImport::EntryProcessor do
         "#{supplier2.name}": supplier2.id
       }
     end
+
     let(:supplier1) { create(:supplier_enterprise) }
     let(:supplier2) { create(:supplier_enterprise) }
     let!(:products) { create_list(:simple_product, 3, supplier_id: supplier1.id) }
 
     before do
-      allow(ProductImport::Settings).to receive(:new) { settings }
+      allow(ProductImport::Settings).to(receive(:new) { settings })
 
       enterprises = {
-        "#{supplier1.name}": { id: supplier1.id },
-        "#{supplier2.name}": { id: supplier2.id }
+        "#{supplier1.name}": {id: supplier1.id},
+        "#{supplier2.name}": {id: supplier2.id}
       }
-      allow(spreadsheet_data).to receive(:enterprises_index).and_return(enterprises)
+      allow(spreadsheet_data).to(receive(:enterprises_index).and_return(enterprises))
 
       create_list(:simple_product, 2, supplier_id: supplier2.id)
     end
@@ -176,10 +181,10 @@ RSpec.describe ProductImport::EntryProcessor do
     it "returns the total of existing variants for the given enterprises" do
       entry_processor.count_existing_items
 
-      expect(entry_processor.total_enterprise_products).to eq(5)
+      expect(entry_processor.total_enterprise_products).to(eq(5))
     end
 
-    context "when importing into inventory" do
+    context("when importing into inventory") do
       let(:settings) { instance_double(ProductImport::Settings, importing_into_inventory?: true) }
 
       it "returns the total of existing variant override for the given enterprises" do
@@ -190,7 +195,7 @@ RSpec.describe ProductImport::EntryProcessor do
 
         entry_processor.count_existing_items
 
-        expect(entry_processor.total_enterprise_products).to eq(3)
+        expect(entry_processor.total_enterprise_products).to(eq(3))
       end
     end
   end

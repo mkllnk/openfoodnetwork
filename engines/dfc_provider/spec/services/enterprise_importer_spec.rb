@@ -16,7 +16,7 @@ RSpec.describe EnterpriseImporter do
           country: {
             scheme: "http",
             host: "publications.europa.eu",
-            path: "/resource/authority/country/AUS",
+            path: "/resource/authority/country/AUS"
           }
         )
       ],
@@ -24,21 +24,21 @@ RSpec.describe EnterpriseImporter do
         DataFoodConsortium::ConnectorV1::SocialMedia.new(
           nil,
           name: "Facebook",
-          url: "dfc_test_farm",
+          url: "dfc_test_farm"
         )
-      ],
+      ]
     )
   }
 
   it "assigns data to a new enterprise object" do
     enterprise = subject.import
 
-    expect(enterprise.id).to eq nil
-    expect(enterprise.semantic_link.semantic_id).to eq "litefarm.org"
-    expect(enterprise.name).to eq "Test Farm"
-    expect(enterprise.address.state.name).to eq "Victoria"
-    expect(enterprise.address.country.name).to eq "Australia"
-    expect(enterprise.facebook).to eq "dfc_test_farm"
+    expect(enterprise.id).to(eq(nil))
+    expect(enterprise.semantic_link.semantic_id).to(eq("litefarm.org"))
+    expect(enterprise.name).to(eq("Test Farm"))
+    expect(enterprise.address.state.name).to(eq("Victoria"))
+    expect(enterprise.address.country.name).to(eq("Australia"))
+    expect(enterprise.facebook).to(eq("dfc_test_farm"))
   end
 
   it "understands old country names" do
@@ -47,9 +47,9 @@ RSpec.describe EnterpriseImporter do
 
     enterprise = subject.import
 
-    expect(enterprise.id).to eq nil
-    expect(enterprise.address.country.name).to eq "France"
-    expect(enterprise.address.state.name).to eq "Aquitaine"
+    expect(enterprise.id).to(eq(nil))
+    expect(enterprise.address.country.name).to(eq("France"))
+    expect(enterprise.address.state.name).to(eq("Aquitaine"))
   end
 
   it "ignores errors during image import" do
@@ -57,7 +57,7 @@ RSpec.describe EnterpriseImporter do
 
     enterprise = subject.import
 
-    expect(enterprise.name).to eq "Test Farm"
-    expect(enterprise.logo.attached?).to eq false
+    expect(enterprise.name).to(eq("Test Farm"))
+    expect(enterprise.logo.attached?).to(eq(false))
   end
 end

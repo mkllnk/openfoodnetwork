@@ -13,7 +13,7 @@ RSpec.describe DfcPlatformRequest do
 
   it "receives an access token", :vcr do
     token = subject.request_token
-    expect(token).to be_a String
-    expect(token.length).to be > 20
+    expect(token).to(be_a(String))
+    expect(token.length).to(be > 20)
   end
 end

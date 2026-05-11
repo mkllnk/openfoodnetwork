@@ -6,7 +6,7 @@ module Reporting
       class Base < ReportTemplate
         def search
           permissions = ::Permissions::Order.new(user)
-          sold_states = %w(complete resumed)
+          sold_states = %w[complete resumed]
           permissions.editable_orders.where(state: sold_states).ransack(ransack_params)
         end
 
@@ -19,7 +19,8 @@ module Reporting
           }
         end
 
-        def columns # rubocop:disable Metrics/AbcSize
+        # rubocop:disable Metrics/AbcSize
+        def columns
           {
             hub: proc { |orders| distributor(orders).name },
             hub_id: proc { |orders| distributor(orders).id },
@@ -65,7 +66,9 @@ module Reporting
             total_excl_tax = total_incl_tax - total_tax
 
             @tax_data[distributor(orders).id] = {
-              total_incl_tax:, total_tax:, total_excl_tax:
+              total_incl_tax:,
+              total_tax:,
+              total_excl_tax:
             }
           end
         end
@@ -76,7 +79,7 @@ module Reporting
           orders.each do |order|
             adjustment_service = VoucherAdjustmentsService.new(order)
             result += adjustment_service.voucher_included_tax +
-                      adjustment_service.voucher_excluded_tax
+              adjustment_service.voucher_excluded_tax
           end
 
           result

@@ -11,36 +11,47 @@ class AngularFormBuilder < ActionView::Helpers::FormBuilder
 
   def ng_text_field(method, options = {})
     value = "{{ #{angular_model(method)} }}"
-    options.reverse_merge!('id' => angular_id(method))
+    options.reverse_merge!("id" => angular_id(method))
 
-    @template.text_field_tag angular_name(method), value, options
+    @template.text_field_tag(angular_name(method), value, options)
   end
 
   def ng_hidden_field(method, _options = {})
     value = "{{ #{angular_model(method)} }}"
 
-    @template.hidden_field_tag angular_name(method), value, id: angular_id(method)
+    @template.hidden_field_tag(angular_name(method), value, id: angular_id(method))
   end
 
   def ng_select(method, choices, angular_field, options = {})
-    options.reverse_merge!('id' => angular_id(method), 'ng-model' => angular_model(method).to_s)
+    options.reverse_merge!("id" => angular_id(method), "ng-model" => angular_model(method).to_s)
 
-    @template.select_tag angular_name(method),
-                         @template.ng_options_for_select(choices, angular_field), options
+    @template.select_tag(
+      angular_name(method),
+      @template.ng_options_for_select(choices, angular_field),
+      options
+    )
   end
 
-  def ng_collection_select(method, collection, value_method,
-                           text_method, angular_field, options = {})
-    options.reverse_merge!('id' => angular_id(method), 'ng-model' => angular_model(method).to_s)
+  def ng_collection_select(
+    method,
+    collection,
+    value_method,
+    text_method,
+    angular_field,
+    options = {}
+  )
+    options.reverse_merge!("id" => angular_id(method), "ng-model" => angular_model(method).to_s)
 
-    @template.select_tag angular_name(method),
-                         @template.ng_options_from_collection_for_select(
-                           collection,
-                           value_method,
-                           text_method,
-                           angular_field
-                         ),
-                         options
+    @template.select_tag(
+      angular_name(method),
+      @template.ng_options_from_collection_for_select(
+        collection,
+        value_method,
+        text_method,
+        angular_field
+      ),
+      options
+    )
   end
 
   private

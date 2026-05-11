@@ -5,16 +5,21 @@ module Reporting
     module Customers
       class Base < ReportTemplate
         def query_result
-          filter(Spree::Order.managed_by(@user)
-            .distributed_by_user(@user)
-            .complete.not_state(:canceled)
-            .order(:id))
+          filter(
+            Spree::Order
+              .managed_by(@user)
+              .distributed_by_user(@user)
+              .complete
+              .not_state(:canceled)
+              .order(:id)
+          )
             .group_by do |order|
               {
                 customer_id: order.customer_id || order.email,
-                hub_id: order.distributor_id,
+                hub_id: order.distributor_id
               }
-          end.values
+            end
+            .values
         end
 
         # rubocop:disable Metrics/AbcSize
@@ -23,24 +28,24 @@ module Reporting
             first_name: proc { |orders| last_completed_order(orders).billing_address.firstname },
             last_name: proc { |orders| last_completed_order(orders).billing_address.lastname },
             billing_address: proc { |orders|
-                               last_completed_order(orders).billing_address.address_and_city
-                             },
+              last_completed_order(orders).billing_address.address_and_city
+            },
             email: proc { |orders| last_completed_order(orders).email },
             phone: proc { |orders| last_completed_order(orders).billing_address.phone },
             hub: proc { |orders| last_completed_order(orders).distributor&.name },
             hub_address: proc { |orders|
-                           last_completed_order(orders).distributor&.address&.address_and_city
-                         },
+              last_completed_order(orders).distributor&.address&.address_and_city
+            },
             shipping_method: proc { |orders| last_completed_order(orders).shipping_method&.name },
             total_orders: proc { |orders| orders.count },
             total_incl_tax: proc { |orders| orders.map(&:total).compact.sum },
-            last_completed_order_date: proc { |orders| last_completed_order_date(orders) },
+            last_completed_order_date: proc { |orders| last_completed_order_date(orders) }
           }
         end
         # rubocop:enable Metrics/AbcSize
 
         def filter(orders)
-          filter_to_completed_at filter_to_distributor filter_to_order_cycle orders
+          filter_to_completed_at(filter_to_distributor(filter_to_order_cycle(orders)))
         end
 
         def skip_duplicate_rows?

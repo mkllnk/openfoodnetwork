@@ -4,9 +4,11 @@ module RequestTimeouts
   extend ActiveSupport::Concern
 
   included do
-    if defined? Rack::Timeout
-      rescue_from Rack::Timeout::RequestTimeoutException,
-                  with: :timeout_response
+    if defined?(Rack::Timeout)
+      rescue_from(
+        Rack::Timeout::RequestTimeoutException,
+        with: :timeout_response
+      )
     end
   end
 
@@ -15,12 +17,14 @@ module RequestTimeouts
   def timeout_response(_exception = nil)
     respond_to do |type|
       type.html {
-        render status: :gateway_timeout,
-               file: Rails.public_path.join('500.html'),
-               formats: [:html],
-               layout: nil
+        render(
+          status: :gateway_timeout,
+          file: Rails.public_path.join("500.html"),
+          formats: [:html],
+          layout: nil
+        )
       }
-      type.all { render status: :gateway_timeout, body: nil }
+      type.all { render(status: :gateway_timeout, body: nil) }
     end
   end
 end

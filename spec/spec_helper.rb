@@ -2,31 +2,33 @@
 
 # This file defines configurations that are universal to all spec types (feature, system, etc)
 
-ENV["RAILS_ENV"] ||= 'test'
+ENV["RAILS_ENV"] ||= "test"
 
 # for full configuration, see .simplecov
-require 'simplecov' if ENV["COVERAGE"]
+require "simplecov" if ENV["COVERAGE"]
 
-require 'pry' unless ENV['CI']
-require 'view_component/test_helpers'
+require "pry" unless ENV["CI"]
+require "view_component/test_helpers"
 
 require_relative "../config/environment"
-require 'rspec/rails'
-require 'rspec/retry'
-require 'capybara'
-require 'paper_trail/frameworks/rspec'
+require "rspec/rails"
+require "rspec/retry"
+require "capybara"
+require "paper_trail/frameworks/rspec"
 require "factory_bot_rails"
-require 'database_cleaner'
+require "database_cleaner"
 
-require 'shoulda/matchers'
+require "shoulda/matchers"
+
 Shoulda::Matchers.configure do |config|
   config.integrate do |with|
-    with.test_framework :rspec
-    with.library :rails
+    with.test_framework(:rspec)
+    with.library(:rails)
   end
 end
 
-require 'knapsack_pro'
+require "knapsack_pro"
+
 KnapsackPro::Adapters::RSpecAdapter.bind
 
 if ENV["COVERAGE"] && defined?(SimpleCov)
@@ -36,18 +38,19 @@ if ENV["COVERAGE"] && defined?(SimpleCov)
 end
 
 # Allow connections to selenium whilst raising errors when connecting to external sites
-require 'webmock/rspec'
+require "webmock/rspec"
+
 WebMock.enable!
 WebMock.disable_net_connect!(
   allow_localhost: true,
-  allow: ['chromedriver.storage.googleapis.com']
+  allow: ["chromedriver.storage.googleapis.com"]
 )
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Rails.root.glob("spec/support/**/*.rb").sort.each { |f| require f }
 
-Capybara.server = :puma, { Silent: true }
+Capybara.server = :puma, {Silent: true}
 Capybara.disable_animation = true
 
 Capybara.configure do |config|
@@ -56,7 +59,7 @@ Capybara.configure do |config|
 end
 
 FactoryBot.use_parent_strategy = false
-FactoryBot::SyntaxRunner.include FileHelper
+FactoryBot::SyntaxRunner.include(FileHelper)
 
 # raise I18n exception handler
 I18n.exception_handler = proc do |exception, *_|
@@ -79,9 +82,10 @@ RSpec.configure do |config|
   # Some tests don't work within a transaction. Then we use DatabaseCleaner.
   config.before(:each, concurrency: true) do
     config.use_transactional_fixtures = false
-    DatabaseCleaner.strategy = :deletion, { except: ['spree_countries', 'spree_states'] }
+    DatabaseCleaner.strategy = :deletion, {except: ["spree_countries", "spree_states"]}
     DatabaseCleaner.start
   end
+
   config.append_after(:each, concurrency: true) do
     DatabaseCleaner.clean
     config.use_transactional_fixtures = true
@@ -99,7 +103,7 @@ RSpec.configure do |config|
   config.color_mode = :on
 
   # Force use of expect (over should)
-  config.expect_with :rspec do |expectations|
+  config.expect_with(:rspec) do |expectations|
     expectations.syntax = :expect
 
     # This option will default to `true` in RSpec 4. It makes the `description`
@@ -114,7 +118,7 @@ RSpec.configure do |config|
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
-  config.mock_with :rspec do |mocks|
+  config.mock_with(:rspec) do |mocks|
     # We use too many mocks at the moment. Activating the following
     # feature fails a lot of specs. We should clean it up over time.
     #
@@ -157,11 +161,11 @@ RSpec.configure do |config|
   end
 
   # Fix encoding issue in Rails 5.0; allows passing empty arrays or hashes as params.
-  config.before(:each, type: :controller) { @request.env["CONTENT_TYPE"] = 'application/json' }
+  config.before(:each, type: :controller) { @request.env["CONTENT_TYPE"] = "application/json" }
 
   # controller spec and route helper use "test.host" as testing host, while request spec use
   # "www.example.com", we set the request host to "test.host" to aovid issue with unsafe redirect
-  config.before(:all, type: :request) { host! "test.host" }
+  config.before(:all, type: :request) { host!("test.host") }
 
   # Reset all feature toggles to prevent leaking.
   config.before(:each) do
@@ -192,7 +196,7 @@ RSpec.configure do |config|
     errors = page.driver.browser.manage.logs.get(:browser)
     if errors.present?
       message = errors.map(&:message).join("\n")
-      puts message
+      puts(message)
     end
   end
 
@@ -210,7 +214,7 @@ RSpec.configure do |config|
       cassette_library_dir = vcr_config.cassette_library_dir
       default_cassette_options = vcr_config.default_cassette_options
       vcr_config.cassette_library_dir += "/#{stripe_version}"
-      vcr_config.default_cassette_options = { record: :none } if ENV["CI"]
+      vcr_config.default_cassette_options = {record: :none} if ENV["CI"]
     end
 
     example.run
@@ -227,15 +231,18 @@ RSpec.configure do |config|
       # These are all settings that differ from Spree's defaults
       spree_config.shipping_instructions = true
     end
+
     CurrentConfig.clear_all
   end
 
   # Don't validate our invalid test data with expensive network requests.
   config.before(:each) do
-    allow_any_instance_of(ValidEmail2::Address).to receive_messages(
-      valid_mx?: true,
-      valid_strict_mx?: true,
-      mx_server_is_in?: false
+    allow_any_instance_of(ValidEmail2::Address).to(
+      receive_messages(
+        valid_mx?: true,
+        valid_strict_mx?: true,
+        mx_server_is_in?: false
+      )
     )
   end
 
@@ -244,7 +251,7 @@ RSpec.configure do |config|
   # services (in tests), but they normally don't appear in the test output.
   config.before(:all) do
     ApplicationController.class_eval do
-      rescue_from WebMock::NetConnectNotAllowedError, with: :handle_webmock_error
+      rescue_from(WebMock::NetConnectNotAllowedError, with: :handle_webmock_error)
 
       def handle_webmock_error(exception)
         raise exception.message
@@ -263,39 +270,39 @@ RSpec.configure do |config|
   # You can use `rspec -n` to run only failed specs.
   config.example_status_persistence_file_path = "tmp/rspec-status.txt"
 
-  config.include_context "rake", type: :rake
+  config.include_context("rake", type: :rake)
 
   # Helpers
-  config.include FactoryBot::Syntax::Methods
-  config.include JsonSpec::Helpers
+  config.include(FactoryBot::Syntax::Methods)
+  config.include(JsonSpec::Helpers)
 
-  config.include Rails.application.routes.url_helpers
-  config.include Spree::UrlHelpers
-  config.include Spree::MoneyHelper
-  config.include Spree::PaymentHelper
-  config.include PreferencesHelper
-  config.include OpenFoodNetwork::FiltersHelper
-  config.include OpenFoodNetwork::EnterpriseGroupsHelper
-  config.include OpenFoodNetwork::HtmlHelper
-  config.include ActiveSupport::Testing::TimeHelpers
-  config.include ActionView::Helpers::DateHelper
-  config.include OpenFoodNetwork::PerformanceHelper
-  config.include ActiveJob::TestHelper
-  config.include ReportsHelper
-  config.include TomSelectHelper, type: :system
+  config.include(Rails.application.routes.url_helpers)
+  config.include(Spree::UrlHelpers)
+  config.include(Spree::MoneyHelper)
+  config.include(Spree::PaymentHelper)
+  config.include(PreferencesHelper)
+  config.include(OpenFoodNetwork::FiltersHelper)
+  config.include(OpenFoodNetwork::EnterpriseGroupsHelper)
+  config.include(OpenFoodNetwork::HtmlHelper)
+  config.include(ActiveSupport::Testing::TimeHelpers)
+  config.include(ActionView::Helpers::DateHelper)
+  config.include(OpenFoodNetwork::PerformanceHelper)
+  config.include(ActiveJob::TestHelper)
+  config.include(ReportsHelper)
+  config.include(TomSelectHelper, type: :system)
 
-  config.include ViewComponent::TestHelpers, type: :component
+  config.include(ViewComponent::TestHelpers, type: :component)
 
-  config.include ControllerRequestsHelper, type: :controller
-  config.include Devise::Test::ControllerHelpers, type: :controller
-  config.include OpenFoodNetwork::ApiHelper, type: :controller
-  config.include OpenFoodNetwork::ControllerHelper, type: :controller
+  config.include(ControllerRequestsHelper, type: :controller)
+  config.include(Devise::Test::ControllerHelpers, type: :controller)
+  config.include(OpenFoodNetwork::ApiHelper, type: :controller)
+  config.include(OpenFoodNetwork::ControllerHelper, type: :controller)
 
-  config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include(Devise::Test::IntegrationHelpers, type: :request)
 
-  config.include Features::DatepickerHelper, type: :system
-  config.include Features::TrixEditorHelper, type: :system
-  config.include DownloadsHelper, type: :system
-  config.include ReportsHelper, type: :system
-  config.include ProductsHelper, type: :system
+  config.include(Features::DatepickerHelper, type: :system)
+  config.include(Features::TrixEditorHelper, type: :system)
+  config.include(DownloadsHelper, type: :system)
+  config.include(ReportsHelper, type: :system)
+  config.include(ProductsHelper, type: :system)
 end

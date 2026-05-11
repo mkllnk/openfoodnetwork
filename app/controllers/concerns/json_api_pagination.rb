@@ -10,12 +10,12 @@ module JsonApiPagination
     {
       is_collection: true,
       meta: meta_options,
-      links: links_options,
+      links: links_options
     }
   end
 
   def pagy_options
-    { items: final_per_page_value }
+    {items: final_per_page_value}
   end
 
   private

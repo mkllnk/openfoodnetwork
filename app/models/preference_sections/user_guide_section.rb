@@ -3,7 +3,7 @@
 module PreferenceSections
   class UserGuideSection
     def name
-      I18n.t('admin.contents.edit.user_guide')
+      I18n.t("admin.contents.edit.user_guide")
     end
 
     def preferences

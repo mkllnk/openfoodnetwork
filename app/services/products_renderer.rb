@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_product_to_hub'
+require "open_food_network/scope_product_to_hub"
 
 class ProductsRenderer
   include Pagy::Backend
 
-  class NoProducts < RuntimeError; end
+  class NoProducts < RuntimeError
+  end
+
   DEFAULT_PER_PAGE = 10
 
   def initialize(distributor, order_cycle, customer, args = {}, **options)
@@ -19,12 +21,16 @@ class ProductsRenderer
   def products_json
     raise NoProducts unless order_cycle && distributor && products
 
-    ActiveModel::ArraySerializer.new(products,
-                                     each_serializer: Api::ProductSerializer,
-                                     current_order_cycle: order_cycle,
-                                     current_distributor: distributor,
-                                     variants: variants_for_shop_by_id,
-                                     enterprise_fee_calculator:).to_json
+    ActiveModel::ArraySerializer
+      .new(
+        products,
+        each_serializer: Api::ProductSerializer,
+        current_order_cycle: order_cycle,
+        current_distributor: distributor,
+        variants: variants_for_shop_by_id,
+        enterprise_fee_calculator:
+      )
+      .to_json
   end
 
   private
@@ -36,10 +42,11 @@ class ProductsRenderer
 
     @products ||= begin
       results = if supplier_properties.present?
-                  distributed_products.products_relation_incl_supplier_properties
-                else
-                  distributed_products.products_relation
-                end
+        distributed_products.products_relation_incl_supplier_properties
+      else
+        distributed_products.products_relation
+      end
+
       results = filter(results)
 
       paginated_products = paginate(results)
@@ -58,7 +65,7 @@ class ProductsRenderer
   end
 
   def enterprise_fee_calculator
-    OpenFoodNetwork::EnterpriseFeeCalculator.new distributor, order_cycle
+    OpenFoodNetwork::EnterpriseFeeCalculator.new(distributor, order_cycle)
   end
 
   def filter(query)
@@ -73,9 +80,9 @@ class ProductsRenderer
       # to get the supplier it doesn't work, so we do the filtering manually here
       # see:
       #   OrderCycleDistributedProducts#products_relation
-      supplier_properties_results = query.
-        where(producer_properties: { property_id: supplier_property_ids }).
-        where(inherits_properties: true)
+      supplier_properties_results = query
+        .where(producer_properties: {property_id: supplier_property_ids})
+        .where(inherits_properties: true)
     end
 
     if supplier_properties_results.present? && with_properties.present?
@@ -84,8 +91,7 @@ class ProductsRenderer
     end
 
     # Intersect the result to apply "AND" with other search criteria
-    return ransack_results.intersection(supplier_properties_results) \
-      unless supplier_properties_results.empty?
+    return ransack_results.intersection(supplier_properties_results) unless supplier_properties_results.empty?
 
     # We should get here but just in case we return the ransack results
     ransack_results
@@ -119,9 +125,10 @@ class ProductsRenderer
 
   def variants_for_shop
     @variants_for_shop ||= begin
-      variants = distributed_products.variants_relation.
-        includes(:default_price, :product).
-        where(product_id: products)
+      variants = distributed_products
+        .variants_relation
+        .includes(:default_price, :product)
+        .where(product_id: products)
 
       if inventory_enabled?
         # Scope results with variant_overrides
@@ -134,7 +141,7 @@ class ProductsRenderer
   end
 
   def variants_for_shop_by_id
-    index_by_product_id variants_for_shop
+    index_by_product_id(variants_for_shop)
   end
 
   def index_by_product_id(variants)

@@ -5,60 +5,64 @@ RSpec.describe Spree::Admin::OrdersController do
     let!(:user) { create(:user) }
     let!(:enterprise_user) { create(:user) }
     let!(:order) {
-      create(:order_with_distributor, bill_address: create(:address),
-                                      ship_address: create(:address))
+      create(
+        :order_with_distributor,
+        bill_address: create(:address),
+        ship_address: create(:address)
+      )
     }
     let!(:distributor) { order.distributor }
-    let(:params) { { id: order.number } }
+    let(:params) { {id: order.number} }
 
-    context "as a normal user" do
-      before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as a normal user") do
+      before { allow(controller).to(receive(:spree_current_user) { user }) }
 
       it "should prevent me from sending order invoices" do
-        spree_get :invoice, params
-        expect(response).to redirect_to unauthorized_path
+        spree_get(:invoice, params)
+        expect(response).to(redirect_to(unauthorized_path))
       end
     end
 
-    context "as an enterprise user" do
-      context "which is not a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as an enterprise user") do
+      context("which is not a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { user }) }
 
         it "should prevent me from sending order invoices" do
-          spree_get :invoice, params
-          expect(response).to redirect_to unauthorized_path
+          spree_get(:invoice, params)
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context "which is a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { distributor.owner } }
+      context("which is a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { distributor.owner }) }
 
-        context "when the distributor's ABN has not been set" do
+        context("when the distributor's ABN has not been set") do
           before { distributor.update_attribute(:abn, "") }
           it "should allow me to send order invoices" do
             expect do
-              spree_get :invoice, params
-            end.not_to change{ Spree::OrderMailer.deliveries.count }
-            expect(response).to redirect_to spree.edit_admin_order_path(order)
+              spree_get(:invoice, params)
+            end
+              .not_to(change { Spree::OrderMailer.deliveries.count })
+            expect(response).to(redirect_to(spree.edit_admin_order_path(order)))
             expect(flash[:error])
-              .to eq "#{distributor.name} must have a valid ABN before invoices can be used."
+              .to(eq("#{distributor.name} must have a valid ABN before invoices can be used."))
           end
         end
 
-        context "when the distributor's ABN has been set" do
+        context("when the distributor's ABN has been set") do
           let(:mail_mock) { double(:mailer_mock, deliver_later: true) }
 
           before do
-            allow(Spree::OrderMailer).to receive(:invoice_email) { mail_mock }
+            allow(Spree::OrderMailer).to(receive(:invoice_email) { mail_mock })
             distributor.update_attribute(:abn, "123")
           end
 
           it "should allow me to send order invoices" do
-            spree_get :invoice, params
+            spree_get(:invoice, params)
 
-            expect(response).to redirect_to spree.edit_admin_order_path(order)
-            expect(Spree::OrderMailer).to have_received(:invoice_email)
-            expect(mail_mock).to have_received(:deliver_later)
+            expect(response).to(redirect_to(spree.edit_admin_order_path(order)))
+            expect(Spree::OrderMailer).to(have_received(:invoice_email))
+            expect(mail_mock).to(have_received(:deliver_later))
           end
         end
       end
@@ -69,35 +73,38 @@ RSpec.describe Spree::Admin::OrdersController do
     let!(:user) { create(:user) }
     let!(:enterprise_user) { create(:user) }
     let!(:order) {
-      create(:order_with_distributor, bill_address: create(:address),
-                                      ship_address: create(:address))
+      create(
+        :order_with_distributor,
+        bill_address: create(:address),
+        ship_address: create(:address)
+      )
     }
     let!(:distributor) { order.distributor }
-    let(:params) { { id: order.number } }
+    let(:params) { {id: order.number} }
 
-    context "as a normal user" do
-      before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as a normal user") do
+      before { allow(controller).to(receive(:spree_current_user) { user }) }
 
       it "should prevent me from sending order invoices" do
-        spree_get :print, params
-        expect(response).to redirect_to unauthorized_path
+        spree_get(:print, params)
+        expect(response).to(redirect_to(unauthorized_path))
       end
     end
 
-    context "as an enterprise user" do
-      context "which is not a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as an enterprise user") do
+      context("which is not a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { user }) }
         it "should prevent me from sending order invoices" do
-          spree_get :print, params
-          expect(response).to redirect_to unauthorized_path
+          spree_get(:print, params)
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context "which is a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { distributor.owner } }
+      context("which is a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { distributor.owner }) }
         it "should allow me to send order invoices" do
-          spree_get :print, params
-          expect(response).to render_template :invoice
+          spree_get(:print, params)
+          expect(response).to(render_template(:invoice))
         end
       end
     end
@@ -109,38 +116,41 @@ RSpec.describe Spree::Admin::InvoicesController do
     let(:user) { create(:user) }
     let(:enterprise_user) { create(:user, enterprises: [create(:enterprise)]) }
     let(:order) {
-      create(:order_with_distributor, bill_address: create(:address),
-                                      ship_address: create(:address))
+      create(
+        :order_with_distributor,
+        bill_address: create(:address),
+        ship_address: create(:address)
+      )
     }
     let(:distributor) { order.distributor }
-    let(:params) { { order_id: order.number } }
+    let(:params) { {order_id: order.number} }
 
-    context "as a normal user" do
-      before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as a normal user") do
+      before { allow(controller).to(receive(:spree_current_user) { user }) }
 
       it "should prevent me from listing invoices for the order" do
-        spree_get :index, params
-        expect(response).to redirect_to unauthorized_path
+        spree_get(:index, params)
+        expect(response).to(redirect_to(unauthorized_path))
       end
     end
 
-    context "as an enterprise user" do
-      context "which is not a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { enterprise_user } }
+    context("as an enterprise user") do
+      context("which is not a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { enterprise_user }) }
 
         it "shows only invoices of manged enterprises" do
-          spree_get :index, params
-          expect(response).to redirect_to unauthorized_path
+          spree_get(:index, params)
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context 'which is a manager of the distributor for an order' do
-        before { allow(controller).to receive(:spree_current_user) { distributor.owner } }
+      context("which is a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { distributor.owner }) }
 
         it "should allow me to see the order" do
-          spree_get :index, params
-          expect(response).to have_http_status :success
-          expect(assigns(:order)).to eq order
+          spree_get(:index, params)
+          expect(response).to(have_http_status(:success))
+          expect(assigns(:order)).to(eq(order))
         end
       end
     end
@@ -150,65 +160,72 @@ RSpec.describe Spree::Admin::InvoicesController do
     let(:user) { create(:user) }
     let(:enterprise_user) { create(:user, enterprises: [create(:enterprise)]) }
     let(:order) {
-      create(:order_with_distributor, bill_address: create(:address),
-                                      ship_address: create(:address))
+      create(
+        :order_with_distributor,
+        bill_address: create(:address),
+        ship_address: create(:address)
+      )
     }
     let(:distributor) { order.distributor }
-    let(:params) { { order_id: order.number } }
+    let(:params) { {order_id: order.number} }
 
     before do
       distributor.update_attribute(:abn, "123412341234")
     end
 
-    context "as a normal user" do
-      before { allow(controller).to receive(:spree_current_user) { user } }
+    context("as a normal user") do
+      before { allow(controller).to(receive(:spree_current_user) { user }) }
 
       it "should prevent me from generating invoices for the order" do
         expect do
-          spree_get :generate, params
-        end.to change{ Invoice.count }.by(0)
+          spree_get(:generate, params)
+        end
+          .to(change { Invoice.count }.by(0))
 
-        expect(response).to redirect_to unauthorized_path
+        expect(response).to(redirect_to(unauthorized_path))
       end
     end
 
-    context "as an enterprise user" do
-      context "which is not a manager of the distributor for an order" do
-        before { allow(controller).to receive(:spree_current_user) { enterprise_user } }
+    context("as an enterprise user") do
+      context("which is not a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { enterprise_user }) }
 
         it "should prevent me from generating invoices for the order" do
           expect do
-            spree_get :generate, params
-          end.to change{ Invoice.count }.by(0)
+            spree_get(:generate, params)
+          end
+            .to(change { Invoice.count }.by(0))
 
-          expect(response).to redirect_to unauthorized_path
+          expect(response).to(redirect_to(unauthorized_path))
         end
       end
 
-      context 'which is a manager of the distributor for an order' do
-        before { allow(controller).to receive(:spree_current_user) { distributor.owner } }
+      context("which is a manager of the distributor for an order") do
+        before { allow(controller).to(receive(:spree_current_user) { distributor.owner }) }
 
         it "should allow me to generate a new invoice for the order" do
           expect do
-            spree_get :generate, params
-          end.to change{ Invoice.count }.by(1)
+            spree_get(:generate, params)
+          end
+            .to(change { Invoice.count }.by(1))
 
-          expect(response).to redirect_to spree.admin_dashboard_path
+          expect(response).to(redirect_to(spree.admin_dashboard_path))
         end
 
-        context "distributor didn't set an ABN" do
+        context("distributor didn't set an ABN") do
           before do
             distributor.update_attribute(:abn, "")
           end
 
           it "should not allow me to generate a new invoice for the order" do
             expect do
-              spree_get :generate, params
-            end.to change{ Invoice.count }.by(0)
+              spree_get(:generate, params)
+            end
+              .to(change { Invoice.count }.by(0))
 
-            expect(response).to redirect_to spree.admin_dashboard_path
+            expect(response).to(redirect_to(spree.admin_dashboard_path))
             expect(flash[:error])
-              .to eq "#{distributor.name} must have a valid ABN before invoices can be used."
+              .to(eq("#{distributor.name} must have a valid ABN before invoices can be used."))
           end
         end
       end

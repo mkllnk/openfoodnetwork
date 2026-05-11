@@ -10,7 +10,7 @@ class AddressBuilder < DfcBuilder
       country: country(address.country),
       region: address.state.name,
       latitude: address.latitude,
-      longitude: address.longitude,
+      longitude: address.longitude
     )
   end
 

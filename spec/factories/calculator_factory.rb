@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :calculator, class: Calculator::FlatRate do
+  factory(:calculator, class: Calculator::FlatRate) do
     after(:create) { |c| c.set_preference(:amount, 10.0) }
   end
 
-  factory :no_amount_calculator, class: Calculator::FlatRate do
+  factory(:no_amount_calculator, class: Calculator::FlatRate) do
     after(:create) { |c| c.set_preference(:amount, 0) }
   end
 
   sequence(:calculator_amount)
-  factory :calculator_per_item, class: Calculator::PerItem do
+  factory(:calculator_per_item, class: Calculator::PerItem) do
     preferred_amount { generate(:calculator_amount) }
   end
 
-  factory :calculator_flat_percent_per_item, class: Calculator::FlatPercentPerItem do
+  factory(:calculator_flat_percent_per_item, class: Calculator::FlatPercentPerItem) do
     preferred_flat_percent { generate(:calculator_amount) }
   end
 
-  factory :weight_calculator, class: Calculator::Weight do
+  factory(:weight_calculator, class: Calculator::Weight) do
     after(:build) { |c|
       c.set_preference(:per_unit, 0.5)
       c.set_preference(:unit_from_list, "kg")
@@ -30,5 +30,5 @@ FactoryBot.define do
     }
   end
 
-  factory :default_tax_calculator, class: Calculator::DefaultTax
+  factory(:default_tax_calculator, class: Calculator::DefaultTax)
 end

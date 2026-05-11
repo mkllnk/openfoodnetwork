@@ -3,9 +3,9 @@
 module Spree
   class ProductProperty < ApplicationRecord
     belongs_to :product, class_name: "Spree::Product", touch: true
-    belongs_to :property, class_name: 'Spree::Property'
+    belongs_to :property, class_name: "Spree::Property"
 
-    validates :value, length: { maximum: 255 }
+    validates :value, length: {maximum: 255}
 
     default_scope -> { order("#{table_name}.position") }
 
@@ -20,6 +20,7 @@ module Spree
       unless property = Property.find_by(name:)
         property = Property.create(name:, presentation: name)
       end
+
       self.property = property
     end
   end

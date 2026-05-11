@@ -7,7 +7,7 @@
 # The various bits of collated info such as file upload status, per-item errors or user feedback
 # on the saving process are made available to the controller through this object.
 
-require 'roo'
+require "roo"
 
 module ProductImport
   class ProductImporter
@@ -41,7 +41,8 @@ module ProductImport
     end
 
     def persisted?
-      false # ActiveModel
+      # ActiveModel
+      false
     end
 
     def entries?
@@ -52,6 +53,7 @@ module ProductImport
       @entries.each do |entry|
         return true if entry.validates_as.present?
       end
+
       false
     end
 
@@ -61,9 +63,9 @@ module ProductImport
 
     def product_field_errors?
       @entries.each do |entry|
-        return true if entry.errors.messages.
-          value?([I18n.t('admin.product_import.model.not_updatable')])
+        return true if entry.errors.messages.value?([I18n.t("admin.product_import.model.not_updatable")])
       end
+
       false
     end
 
@@ -74,10 +76,10 @@ module ProductImport
         values[:updates_count] = 0 if values[:updates_count].blank?
 
         if values[:updates_count] && values[:existing_products]
-          @reset_counts[enterprise_id][:reset_count] =
-            values[:existing_products] - values[:updates_count]
+          @reset_counts[enterprise_id][:reset_count] = values[:existing_products] - values[:updates_count]
         end
       end
+
       @reset_counts
     end
 
@@ -99,6 +101,7 @@ module ProductImport
           product_validations: entry.product_validations
         }
       end
+
       entries.to_json
     end
 
@@ -106,7 +109,7 @@ module ProductImport
       return unless @entries.first
 
       @entries.first.displayable_attributes.keys.map do |key|
-        I18n.t "admin.product_import.product_headings.#{key}"
+        I18n.t("admin.product_import.product_headings.#{key}")
       end
     end
 
@@ -131,7 +134,7 @@ module ProductImport
     delegate :total_saved_count, to: :@processor
 
     def import_results
-      { entries: entries_json, reset_counts: }
+      {entries: entries_json, reset_counts:}
     end
 
     def validate_entries
@@ -165,11 +168,25 @@ module ProductImport
       end
 
       @spreadsheet_data = SpreadsheetData.new(@entries, @import_settings)
-      @validator = EntryValidator.new(@current_user, @import_time, @spreadsheet_data,
-                                      @editable_enterprises, @inventory_permissions, @reset_counts,
-                                      @import_settings, build_all_entries)
-      @processor = EntryProcessor.new(self, @validator, @import_settings, @spreadsheet_data,
-                                      @editable_enterprises, @import_time, @updated_ids)
+      @validator = EntryValidator.new(
+        @current_user,
+        @import_time,
+        @spreadsheet_data,
+        @editable_enterprises,
+        @inventory_permissions,
+        @reset_counts,
+        @import_settings,
+        build_all_entries
+      )
+      @processor = EntryProcessor.new(
+        self,
+        @validator,
+        @import_settings,
+        @spreadsheet_data,
+        @editable_enterprises,
+        @import_time,
+        @updated_ids
+      )
 
       @processor.count_existing_items unless staged_import?
     end
@@ -181,9 +198,10 @@ module ProductImport
     def init_permissions
       permissions = OpenFoodNetwork::Permissions.new(@current_user)
 
-      permissions.editable_enterprises.
-        order('is_primary_producer ASC, name').
-        map { |e| @editable_enterprises[e.name] = e.id }
+      permissions
+        .editable_enterprises
+        .order("is_primary_producer ASC, name")
+        .map { |e| @editable_enterprises[e.name] = e.id }
 
       return unless OpenFoodNetwork::FeatureToggle.enabled?(:inventory, *@current_user.enterprises)
 
@@ -201,9 +219,9 @@ module ProductImport
     end
 
     def accepted_mimetype
-      return false unless ['.csv'].include? File.extname(@file.path)
+      return false unless [".csv"].include?(File.extname(@file.path))
 
-      @file.path.split('.').last.to_sym
+      @file.path.split(".").last.to_sym
     end
 
     def headers
@@ -218,26 +236,43 @@ module ProductImport
       (2..@sheet.last_row).map do |i|
         @sheet.row(i)
       end
+
     rescue ArgumentError => e
-      if e.message.include? 'invalid byte sequence'
-        errors.add(:importer, I18n.t('admin.product_import.model.encoding_error'))
+      if e.message.include?("invalid byte sequence")
+        errors.add(:importer, I18n.t("admin.product_import.model.encoding_error"))
       else
-        errors.add(:importer, I18n.t('admin.product_import.model.unexpected_error',
-                                     error_message: e.message))
+        errors.add(
+          :importer,
+          I18n.t(
+            "admin.product_import.model.unexpected_error",
+            error_message: e.message
+          )
+        )
       end
+
       []
     rescue CSV::MalformedCSVError => e
-      add_malformed_csv_error e.message
+      add_malformed_csv_error(e.message)
       []
     end
 
     # This error is raised twice because init_product_importer calls both
     # build_entries and buils_all_entries
     def add_malformed_csv_error(error_message)
-      unless errors.added?(:importer, I18n.t('admin.product_import.model.malformed_csv',
-                                             error_message:))
-        errors.add(:importer, I18n.t('admin.product_import.model.malformed_csv',
-                                     error_message:))
+      unless errors.added?(
+          :importer,
+          I18n.t(
+            "admin.product_import.model.malformed_csv",
+            error_message:
+          )
+        )
+        errors.add(
+          :importer,
+          I18n.t(
+            "admin.product_import.model.malformed_csv",
+            error_message:
+          )
+        )
       end
     end
 
@@ -275,7 +310,7 @@ module ProductImport
         row_data = [headers, row].transpose.to_h
         entry = SpreadsheetEntry.new(row_data)
         entry.line_number = offset + i + 2
-        entries.push entry
+        entries.push(entry)
       end
     end
   end

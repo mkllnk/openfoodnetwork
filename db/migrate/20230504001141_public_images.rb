@@ -1,4 +1,4 @@
-require 'aws-sdk-s3'
+require "aws-sdk-s3"
 
 class PublicImages < ActiveRecord::Migration[7.0]
   def up
@@ -7,17 +7,17 @@ class PublicImages < ActiveRecord::Migration[7.0]
     check_connection!
     set_objects_to_readable
 
-    ActiveStorage::Blob.
-      where(service_name: "amazon").
-      where("content_type LIKE 'image/%'").
-      update_all(service_name: "amazon_public")
+    ActiveStorage::Blob
+      .where(service_name: "amazon")
+      .where("content_type LIKE 'image/%'")
+      .update_all(service_name: "amazon_public")
   end
 
   def down
-    ActiveStorage::Blob.
-      where(service_name: "amazon_public").
-      where("content_type LIKE 'image/%'").
-      update_all(service_name: "amazon")
+    ActiveStorage::Blob
+      .where(service_name: "amazon_public")
+      .where("content_type LIKE 'image/%'")
+      .update_all(service_name: "amazon")
   end
 
   private
@@ -35,6 +35,6 @@ class PublicImages < ActiveRecord::Migration[7.0]
   # Sets bucket objects' ACL to "public-read". Performs batched processing internally
   # with a custom enumerator, see AWS::Resources::Collection#each for details.
   def set_objects_to_readable
-    s3_bucket.objects.each{|object| object.acl.put(acl: "public-read") }
+    s3_bucket.objects.each { |object| object.acl.put(acl: "public-read") }
   end
 end

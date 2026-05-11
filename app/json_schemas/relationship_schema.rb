@@ -8,14 +8,14 @@ class RelationshipSchema
         data: {
           type: :object,
           properties: {
-            id: { type: :string },
-            type: { type: :string, example: resource_name }
+            id: {type: :string},
+            type: {type: :string, example: resource_name}
           }
         },
         links: {
           type: :object,
           properties: {
-            related: { type: :string }
+            related: {type: :string}
           }
         }
       }
@@ -31,15 +31,15 @@ class RelationshipSchema
           items: {
             type: :object,
             properties: {
-              id: { type: :string },
-              type: { type: :string, example: resource_name }
+              id: {type: :string},
+              type: {type: :string, example: resource_name}
             }
           }
         },
         links: {
           type: :object,
           properties: {
-            related: { type: :string }
+            related: {type: :string}
           }
         }
       }

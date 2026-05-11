@@ -5,9 +5,9 @@ require "spree/core/controller_helpers/common"
 require "spree/core/controller_helpers/order"
 
 class UserRegistrationsController < Devise::RegistrationsController
-  I18N_SCOPE = 'devise.user_registrations.spree_user'
+  I18N_SCOPE = "devise.user_registrations.spree_user"
 
-  helper 'spree/base'
+  helper "spree/base"
 
   include Spree::Core::ControllerHelpers::Auth
   include Spree::Core::ControllerHelpers::Common
@@ -32,12 +32,13 @@ class UserRegistrationsController < Devise::RegistrationsController
 
     respond_to do |format|
       format.json do
-        render json: { email: @user.email }
+        render(json: {email: @user.email})
       end
     end
+
   rescue StandardError => e
-    Alert.raise(e)
-    render_error(message: I18n.t('unknown_error', scope: I18N_SCOPE))
+    Alert.raise e
+    render_error(message: I18n.t("unknown_error", scope: I18N_SCOPE))
   end
 
   private
@@ -52,7 +53,7 @@ class UserRegistrationsController < Devise::RegistrationsController
     clean_up_passwords(resource)
     respond_to do |format|
       format.json do
-        render json: errors, status: :unauthorized
+        render(json: errors, status: :unauthorized)
       end
     end
   end

@@ -11,25 +11,25 @@ RSpec.describe SearchOrders do
 
   let(:enterprise_user) { distributor.owner }
 
-  describe '#orders' do
+  describe "#orders" do
     subject(:service) { described_class.new(params, enterprise_user) }
     let(:params) { {} }
 
-    it 'returns orders' do
-      expect(service.orders.count).to eq 5
+    it "returns orders" do
+      expect(service.orders.count).to(eq(5))
       service.orders.each do |order|
-        expect(order.id).not_to eq(order_empty.id)
+        expect(order.id).not_to(eq(order_empty.id))
       end
     end
 
-    context "when filtering by payment state" do
-      let(:params) { { q: { payment_state_in: ["balance_due"] } } }
+    context("when filtering by payment state") do
+      let(:params) { {q: {payment_state_in: ["balance_due"]}} }
 
       it "returns filtered oredrs" do
         create(:completed_order_with_totals, distributor:, payment_state: "balance_due")
         create(:completed_order_with_totals, distributor:, payment_state: "balance_due")
 
-        expect(service.orders.count).to eq 2
+        expect(service.orders.count).to(eq(2))
       end
     end
   end

@@ -3,13 +3,13 @@
 RSpec.describe ConnectAppJob do
   subject { ConnectAppJob.new(app, user.spree_api_key) }
 
-  let(:app) { ConnectedApp.new(enterprise: ) }
+  let(:app) { ConnectedApp.new(enterprise:) }
   let(:enterprise) { build(:enterprise, id: 3, owner: user) }
   let(:user) { build(:user, spree_api_key: "12345") }
   let(:url) { "https://n8n.openfoodnetwork.org/webhook/regen/connect-enterprise" }
 
   it "sends a semantic id and access token" do
-    stub_request(:post, url).to_return(body: '{}')
+    stub_request(:post, url).to_return(body: "{}")
 
     subject.perform_now
 
@@ -18,22 +18,24 @@ RSpec.describe ConnectAppJob do
         {
           data: {
             '@id': "http://test.host/api/dfc/enterprises/3",
-            access_token: "12345",
+            access_token: "12345"
           }
         }
       )
     )
-    expect(request).to have_been_made.once
+    expect(request).to(have_been_made.once)
   end
 
   it "stores connection data on the app", vcr: true do
     subject.perform_now
 
-    expect(app.data).to eq(
-      {
-        "link" => "https://example.net/update",
-        "destroy" => "https://n8n.openfoodnetwork.org.uk/webhook/remove-enterprise?id=recjBXXXXXXXXXXXX&key=12345",
-      }
+    expect(app.data).to(
+      eq(
+        {
+          "link" => "https://example.net/update",
+          "destroy" => "https://n8n.openfoodnetwork.org.uk/webhook/remove-enterprise?id=recjBXXXXXXXXXXXX&key=12345"
+        }
+      )
     )
   end
 end

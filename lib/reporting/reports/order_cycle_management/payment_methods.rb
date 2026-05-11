@@ -17,7 +17,7 @@ module Reporting
             shipping_method: proc { |order| order.shipping_method&.name },
             payment_method: proc { |order| order.payments.last&.payment_method&.name },
             amount: proc { |order| order.total },
-            balance: proc { |order| order.balance_value },
+            balance: proc { |order| order.balance_value }
           }
         end
         # rubocop:enable Metrics/AbcSize

@@ -7,24 +7,26 @@ module DfcProvider
     before_action :check_enterprise
 
     def index
-      require_permission "ReadProducts"
+      require_permission("ReadProducts")
 
       enterprise = EnterpriseBuilder.enterprise(current_enterprise)
       catalog_items = enterprise.catalogItems
 
-      render json: DfcIo.export(
-        enterprise,
-        *catalog_items,
-        *catalog_items.map(&:product),
-        *catalog_items.map(&:product).flat_map(&:isVariantOf),
-        *catalog_items.flat_map(&:offers),
+      render(
+        json: DfcIo.export(
+          enterprise,
+          *catalog_items,
+          *catalog_items.map(&:product),
+          *catalog_items.map(&:product).flat_map(&:isVariantOf),
+          *catalog_items.flat_map(&:offers)
+        )
       )
     end
 
     def show
       catalog_item = CatalogItemBuilder.catalog_item(variant)
       offers = catalog_item.offers
-      render json: DfcIo.export(catalog_item, *offers)
+      render(json: DfcIo.export(catalog_item, *offers))
     end
 
     def update

@@ -10,16 +10,17 @@ module ApplicationHelper
 
     return "" unless obj && obj.errors[method].present?
 
-    errors = obj.errors[method].map { |err| h(err) }.join('<br />').html_safe # rubocop:disable Rails/OutputSafety
+    # rubocop:disable Rails/OutputSafety
+    errors = obj.errors[method].map { |err| h(err) }.join("<br />").html_safe
 
     if options[:standalone]
       content_tag(
         :div,
-        content_tag(:span, errors, class: 'formError standalone'),
-        class: 'checkout-input'
+        content_tag(:span, errors, class: "formError standalone"),
+        class: "checkout-input"
       )
     else
-      content_tag(:span, errors, class: 'formError')
+      content_tag(:span, errors, class: "formError")
     end
   end
 
@@ -31,12 +32,17 @@ module ApplicationHelper
   def language_meta_tags
     return if I18n.available_locales.one?
 
-    I18n.available_locales.map do |locale|
-      tag.link(
-        hreflang: locale.to_s.gsub("_", "-").downcase,
-        href: "#{request.protocol}#{request.host_with_port}/locales/#{locale}"
-      )
-    end.join("\n").html_safe # rubocop:disable Rails/OutputSafety
+    I18n
+      .available_locales
+      .map do |locale|
+        tag.link(
+          hreflang: locale.to_s.gsub("_", "-").downcase,
+          href: "#{request.protocol}#{request.host_with_port}/locales/#{locale}"
+        )
+        # rubocop:disable Rails/OutputSafety
+      end
+      .join("\n")
+      .html_safe
   end
 
   def ng_form_for(name, *args, &)
@@ -46,14 +52,18 @@ module ApplicationHelper
   end
 
   def respond_to_missing?(method_name, include_private = false)
-    (method_name.to_s.end_with?('_path',
-                                '_url') && spree.respond_to?(method_name, include_private)) || super
+    (method_name.to_s.end_with?(
+      "_path",
+      "_url"
+    ) &&
+      spree.respond_to?(method_name, include_private)) ||
+      super
   end
 
   # Pass URL helper calls on to spree where applicable so that we don't need to use
   # spree.foo_path in any view rendered from non-spree-namespaced controllers.
   def method_missing(method, *, &)
-    if method.to_s.end_with?('_path', '_url') && spree.respond_to?(method)
+    if method.to_s.end_with?("_path", "_url") && spree.respond_to?(method)
       spree.public_send(method, *)
     else
       super
@@ -84,8 +94,10 @@ module ApplicationHelper
     # the shakapacker helper, so it generates the correct url.
     # For more info: https://stackoverflow.com/questions/58490299/how-to-include-css-stylesheet-into-wicked-pdf/60541688#60541688
     if running_in_development?
-      options = { media: "all",
-                  host: "#{Shakapacker.dev_server.host}:#{Shakapacker.dev_server.port}" }
+      options = {
+        media: "all",
+        host: "#{Shakapacker.dev_server.host}:#{Shakapacker.dev_server.port}"
+      }
       stylesheet_pack_tag(source, **options)
     else
       wicked_pdf_stylesheet_pack_tag(source)

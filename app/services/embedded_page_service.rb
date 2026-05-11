@@ -35,7 +35,8 @@ class EmbeddedPageService
   end
 
   def embedding_without_https?
-    @request.referer && URI(@request.referer).scheme != 'https' &&
+    @request.referer &&
+      URI(@request.referer).scheme != "https" &&
       !Rails.env.local?
   end
 
@@ -63,8 +64,11 @@ class EmbeddedPageService
   end
 
   def enterprise_slug
-    return false unless @params[:controller] == 'enterprises' &&
-                        @params[:action] == 'shop' && @params[:id]
+    unless @params[:controller] == "enterprises" &&
+        @params[:action] == "shop" &&
+        @params[:id]
+      return false
+    end
 
     @params[:id]
   end
@@ -81,7 +85,7 @@ class EmbeddedPageService
   def current_referer_without_www
     return unless current_referer
 
-    current_referer.start_with?('www.') ? current_referer[4..] : current_referer
+    current_referer.start_with?("www.") ? current_referer[4..] : current_referer
   end
 
   def set_embedded_layout

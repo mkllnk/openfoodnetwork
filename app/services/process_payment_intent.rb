@@ -45,6 +45,7 @@ class ProcessPaymentIntent
       payment.clear_authorization_url
       Result.new(success: false, error: I18n.t("payment_could_not_complete"))
     end
+
   rescue Stripe::StripeError => e
     payment.fail_authorization
     payment.clear_authorization_url
@@ -62,11 +63,11 @@ class ProcessPaymentIntent
   end
 
   def ready_for_capture?
-    payment_intent_status == 'requires_capture'
+    payment_intent_status == "requires_capture"
   end
 
   def already_processed?
-    payment_intent_status == 'succeeded'
+    payment_intent_status == "succeeded"
   end
 
   def payment_intent_status

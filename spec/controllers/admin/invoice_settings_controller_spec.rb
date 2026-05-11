@@ -6,29 +6,37 @@ RSpec.describe Admin::InvoiceSettingsController do
       {
         preferences: {
           enable_invoices?: 0,
-          invoice_style2?: 1,
+          invoice_style2?: 1
         }
       }
     }
 
     before do
-      allow(controller).to receive(:spree_current_user) { create(:admin_user) }
+      allow(controller).to(receive(:spree_current_user) { create(:admin_user) })
     end
 
     it "disables invoices" do
       expect {
-        post :update, params:
-      }.to change {
-        Spree::Config[:enable_invoices?]
-      }.to(false)
+        post(:update, params:)
+      }
+        .to(
+          change {
+            Spree::Config[:enable_invoices?]
+          }
+            .to(false)
+        )
     end
 
     it "changes the invoice style" do
       expect {
-        post :update, params:
-      }.to change {
-        Spree::Config[:invoice_style2?]
-      }.to(true)
+        post(:update, params:)
+      }
+        .to(
+          change {
+            Spree::Config[:invoice_style2?]
+          }
+            .to(true)
+        )
     end
   end
 end

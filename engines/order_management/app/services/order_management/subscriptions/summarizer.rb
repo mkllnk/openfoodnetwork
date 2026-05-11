@@ -32,7 +32,7 @@ module OrderManagement
         error = "Subscription#{type.to_s.camelize}Error"
         line1 = "#{error}: Cannot process order #{order.number} due to errors"
 
-        error_message ||= order.errors.full_messages.join(', ')
+        error_message ||= order.errors.full_messages.join(", ")
         line2 = "Errors: #{error_message}"
 
         JobLogger.logger.info("#{line1}\n#{line2}")

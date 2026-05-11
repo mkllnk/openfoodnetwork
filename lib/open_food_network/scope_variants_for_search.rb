@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 # Used to return a set of variants which match the criteria provided
 # A query string is required, which will be match to the name and/or SKU of a product
@@ -32,20 +32,20 @@ module OpenFoodNetwork
     attr_reader :params, :spree_current_user, :ability
 
     def search_params
-      { product_name_cont: params[:q], sku_cont: params[:q], product_sku_cont: params[:q] }
+      {product_name_cont: params[:q], sku_cont: params[:q], product_sku_cont: params[:q]}
     end
 
     def query_scope
-      Spree::Variant.
-        ransack(search_params.merge(m: 'or')).
-        result.
-        order("spree_products.name, display_name, display_as, spree_variants.variant_unit_name").
-        includes(:product).
-        joins(:product)
+      Spree::Variant
+        .ransack(search_params.merge(m: "or"))
+        .result
+        .order("spree_products.name, display_name, display_as, spree_variants.variant_unit_name")
+        .includes(:product)
+        .joins(:product)
     end
 
     def distributor
-      @distributor ||= Enterprise.find params[:distributor_id]
+      @distributor ||= Enterprise.find(params[:distributor_id])
     end
 
     def order
@@ -74,31 +74,38 @@ module OpenFoodNetwork
     end
 
     def scope_to_eligible_for_subscriptions_in_distributor
-      eligible_variants_scope =
-        OrderManagement::Subscriptions::VariantsList.eligible_variants(distributor)
+      eligible_variants_scope = OrderManagement::Subscriptions::VariantsList.eligible_variants(distributor)
       @variants = @variants.merge(eligible_variants_scope)
       scope_variants_to_distributor(@variants, distributor)
     end
 
     def scope_to_in_stock_only
       if OpenFoodNetwork::FeatureToggle.enabled?(:inventory, distributor)
-        @variants = @variants.joins(
-          "INNER JOIN spree_stock_items ON spree_stock_items.variant_id = spree_variants.id
+        @variants = @variants
+          .joins(
+            "INNER JOIN spree_stock_items ON spree_stock_items.variant_id = spree_variants.id
            LEFT JOIN variant_overrides ON variant_overrides.variant_id = spree_variants.id AND
                                           variant_overrides.hub_id = #{distributor.id}"
-        ).where("
+          )
+          .where(
+            "
           variant_overrides.on_demand IS TRUE OR
           variant_overrides.count_on_hand > 0 OR
           (variant_overrides.on_demand IS NULL AND spree_stock_items.backorderable IS TRUE) OR
           (variant_overrides.count_on_hand IS NULL AND spree_stock_items.count_on_hand > 0)
-        ")
+        "
+          )
       else
-        @variants = @variants.joins(
-          "INNER JOIN spree_stock_items ON spree_stock_items.variant_id = spree_variants.id"
-        ).where("
+        @variants = @variants
+          .joins(
+            "INNER JOIN spree_stock_items ON spree_stock_items.variant_id = spree_variants.id"
+          )
+          .where(
+            "
           spree_stock_items.backorderable IS TRUE OR
           spree_stock_items.count_on_hand > 0
-        ")
+        "
+          )
       end
     end
 
@@ -118,7 +125,7 @@ module OpenFoodNetwork
     end
 
     def scope_to_supplier?
-      params[:search_variants_as] == 'supplier' && ability.can?(:edit_as_producer_only, order)
+      params[:search_variants_as] == "supplier" && ability.can?(:edit_as_producer_only, order)
     end
   end
 end

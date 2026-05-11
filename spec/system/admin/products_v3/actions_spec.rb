@@ -2,53 +2,54 @@
 
 require "system_helper"
 
-RSpec.describe 'As an enterprise user, I can perform actions on the products screen' do
-  include AdminHelper
-  include WebHelper
-  include AuthenticationHelper
-  include FileHelper
+RSpec.describe "As an enterprise user, I can perform actions on the products screen" do
+  include(AdminHelper)
+  include(WebHelper)
+  include(AuthenticationHelper)
+  include(FileHelper)
 
   let(:producer) { create(:supplier_enterprise) }
   let(:user) { create(:user, enterprises: [producer]) }
 
   before do
-    login_as user
+    login_as(user)
   end
 
   describe "column selector" do
     let!(:product) { create(:simple_product) }
 
-    context "with one producer only" do
+    context("with one producer only") do
       before do
-        visit admin_products_url
+        visit(admin_products_url)
       end
 
       it "hides column and remembers saved preference" do
         # Name shows by default
-        expect(page).to have_checked_field "Name"
-        expect(page).to have_selector "th", text: "Name"
+        expect(page).to(have_checked_field("Name"))
+        expect(page).to(have_selector("th", text: "Name"))
         expect_other_columns_visible
 
         # Producer is hidden by if only one producer is present
-        expect(page).to have_unchecked_field "Producer"
-        expect(page).not_to have_selector "th", text: "Producer"
+        expect(page).to(have_unchecked_field("Producer"))
+        expect(page).not_to(have_selector("th", text: "Producer"))
 
         # Show Producer column
         ofn_drop_down("Columns").click
-        within ofn_drop_down("Columns") do
-          check "Producer"
+        within(ofn_drop_down("Columns")) do
+          check("Producer")
         end
 
         # Preference saved
         save_preferences
-        expect(page).to have_selector "th", text: "Producer"
+        expect(page).to(have_selector("th", text: "Producer"))
 
         # Name is hidden
         ofn_drop_down("Columns").click
-        within ofn_drop_down("Columns") do
-          uncheck "Name"
+        within(ofn_drop_down("Columns")) do
+          uncheck("Name")
         end
-        expect(page).not_to have_selector "th", text: "Name"
+
+        expect(page).not_to(have_selector("th", text: "Name"))
         expect_other_columns_visible
 
         # Preference saved
@@ -56,51 +57,61 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
 
         # Preference remembered
         ofn_drop_down("Columns").click
-        within ofn_drop_down("Columns") do
-          expect(page).to have_unchecked_field "Name"
+        within(ofn_drop_down("Columns")) do
+          expect(page).to(have_unchecked_field("Name"))
         end
-        expect(page).not_to have_selector "th", text: "Name"
+
+        expect(page).not_to(have_selector("th", text: "Name"))
         expect_other_columns_visible
       end
 
       def expect_other_columns_visible
-        expect(page).to have_selector "th", text: "Price"
-        expect(page).to have_selector "th", text: "On Hand"
+        expect(page).to(have_selector("th", text: "Price"))
+        expect(page).to(have_selector("th", text: "On Hand"))
       end
 
       def save_preferences
-        click_on "Save as default"
+        click_on("Save as default")
         # Flash appears at top level with success styling (not error), fixes #13966
-        within "#flashes" do
-          expect(page).to have_css ".flash.success", text: "Column preferences saved"
+        within("#flashes") do
+          expect(page).to(have_css(".flash.success", text: "Column preferences saved"))
         end
+
         refresh
       end
     end
 
-    context "with multiple producers" do
+    context("with multiple producers") do
       let!(:producer2) { create(:supplier_enterprise, owner: user) }
 
-      before { visit admin_products_url }
+      before { visit(admin_products_url) }
 
       it "has selected producer column by default" do
         # Producer shows by default
-        expect(page).to have_checked_field "Producer"
-        expect(page).to have_selector "th", text: "Producer"
+        expect(page).to(have_checked_field("Producer"))
+        expect(page).to(have_selector("th", text: "Producer"))
       end
     end
   end
 
   describe "Changing producers, category and tax category" do
     let!(:variant_a1) {
-      product_a.variants.first.tap{ |v|
-        v.update! display_name: "Medium box", sku: "APL-01", price: 5.25, on_hand: 5,
-                  on_demand: false, variant_unit: "weight", variant_unit_scale: 1
-      } # Grams
+      product_a.variants.first.tap { |v|
+        v.update!(
+          display_name: "Medium box",
+          sku: "APL-01",
+          price: 5.25,
+          on_hand: 5,
+          on_demand: false,
+          variant_unit: "weight",
+          variant_unit_scale: 1
+        )
+        # Grams
+      }
     }
     let!(:product_a) { create(:simple_product, name: "Apples", sku: "APL-00") }
 
-    context "when there are products" do
+    context("when there are products") do
       before do
         create_list(:supplier_enterprise, 11, users: [user])
         create_list(:tax_category, 11)
@@ -109,7 +120,7 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
           taxon.save!
         end
 
-        visit admin_products_url
+        visit(admin_products_url)
       end
 
       it "should display search input, change the producer" do
@@ -117,7 +128,7 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
         category_to_select = random_category(variant_a1)
         tax_category_to_select = random_tax_category
 
-        within row_containing_name(variant_a1.display_name) do
+        within(row_containing_name(variant_a1.display_name)) do
           tomselect_search_and_select(producer_to_select, from: "Producer", remote_search: true)
           tomselect_search_and_select(category_to_select, from: "Category", remote_search: true)
           tomselect_search_and_select(
@@ -127,14 +138,14 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
           )
         end
 
-        click_button "Save changes"
+        click_button("Save changes")
 
-        expect(page).to have_content "Changes saved"
+        expect(page).to(have_content("Changes saved"))
 
         variant_a1.reload
-        expect(variant_a1.supplier.name).to eq(producer_to_select)
-        expect(variant_a1.primary_taxon.name).to eq(category_to_select)
-        expect(variant_a1.tax_category.name).to eq(tax_category_to_select)
+        expect(variant_a1.supplier.name).to(eq(producer_to_select))
+        expect(variant_a1.primary_taxon.name).to(eq(category_to_select))
+        expect(variant_a1.tax_category.name).to(eq(tax_category_to_select))
       end
     end
   end
@@ -142,83 +153,95 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
   describe "actions menu" do
     describe "edit" do
       let!(:variant_a1) {
-        create(:variant,
-               product: product_a,
-               display_name: "Medium box",
-               sku: "APL-01",
-               price: 5.25)
+        create(
+          :variant,
+          product: product_a,
+          display_name: "Medium box",
+          sku: "APL-01",
+          price: 5.25
+        )
       }
       let!(:product_a) { create(:simple_product, name: "Apples", sku: "APL-00") }
 
       before do
-        visit admin_products_url
+        visit(admin_products_url)
       end
 
       it "shows an actions menu with an edit link for product and variant" do
-        within row_containing_name("Apples") do
+        within(row_containing_name("Apples")) do
           page.find(".vertical-ellipsis-menu").click
-          expect(page).to have_link "Edit", href: spree.edit_admin_product_path(product_a)
+          expect(page).to(have_link("Edit", href: spree.edit_admin_product_path(product_a)))
         end
+
         close_action_menu
 
-        within row_containing_name("Medium box") do
+        within(row_containing_name("Medium box")) do
           page.find(".vertical-ellipsis-menu").click
-          expect(page).to have_link "Edit",
-                                    href: spree.edit_admin_product_variant_path(product_a,
-                                                                                variant_a1)
+          expect(page).to(
+            have_link(
+              "Edit",
+              href: spree.edit_admin_product_variant_path(
+                product_a,
+                variant_a1
+              )
+            )
+          )
         end
       end
     end
 
     describe "clone" do
       let!(:variant_a1) {
-        create(:variant,
-               product: product_a,
-               display_name: "Medium box",
-               sku: "APL-01",
-               price: 5.25)
+        create(
+          :variant,
+          product: product_a,
+          display_name: "Medium box",
+          sku: "APL-01",
+          price: 5.25
+        )
       }
       let(:product_a) { create(:simple_product, name: "Apples", sku: "APL-00") }
 
       before do
-        visit admin_products_url
+        visit(admin_products_url)
       end
 
       describe "Actions columns (clone)" do
         it "shows an actions menu with a clone link when clicking on icon for product" do
-          within row_containing_name("Apples") do
+          within(row_containing_name("Apples")) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).to have_link "Clone", href: admin_clone_product_path(product_a)
+            expect(page).to(have_link("Clone", href: admin_clone_product_path(product_a)))
           end
+
           close_action_menu
 
-          within row_containing_name("Medium box") do
+          within(row_containing_name("Medium box")) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).not_to have_link "Clone", href: admin_clone_product_path(product_a)
+            expect(page).not_to(have_link("Clone", href: admin_clone_product_path(product_a)))
           end
         end
       end
 
       describe "Cloning product" do
         it "shows the cloned product on page when clicked on the cloned option" do
-          click_product_clone "Apples"
+          click_product_clone("Apples")
 
-          expect(page).to have_content "Successfully cloned the product"
-          within "table.products" do
+          expect(page).to(have_content("Successfully cloned the product"))
+          within("table.products") do
             # Product list includes the cloned product.
-            expect(all_input_values).to match /COPY OF Apples/
+            expect(all_input_values).to(match(/COPY OF Apples/))
 
             # And I can perform actions on the new product
-            within row_containing_name "COPY OF Apples" do
+            within(row_containing_name("COPY OF Apples")) do
               page.find(".vertical-ellipsis-menu").click
-              expect(page).to have_link "Edit"
-              expect(page).to have_link "Clone"
+              expect(page).to(have_link("Edit"))
+              expect(page).to(have_link("Clone"))
               # expect(page).to have_link "Delete" # it's not a proper link :/
 
-              fill_in "Name", with: "My copy of Apples"
+              fill_in("Name", with: "My copy of Apples")
             end
 
-            click_button "Save changes"
+            click_button("Save changes")
           end
         end
       end
@@ -228,13 +251,13 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
         product_a.update_columns(name: "L" * 254)
 
         # The page has not been reloaded so the product's name is still "Apples"
-        click_product_clone "Apples"
+        click_product_clone("Apples")
 
-        expect(page).to have_content "Product Name is too long (maximum is 255 characters)"
+        expect(page).to(have_content("Product Name is too long (maximum is 255 characters)"))
 
-        within "table.products" do
+        within("table.products") do
           # Products does not include the cloned product.
-          expect(all_input_values).not_to match /COPY OF #{'L' * 254}/
+          expect(all_input_values).not_to(match(/COPY OF #{"L" * 254}/))
         end
       end
     end
@@ -242,7 +265,7 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
     describe "Create linked variant" do
       let!(:variant) { create(:variant, display_name: "My box", supplier: producer) }
       let!(:linked_variant) {
-        variant.create_linked_variant(user).tap{ |v| v.update! display_name: "My linked variant" }
+        variant.create_linked_variant(user).tap { |v| v.update!(display_name: "My linked variant") }
       }
       let!(:other_producer) { create(:supplier_enterprise) }
       let!(:other_variant) {
@@ -250,81 +273,92 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
       }
       let!(:enterprise_relationship) {
         # Other producer grants me access to manage their variant
-        create(:enterprise_relationship, parent: other_producer, child: producer,
-                                         permissions_list: [:manage_products])
+        create(
+          :enterprise_relationship,
+          parent: other_producer,
+          child: producer,
+          permissions_list: [:manage_products]
+        )
       }
 
-      context "with create_linked_variants permission for my, and other's variants" do
+      context("with create_linked_variants permission for my, and other's variants") do
         it "creates a linked variant" do
-          create(:enterprise_relationship, parent: producer, child: producer,
-                                           permissions_list: [:create_linked_variants])
-          enterprise_relationship.permissions.create! name: :create_linked_variants
+          create(
+            :enterprise_relationship,
+            parent: producer,
+            child: producer,
+            permissions_list: [:create_linked_variants]
+          )
+          enterprise_relationship.permissions.create!(name: :create_linked_variants)
 
-          visit admin_products_url
+          visit(admin_products_url)
 
           # Check my own variant
-          within row_containing_name("My box") do
+          within(row_containing_name("My box")) do
             page.find(".vertical-ellipsis-menu").click
 
-            expect(page).to have_link "Create linked variant"
+            expect(page).to(have_link("Create linked variant"))
           end
+
           close_action_menu
 
           # Check my own linked variant
-          within row_containing_name("My linked variant") do
+          within(row_containing_name("My linked variant")) do
             page.find(".vertical-ellipsis-menu").click
 
-            expect(page).not_to have_link "Create linked variant"
+            expect(page).not_to(have_link("Create linked variant"))
           end
+
           close_action_menu
 
           # Create linked variant sourced from my friend
-          within row_containing_name("My friends box") do
+          within(row_containing_name("My friends box")) do
             page.find(".vertical-ellipsis-menu").click
 
-            click_link "Create linked variant"
+            click_link("Create linked variant")
           end
 
-          expect(page).to have_content "Successfully created linked variant"
+          expect(page).to(have_content("Successfully created linked variant"))
 
-          within "table.products" do
+          within("table.products") do
             # There are now two copies
-            expect(all_input_values).to match /My friends box.*My friends box/
+            expect(all_input_values).to(match(/My friends box.*My friends box/))
             # One of them is designated as a linked variant
-            expect(page).to have_content "🔗"
+            expect(page).to(have_content("🔗"))
 
             last_box = page.all(row_containing_name("My friends box")).last
             # Close action menu (shouldn't need this, it should close itself)
             last_box.click
 
             # And I can perform actions on the new variant
-            within last_box do
+            within(last_box) do
               page.find(".vertical-ellipsis-menu").click
-              expect(page).to have_link "Edit"
-              expect(page).to have_selector "a", text: "Delete" # it's not a proper link
+              expect(page).to(have_link("Edit"))
+              # it's not a proper link
+              expect(page).to(have_selector("a", text: "Delete"))
 
-              fill_in "Name", with: "My copy of Apples"
+              fill_in("Name", with: "My copy of Apples")
             end
-            click_button "Save changes"
 
+            click_button("Save changes")
             # initially obscured by the previous message, then disappears before capybara sees it.
             # expect(page).to have_content "Changes saved"
           end
         end
       end
 
-      context "without create_linked_variants permission" do
+      context("without create_linked_variants permission") do
         it "does not show the option in the menu" do
-          visit admin_products_url
+          visit(admin_products_url)
 
-          within row_containing_name("My box") do
+          within(row_containing_name("My box")) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).not_to have_link "Create linked variant"
+            expect(page).not_to(have_link("Create linked variant"))
           end
 
-          within row_containing_name("My friends box") do
+          within(row_containing_name("My friends box")) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).not_to have_link "Create linked variant"
+            expect(page).not_to(have_link("Create linked variant"))
           end
         end
       end
@@ -340,183 +374,198 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
       }
 
       describe "Actions columns (delete)" do
-        it "shows an actions menu with a delete link when clicking on icon for product. " \
-           "doesn't show delete link for the single variant" do
-          visit admin_products_url
+        it(
+          "shows an actions menu with a delete link when clicking on icon for product. " \
+            "doesn't show delete link for the single variant"
+        ) do
+          visit(admin_products_url)
 
-          within product_selector do
+          within(product_selector) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).to have_css(delete_option_selector)
+            expect(page).to(have_css(delete_option_selector))
           end
-          page.find("div#content").click # to close the vertical actions menu
+          # to close the vertical actions menu
+          page.find("div#content").click
 
           # to select the default variant
-          within default_variant_selector do
+          within(default_variant_selector) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).not_to have_css(delete_option_selector)
+            expect(page).not_to(have_css(delete_option_selector))
           end
         end
 
-        it "shows an actions menu with a delete link when clicking on icon for variant " \
-           "if have multiple" do
-          create(:variant,
-                 product: product_a,
-                 display_name: "Medium box",
-                 sku: "APL-01",
-                 price: 5.25)
-          visit admin_products_url
+        it(
+          "shows an actions menu with a delete link when clicking on icon for variant " \
+            "if have multiple"
+        ) do
+          create(
+            :variant,
+            product: product_a,
+            display_name: "Medium box",
+            sku: "APL-01",
+            price: 5.25
+          )
+          visit(admin_products_url)
 
           # to select the default variant
-          within default_variant_selector do
+          within(default_variant_selector) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).to have_css(delete_option_selector)
+            expect(page).to(have_css(delete_option_selector))
           end
-          page.find("div#content").click # to close the vertical actions menu
+          # to close the vertical actions menu
+          page.find("div#content").click
 
-          within variant_selector do
+          within(variant_selector) do
             page.find(".vertical-ellipsis-menu").click
-            expect(page).to have_css(delete_option_selector)
+            expect(page).to(have_css(delete_option_selector))
           end
         end
       end
 
       describe "Delete Action" do
         let!(:variant_a1) {
-          create(:variant,
-                 product: product_a,
-                 display_name: "Medium box",
-                 sku: "APL-01",
-                 price: 5.25)
+          create(
+            :variant,
+            product: product_a,
+            display_name: "Medium box",
+            sku: "APL-01",
+            price: 5.25
+          )
         }
         let(:modal_selector) { "div[data-modal-target=modal]" }
         let(:dismiss_button_selector) { "button[data-action='click->flash#close']" }
 
-        context "when 'keep product/variant' is selected" do
-          it 'should not delete the product/variant' do
-            visit admin_products_url
+        context("when 'keep product/variant' is selected") do
+          it "should not delete the product/variant" do
+            visit(admin_products_url)
 
             # Keep Product
-            within product_selector do
+            within(product_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
 
-            within modal_selector do
-              click_button "Keep product"
+            within(modal_selector) do
+              click_button("Keep product")
             end
 
-            expect(page).not_to have_content "Delete Product"
-            expect(page).to have_selector(product_selector)
+            expect(page).not_to(have_content("Delete Product"))
+            expect(page).to(have_selector(product_selector))
 
             # Keep Variant
-            within variant_selector do
+            within(variant_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
-            within modal_selector do
-              click_button "Keep variant"
+
+            within(modal_selector) do
+              click_button("Keep variant")
             end
 
-            expect(page).not_to have_content("Delete Variant")
-            expect(page).to have_selector(variant_selector)
+            expect(page).not_to(have_content("Delete Variant"))
+            expect(page).to(have_selector(variant_selector))
           end
         end
 
-        context "when 'delete product/variant' is selected" do
+        context("when 'delete product/variant' is selected") do
           let(:success_flash_message_selector) { "div.flash.success" }
           let(:error_flash_message_selector) { "div.flash.error" }
-          it 'should successfully delete the product/variant' do
-            visit admin_products_url
+          it "should successfully delete the product/variant" do
+            visit(admin_products_url)
             # Delete Variant
-            within variant_selector do
+            within(variant_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
 
-            within modal_selector do
-              click_button "Delete variant"
+            within(modal_selector) do
+              click_button("Delete variant")
             end
 
-            expect(page).not_to have_content("Delete variant")
-            expect(page).not_to have_selector(variant_selector)
-            within success_flash_message_selector do
-              expect(page).to have_content("Successfully deleted the variant")
+            expect(page).not_to(have_content("Delete variant"))
+            expect(page).not_to(have_selector(variant_selector))
+            within(success_flash_message_selector) do
+              expect(page).to(have_content("Successfully deleted the variant"))
               page.find(dismiss_button_selector).click
             end
 
             # Delete product
-            within product_selector do
+            within(product_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
-            within modal_selector do
-              click_button "Delete product"
+
+            within(modal_selector) do
+              click_button("Delete product")
             end
-            expect(page).not_to have_content("Delete product")
-            expect(page).not_to have_selector(product_selector)
-            within success_flash_message_selector do
-              expect(page).to have_content("Successfully deleted the product")
+
+            expect(page).not_to(have_content("Delete product"))
+            expect(page).not_to(have_selector(product_selector))
+            within(success_flash_message_selector) do
+              expect(page).to(have_content("Successfully deleted the product"))
             end
           end
 
-          it 'should be failed to delete the product/variant' do
-            visit admin_products_url
-            allow_any_instance_of(Spree::Product).to receive(:destroy).and_return(false)
-            allow_any_instance_of(Spree::Variant).to receive(:destroy).and_return(false)
+          it "should be failed to delete the product/variant" do
+            visit(admin_products_url)
+            allow_any_instance_of(Spree::Product).to(receive(:destroy).and_return(false))
+            allow_any_instance_of(Spree::Variant).to(receive(:destroy).and_return(false))
 
             # Delete Variant
-            within variant_selector do
+            within(variant_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
 
-            within modal_selector do
-              click_button "Delete variant"
+            within(modal_selector) do
+              click_button("Delete variant")
             end
 
-            within error_flash_message_selector do
-              expect(page).to have_content("Unable to delete the variant")
+            within(error_flash_message_selector) do
+              expect(page).to(have_content("Unable to delete the variant"))
               page.find(dismiss_button_selector).click
             end
 
             # Delete product
-            within product_selector do
+            within(product_selector) do
               page.find(".vertical-ellipsis-menu").click
               page.find(delete_option_selector).click
             end
-            within modal_selector do
-              click_button "Delete product"
+
+            within(modal_selector) do
+              click_button("Delete product")
             end
-            within error_flash_message_selector do
-              expect(page).to have_content("Unable to delete the product")
+
+            within(error_flash_message_selector) do
+              expect(page).to(have_content("Unable to delete the product"))
             end
           end
         end
 
-        context 'a shipped product' do
+        context("a shipped product") do
           let!(:order) { create(:shipped_order, line_items_count: 1) }
           let!(:line_item) { order.reload.line_items.first }
 
-          context "a deleted line item from a shipped order" do
+          context("a deleted line item from a shipped order") do
             before do
               login_as_admin
-              visit admin_products_url
+              visit(admin_products_url)
 
               # Delete Variant
-              within variant_selector do
+              within(variant_selector) do
                 page.find(".vertical-ellipsis-menu").click
                 page.find(delete_option_selector).click
               end
 
-              within modal_selector do
-                click_button "Delete variant"
+              within(modal_selector) do
+                click_button("Delete variant")
               end
             end
 
-            it 'keeps the line item on the order (admin)' do
-              visit spree.edit_admin_order_path(order)
+            it "keeps the line item on the order (admin)" do
+              visit(spree.edit_admin_order_path(order))
 
-              expect(page).to have_content(line_item.product.name.to_s)
+              expect(page).to(have_content(line_item.product.name.to_s))
             end
           end
         end
@@ -528,31 +577,32 @@ RSpec.describe 'As an enterprise user, I can perform actions on the products scr
       let!(:variant) { create(:variant, product:) }
 
       it "show product preview modal" do
-        visit admin_products_url
+        visit(admin_products_url)
 
-        within row_containing_name("Apples") do
+        within(row_containing_name("Apples")) do
           open_action_menu
-          click_link "Preview"
+          click_link("Preview")
         end
 
-        expect(page).to have_content("Product preview")
+        expect(page).to(have_content("Product preview"))
 
-        within "#product-preview-modal" do
+        within("#product-preview-modal") do
           # Shop tab
-          expect(page).to have_selector("h3", text: "Apples")
+          expect(page).to(have_selector("h3", text: "Apples"))
           add_buttons = page.all(".add-variant")
-          expect(add_buttons.length).to eql(2)
+          expect(add_buttons.length).to(eql(2))
 
           # Product Details tab
-          find("a", text: "Product details").click # click_link doesn't work
-          expect(page).to have_selector("h3", text: "Apples")
-          expect(page).to have_selector(".product-img")
+          # click_link doesn't work
+          find("a", text: "Product details").click
+          expect(page).to(have_selector("h3", text: "Apples"))
+          expect(page).to(have_selector(".product-img"))
 
           # Closing the modal
-          click_button "Close"
+          click_button("Close")
         end
 
-        expect(page).not_to have_content("Product preview")
+        expect(page).not_to(have_content("Product preview"))
       end
     end
   end

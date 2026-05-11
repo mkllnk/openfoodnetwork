@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/tag_rule_applicator'
+require "open_food_network/tag_rule_applicator"
 
 # Lists available order cycles for a given customer in a given distributor
 module Shop
@@ -23,8 +23,11 @@ module Shop
     end
 
     def call
-      order_cycles = OrderCycle.with_distributor(@distributor).active
-        .order(@distributor.preferred_shopfront_order_cycle_order).to_a
+      order_cycles = OrderCycle
+        .with_distributor(@distributor)
+        .active
+        .order(@distributor.preferred_shopfront_order_cycle_order)
+        .to_a
 
       apply_tag_rules!(order_cycles)
     end
@@ -32,9 +35,11 @@ module Shop
     private
 
     def apply_tag_rules!(order_cycles)
-      applicator = OpenFoodNetwork::TagRuleApplicator.new(@distributor,
-                                                          "FilterOrderCycles",
-                                                          @customer&.tag_list)
+      applicator = OpenFoodNetwork::TagRuleApplicator.new(
+        @distributor,
+        "FilterOrderCycles",
+        @customer&.tag_list
+      )
       applicator.filter(order_cycles)
     end
   end

@@ -2,7 +2,7 @@
 
 RSpec.describe Payments::WebhookPayload do
   describe "#to_hash" do
-    let(:order) { create(:completed_order_with_totals, order_cycle: ) }
+    let(:order) { create(:completed_order_with_totals, order_cycle:) }
     let(:order_cycle) { create(:simple_order_cycle) }
     let(:payment) { create(:payment, :completed, amount: order.total, order:) }
     let(:tax_category) { create(:tax_category) }
@@ -49,7 +49,7 @@ RSpec.describe Payments::WebhookPayload do
         }
       }.with_indifferent_access
 
-      expect(subject.to_hash).to eq(payload)
+      expect(subject.to_hash).to(eq(payload))
     end
   end
 
@@ -89,7 +89,7 @@ RSpec.describe Payments::WebhookPayload do
         }
       }.with_indifferent_access
 
-      expect(described_class.test_data.to_hash).to match(test_payload)
+      expect(described_class.test_data.to_hash).to(match(test_payload))
     end
   end
 end

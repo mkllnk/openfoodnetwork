@@ -24,7 +24,7 @@ module OrderManagement
 
         payment.authorize!(return_url)
 
-        order.errors.add(:base, I18n.t('authorization_failure')) unless successfully_processed?
+        order.errors.add(:base, I18n.t("authorization_failure")) unless successfully_processed?
         send_auth_emails if requires_authorization_emails?
 
         payment

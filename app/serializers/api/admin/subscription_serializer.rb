@@ -3,10 +3,27 @@
 module Api
   module Admin
     class SubscriptionSerializer < ActiveModel::Serializer
-      attributes :id, :shop_id, :customer_id, :schedule_id, :payment_method_id, :shipping_method_id,
-                 :begins_at, :ends_at, :customer_email, :customer_first_name, :customer_last_name,
-                 :customer_full_name, :schedule_name, :edit_path, :canceled_at, :paused_at, :state,
-                 :shipping_fee_estimate, :payment_fee_estimate
+      attributes(
+        :id,
+        :shop_id,
+        :customer_id,
+        :schedule_id,
+        :payment_method_id,
+        :shipping_method_id,
+        :begins_at,
+        :ends_at,
+        :customer_email,
+        :customer_first_name,
+        :customer_last_name,
+        :customer_full_name,
+        :schedule_name,
+        :edit_path,
+        :canceled_at,
+        :paused_at,
+        :state,
+        :shipping_fee_estimate,
+        :payment_fee_estimate
+      )
 
       has_many :subscription_line_items, serializer: Api::Admin::SubscriptionLineItemSerializer
       has_many :closed_proxy_orders, serializer: Api::Admin::ProxyOrderSerializer
@@ -15,19 +32,19 @@ module Api
       has_one :ship_address, serializer: Api::AddressSerializer
 
       def begins_at
-        object.begins_at&.strftime('%F')
+        object.begins_at&.strftime("%F")
       end
 
       def ends_at
-        object.ends_at&.strftime('%F')
+        object.ends_at&.strftime("%F")
       end
 
       def paused_at
-        object.paused_at&.strftime('%F')
+        object.paused_at&.strftime("%F")
       end
 
       def canceled_at
-        object.canceled_at&.strftime('%F')
+        object.canceled_at&.strftime("%F")
       end
 
       def customer_email
@@ -51,7 +68,7 @@ module Api
       end
 
       def edit_path
-        return '' unless object.id
+        return "" unless object.id
 
         edit_admin_subscription_path(object)
       end

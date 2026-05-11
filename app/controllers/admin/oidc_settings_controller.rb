@@ -8,7 +8,7 @@ module Admin
 
     def destroy
       spree_current_user.oidc_account&.destroy
-      redirect_to admin_oidc_settings_path
+      redirect_to(admin_oidc_settings_path)
     end
   end
 end

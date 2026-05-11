@@ -8,12 +8,12 @@ module Api
       skip_authorization_check
 
       def index
-        render json: states, each_serializer: Api::StateSerializer, status: :ok
+        render(json: states, each_serializer: Api::StateSerializer, status: :ok)
       end
 
       def show
         @state = scope.find(params[:id])
-        render json: @state, serializer: Api::StateSerializer, status: :ok
+        render(json: @state, serializer: Api::StateSerializer, status: :ok)
       end
 
       private
@@ -28,8 +28,11 @@ module Api
       end
 
       def states
-        states = scope.ransack(params[:q]).result.
-          includes(:country).order('name ASC')
+        states = scope
+          .ransack(params[:q])
+          .result
+          .includes(:country)
+          .order("name ASC")
 
         if pagination?
           _pagy, states = pagy(states)

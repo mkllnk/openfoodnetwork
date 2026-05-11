@@ -6,7 +6,7 @@
 # further investigation in the future. It's done.
 class AddIndexOnOrderCyclesOrdersOpenAtAndOrdersCloseAt < ActiveRecord::Migration[7.0]
   def change
-    add_index :order_cycles, :orders_open_at
-    add_index :order_cycles, :orders_close_at
+    add_index(:order_cycles, :orders_open_at)
+    add_index(:order_cycles, :orders_close_at)
   end
 end

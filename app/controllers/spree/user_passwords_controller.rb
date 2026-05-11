@@ -6,7 +6,7 @@ require "spree/core/controller_helpers/order"
 
 module Spree
   class UserPasswordsController < Devise::PasswordsController
-    helper 'spree/base'
+    helper "spree/base"
 
     include RawParams
     include Spree::Core::ControllerHelpers::Auth
@@ -25,7 +25,7 @@ module Spree
         self.resource = resource_class.new
         resource.reset_password_token = params.dig(:spree_user, :reset_password_token)
         set_flash_message(:error, :cannot_be_blank)
-        render :edit
+        render(:edit)
       else
         super
       end

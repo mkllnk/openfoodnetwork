@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'system_helper'
+require "system_helper"
 
 RSpec.describe "Order Management" do
-  include AuthenticationHelper
+  include(AuthenticationHelper)
 
   describe "viewing a completed order" do
     let!(:distributor) { create(:distributor_enterprise) }
@@ -15,11 +15,13 @@ RSpec.describe "Order Management" do
     let!(:shipping_method) { create(:free_shipping_method, distributors: [distributor]) }
 
     let!(:order) do
-      create(:order_with_credit_payment,
-             customer:,
-             user:,
-             distributor:,
-             order_cycle:)
+      create(
+        :order_with_credit_payment,
+        customer:,
+        user:,
+        distributor:,
+        order_cycle:
+      )
     end
 
     before do
@@ -31,67 +33,69 @@ RSpec.describe "Order Management" do
       )
     end
 
-    context "when checking out as an anonymous guest" do
+    context("when checking out as an anonymous guest") do
       let!(:customer) { nil }
       let!(:order) do
-        create(:order_with_credit_payment,
-               user: nil,
-               email: "guest@user.com",
-               distributor:,
-               order_cycle:)
+        create(
+          :order_with_credit_payment,
+          user: nil,
+          email: "guest@user.com",
+          distributor:,
+          order_cycle:
+        )
       end
 
       it "allows the user to see the details" do
         # Cannot load the page without token
-        visit order_path(order)
-        expect(page).not_to be_confirmed_order_page
+        visit(order_path(order))
+        expect(page).not_to(be_confirmed_order_page)
 
         # Can load the page with token
-        visit order_path(order, order_token: order.token)
-        expect(page).to be_confirmed_order_page
+        visit(order_path(order, order_token: order.token))
+        expect(page).to(be_confirmed_order_page)
 
         # Can load the page even without the token, after loading the page with
         # token.
-        visit order_path(order)
-        expect(page).to be_confirmed_order_page
+        visit(order_path(order))
+        expect(page).to(be_confirmed_order_page)
       end
 
       it "allows the user to see a link to distributor website when distributor has one" do
         distributor.update!(website: "www.example.com")
-        visit order_path(order, order_token: order.token)
-        expect(page).to have_link "Back To Website", href: "https://www.example.com"
+        visit(order_path(order, order_token: order.token))
+        expect(page).to(have_link("Back To Website", href: "https://www.example.com"))
       end
 
       it "doesn't show any link if the distributor doesn't have a website" do
-        visit order_path(order, order_token: order.token)
-        expect(page).not_to have_link "Back To Website"
+        visit(order_path(order, order_token: order.token))
+        expect(page).not_to(have_link("Back To Website"))
       end
     end
 
-    context "when logged in as the customer" do
+    context("when logged in as the customer") do
       let(:user) { create(:user) }
 
       before do
-        login_as user
+        login_as(user)
       end
 
       it "allows the user to see order details" do
-        visit order_path(order)
-        expect(page).to be_confirmed_order_page
+        visit(order_path(order))
+        expect(page).to(be_confirmed_order_page)
       end
     end
 
-    context "when not logged in" do
+    context("when not logged in") do
       let(:user) { create(:user) }
 
       it "allows the user to see order details after login" do
         # Cannot load the page without signing in
-        visit order_path(order)
-        expect(page).not_to be_confirmed_order_page
+        visit(order_path(order))
+        expect(page).not_to(be_confirmed_order_page)
 
         # Can load the page after signing in
-        fill_in_and_submit_login_form user
-        expect(page).to be_confirmed_order_page
+        fill_in_and_submit_login_form(user)
+        expect(page).to(be_confirmed_order_page)
       end
     end
   end
@@ -114,6 +118,7 @@ RSpec.describe "Order Management" do
         ship_address: address
       )
     end
+
     let!(:item1) { order.reload.line_items.first }
     let!(:item2) { create(:line_item, order:) }
     let!(:item3) { create(:line_item, order:) }
@@ -124,99 +129,103 @@ RSpec.describe "Order Management" do
       order.save
       order.reload
 
-      login_as user
+      login_as(user)
     end
 
-    it 'shows the name of the shipping method' do
-      visit order_path(order)
-      expect(find('#order')).to have_content(shipping_method.name)
+    it "shows the name of the shipping method" do
+      visit(order_path(order))
+      expect(find("#order")).to(have_content(shipping_method.name))
     end
 
-    context "when the distributor doesn't allow changes to be made to orders" do
+    context("when the distributor doesn't allow changes to be made to orders") do
       before do
         order.distributor.update(allow_order_changes: false)
       end
 
       it "doesn't show form elements for editing the order" do
-        visit order_path(order)
-        expect(find("tr.variant-#{item1.variant.id}")).to have_content item1.product.name
-        expect(find("tr.variant-#{item2.variant.id}")).to have_content item2.product.name
-        expect(find("tr.variant-#{item3.variant.id}")).to have_content item3.product.name
-        expect(page).not_to have_button 'Save Changes'
+        visit(order_path(order))
+        expect(find("tr.variant-#{item1.variant.id}")).to(have_content(item1.product.name))
+        expect(find("tr.variant-#{item2.variant.id}")).to(have_content(item2.product.name))
+        expect(find("tr.variant-#{item3.variant.id}")).to(have_content(item3.product.name))
+        expect(page).not_to(have_button("Save Changes"))
       end
     end
 
-    context "when the distributor allows changes to be made to orders" do
+    context("when the distributor allows changes to be made to orders") do
       before do
         order.distributor.update(allow_order_changes: true)
       end
 
       it "allows quantity to be changed, items to be removed and the order to be cancelled" do
-        visit order_path(order)
+        visit(order_path(order))
 
-        expect(page).to have_button 'Order Saved', disabled: true
-        expect(page).not_to have_button 'Save Changes'
+        expect(page).to(have_button("Order Saved", disabled: true))
+        expect(page).not_to(have_button("Save Changes"))
 
         # Changing the quantity of an item
-        within "tr.variant-#{item1.variant.id}" do
-          expect(page).to have_content item1.product.name
-          expect(page).to have_field 'order_line_items_attributes_0_quantity'
+        within("tr.variant-#{item1.variant.id}") do
+          expect(page).to(have_content(item1.product.name))
+          expect(page).to(have_field("order_line_items_attributes_0_quantity"))
           # The original item quantity is 1, there are 4 more items available in stock
           # By changing quantity to 5 we validate the case where the original stock in the order
           #   must be taken into account to fullfil the order (no insufficient stock error)
-          fill_in 'order_line_items_attributes_0_quantity', with: 5
+          fill_in("order_line_items_attributes_0_quantity", with: 5)
         end
 
-        expect(page).to have_button 'Save Changes'
+        expect(page).to(have_button("Save Changes"))
 
-        expect(find("tr.variant-#{item2.variant.id}")).to have_content item2.product.name
-        expect(find("tr.variant-#{item2.variant.id}")).to have_content("$10,000.00 / kg")
-        expect(find("tr.variant-#{item3.variant.id}")).to have_content item3.product.name
-        expect(find("tr.variant-#{item3.variant.id}")).to have_content("$10,000.00 / kg")
-        expect(find("tr.order-adjustment")).to have_content "Shipping"
-        expect(find("tr.order-adjustment")).to have_content "5.00"
+        expect(find("tr.variant-#{item2.variant.id}")).to(have_content(item2.product.name))
+        expect(find("tr.variant-#{item2.variant.id}")).to(have_content("$10,000.00 / kg"))
+        expect(find("tr.variant-#{item3.variant.id}")).to(have_content(item3.product.name))
+        expect(find("tr.variant-#{item3.variant.id}")).to(have_content("$10,000.00 / kg"))
+        expect(find("tr.order-adjustment")).to(have_content("Shipping"))
+        expect(find("tr.order-adjustment")).to(have_content("5.00"))
 
-        click_button 'Save Changes'
+        click_button("Save Changes")
 
-        expect(find(".order-total.grand-total")).to have_content "115.00"
-        expect(item1.reload.quantity).to eq 5
+        expect(find(".order-total.grand-total")).to(have_content("115.00"))
+        expect(item1.reload.quantity).to(eq(5))
 
         # Deleting an item
-        within "tr.variant-#{item2.variant.id}" do
-          click_link "delete_line_item_#{item2.id}"
+        within("tr.variant-#{item2.variant.id}") do
+          click_link("delete_line_item_#{item2.id}")
         end
 
-        expect(find(".order-total.grand-total")).to have_content "105.00"
-        expect(Spree::LineItem.find_by(id: item2.id)).to be nil
+        expect(find(".order-total.grand-total")).to(have_content("105.00"))
+        expect(Spree::LineItem.find_by(id: item2.id)).to(be(nil))
 
         # Cancelling the order
         accept_alert do
-          click_link('Cancel Order')
+          click_link("Cancel Order")
         end
-        expect(page).to have_content 'Cancelled'
-        expect(order.reload).to be_canceled
+
+        expect(page).to(have_content("Cancelled"))
+        expect(order.reload).to(be_canceled)
       end
 
-      context "with customer credit" do
+      context("with customer credit") do
         it "displays the credit used" do
           create(
             :customer_account_transaction,
-            amount: 100, customer: order.customer,
+            amount: 100,
+            customer: order.customer
           )
           # Add credit payment
-          payment = order.payments.create!(payment_method: Spree::PaymentMethod.customer_credit,
-                                           amount: 2.00)
+          payment = order.payments.create!(
+            payment_method: Spree::PaymentMethod.customer_credit,
+            amount: 2.00
+          )
           payment.internal_purchase!
 
-          visit order_path(order)
+          visit(order_path(order))
 
-          expect(page).to have_selector("#customer-credit", text: with_currency(-2.00))
+          expect(page).to(have_selector("#customer-credit", text: with_currency(-2.00)))
         end
       end
     end
   end
 
   def be_confirmed_order_page
-    have_content "Order ##{order.number} Confirmed"
+    have_content("Order ##{order.number} Confirmed")
   end
 end

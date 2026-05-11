@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 # Previously Spree::OrderPopulator. Modified to work with max_quantity and variant overrides.
 
@@ -19,9 +19,10 @@ class CartService
     variants_data = read_variants_hash(from_hash)
 
     @order.with_lock do
-      attempt_cart_add_variants variants_data
-      overwrite_variants variants_data
+      attempt_cart_add_variants(variants_data)
+      overwrite_variants(variants_data)
     end
+
     valid?
   end
 
@@ -52,9 +53,11 @@ class CartService
     @indexed_variants ||= begin
       variant_ids_in_data = variants_data.pluck(:variant_id)
 
-      Spree::Variant.with_deleted.where(id: variant_ids_in_data).
-        includes(:default_price, :stock_items, :product).
-        index_by(&:id)
+      Spree::Variant
+        .with_deleted
+        .where(id: variant_ids_in_data)
+        .includes(:default_price, :stock_items, :product)
+        .index_by(&:id)
     end
   end
 
@@ -87,9 +90,10 @@ class CartService
     on_hand = variant.on_hand
     on_hand = [quantity, max_quantity].compact.max if variant.on_demand
     final_quantity = [quantity, on_hand].min
-    final_max_quantity = max_quantity # max_quantity is not capped
+    # max_quantity is not capped
+    final_max_quantity = max_quantity
 
-    { quantity: final_quantity, max_quantity: final_max_quantity }
+    {quantity: final_quantity, max_quantity: final_max_quantity}
   end
 
   def overwrite_variants(variants)
@@ -107,18 +111,23 @@ class CartService
     variants_array = []
     (data[:variants] || []).each do |variant_id, quantity|
       if quantity.is_a?(ActionController::Parameters)
-        variants_array.push({
-                              variant_id: variant_id.to_i,
-                              quantity: quantity[:quantity].to_i,
-                              max_quantity: quantity[:max_quantity].to_i
-                            })
+        variants_array.push(
+          {
+            variant_id: variant_id.to_i,
+            quantity: quantity[:quantity].to_i,
+            max_quantity: quantity[:max_quantity].to_i
+          }
+        )
       else
-        variants_array.push({
-                              variant_id: variant_id.to_i,
-                              quantity: quantity.to_i
-                            })
+        variants_array.push(
+          {
+            variant_id: variant_id.to_i,
+            quantity: quantity.to_i
+          }
+        )
       end
     end
+
     variants_array
   end
 
@@ -128,12 +137,12 @@ class CartService
 
   # Returns true if the saved cart differs from what's in the posted data, otherwise false
   def varies_from_cart(variant_data, loaded_variant)
-    li = line_item_for_variant loaded_variant
+    li = line_item_for_variant(loaded_variant)
 
     li_added = li.nil? && (variant_data[:quantity].to_i > 0 || variant_data[:max_quantity].to_i > 0)
     li_quantity_changed = li.present? && li.quantity != variant_data[:quantity].to_i
     li_max_quantity_changed = li.present? &&
-                              li.max_quantity.to_i != variant_data[:max_quantity].to_i
+      li.max_quantity.to_i != variant_data[:max_quantity].to_i
 
     li_added || li_quantity_changed || li_max_quantity_changed
   end
@@ -155,18 +164,22 @@ class CartService
   end
 
   def check_variant_available_under_distribution(variant)
-    return true if OrderCycles::DistributedVariantsService.new(@order_cycle, @distributor)
-      .available_variants.include? variant
+    if OrderCycles::DistributedVariantsService
+        .new(@order_cycle, @distributor)
+        .available_variants
+        .include?(variant)
+      return true
+    end
 
     errors.add(:base, I18n.t(:spree_order_populator_availability_error))
     false
   end
 
   def line_item_for_variant(variant)
-    order.find_line_item_by_variant variant
+    order.find_line_item_by_variant(variant)
   end
 
   def variant_ids_in_cart
-    @order.line_items.pluck :variant_id
+    @order.line_items.pluck(:variant_id)
   end
 end

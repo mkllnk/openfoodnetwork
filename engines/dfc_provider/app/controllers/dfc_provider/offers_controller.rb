@@ -6,13 +6,13 @@ module DfcProvider
 
     def show
       subject = OfferBuilder.build(variant)
-      render json: DfcIo.export(subject)
+      render(json: DfcIo.export(subject))
     end
 
     def update
       offer = import
 
-      return head :bad_request unless offer
+      return head(:bad_request) unless offer
 
       OfferBuilder.apply(offer, variant)
 

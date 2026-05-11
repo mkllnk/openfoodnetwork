@@ -3,9 +3,9 @@
 module Spree
   module AuthenticationHelpers
     def self.included(receiver)
-      receiver.helper_method :spree_current_user
-      receiver.helper_method :spree_login_path
-      receiver.helper_method :spree_logout_path
+      receiver.helper_method(:spree_current_user)
+      receiver.helper_method(:spree_login_path)
+      receiver.helper_method(:spree_logout_path)
     end
 
     def spree_current_user

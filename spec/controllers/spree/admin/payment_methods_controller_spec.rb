@@ -10,26 +10,30 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
   }
 
   describe "#new" do
-    before { allow(controller).to receive(:spree_current_user) { user } }
+    before { allow(controller).to(receive(:spree_current_user) { user }) }
 
     it "allows to select from a range of payment gateways" do
-      spree_get :new
+      spree_get(:new)
       providers = assigns(:providers).map(&:to_s)
 
-      expect(providers).to eq %w[
-        Spree::Gateway::PayPalExpress
-        Spree::PaymentMethod::Check
-        Spree::PaymentMethod::Taler
-      ]
+      expect(providers).to(
+        eq(
+          %w[
+            Spree::Gateway::PayPalExpress
+            Spree::PaymentMethod::Check
+            Spree::PaymentMethod::Taler
+          ]
+        )
+      )
     end
 
     it "allows to select StripeSCA when configured" do
-      allow(Spree::Config).to receive(:stripe_connect_enabled).and_return(true)
+      allow(Spree::Config).to(receive(:stripe_connect_enabled).and_return(true))
 
-      spree_get :new
+      spree_get(:new)
       providers = assigns(:providers).map(&:to_s)
 
-      expect(providers).to include "Spree::Gateway::StripeSCA"
+      expect(providers).to(include("Spree::Gateway::StripeSCA"))
     end
   end
 
@@ -43,75 +47,98 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
     }
     let(:enterprise_id) { user.enterprise_ids.first }
 
-    before { allow(controller).to receive(:spree_current_user) { user } }
+    before { allow(controller).to(receive(:spree_current_user) { user }) }
 
     it "shows the current gateway type even if not enabled" do
-      allow(Spree::Config).to receive(:stripe_connect_enabled).and_return(false)
+      allow(Spree::Config).to(receive(:stripe_connect_enabled).and_return(false))
 
-      spree_get :edit, id: stripe.id
+      spree_get(:edit, id: stripe.id)
       providers = assigns(:providers).map(&:to_s)
 
-      expect(providers).to include "Spree::Gateway::StripeSCA"
+      expect(providers).to(include("Spree::Gateway::StripeSCA"))
     end
   end
 
   describe "#create and #update" do
     let!(:enterprise) { create(:distributor_enterprise, owner: user) }
     let(:payment_method) {
-      GatewayWithPassword.create!(name: "Bogus", preferred_password: "haxme",
-                                  distributor_ids: [enterprise.id])
+      GatewayWithPassword.create!(
+        name: "Bogus",
+        preferred_password: "haxme",
+        distributor_ids: [enterprise.id]
+      )
     }
     let!(:user) { create(:user) }
 
-    before { allow(controller).to receive(:spree_current_user) { user } }
+    before { allow(controller).to(receive(:spree_current_user) { user }) }
 
     it "does not clear password on update" do
-      expect(payment_method.preferred_password).to eq "haxme"
-      spree_put :update, id: payment_method.id,
-                         payment_method: {
-                           type: payment_method.class.to_s,
-                           preferred_password: ""
-                         }
-      expect(response).to redirect_to spree.edit_admin_payment_method_path(payment_method)
+      expect(payment_method.preferred_password).to(eq("haxme"))
+      spree_put(
+        :update,
+        id: payment_method.id,
+        payment_method: {
+          type: payment_method.class.to_s,
+          preferred_password: ""
+        }
+      )
+      expect(response).to(redirect_to(spree.edit_admin_payment_method_path(payment_method)))
 
       payment_method.reload
-      expect(payment_method.preferred_password).to eq "haxme"
+      expect(payment_method.preferred_password).to(eq("haxme"))
     end
 
-    context "tries to save invalid payment" do
+    context("tries to save invalid payment") do
       it "doesn't break, responds nicely" do
         expect {
-          spree_post :create, payment_method: { name: "", type: "Spree::Gateway::PayPalExpress" }
-        }.not_to raise_error
+          spree_post(:create, payment_method: {name: "", type: "Spree::Gateway::PayPalExpress"})
+        }
+          .not_to(raise_error)
       end
     end
 
     it "can create a payment method of a valid type" do
       expect {
-        spree_post :create,
-                   payment_method: { name: "Test Method", type: "Spree::Gateway::PayPalExpress",
-                                     distributor_ids: [enterprise.id] }
-      }.to change { Spree::PaymentMethod.count }.by(1)
+        spree_post(
+          :create,
+          payment_method: {
+            name: "Test Method",
+            type: "Spree::Gateway::PayPalExpress",
+            distributor_ids: [enterprise.id]
+          }
+        )
+      }
+        .to(change { Spree::PaymentMethod.count }.by(1))
 
-      expect(response).to be_redirect
-      expect(response).to redirect_to spree
-        .edit_admin_payment_method_path(assigns(:payment_method))
+      expect(response).to(be_redirect)
+      expect(response).to(
+        redirect_to(
+          spree
+            .edit_admin_payment_method_path(assigns(:payment_method))
+        )
+      )
     end
 
     it "can not create a payment method of an invalid type" do
       expect {
-        spree_post :create,
-                   payment_method: { name: "Invalid Payment Method", type: "Spree::InvalidType",
-                                     distributor_ids: [enterprise.id] }
-      }.to change { Spree::PaymentMethod.count }.by(0)
+        spree_post(
+          :create,
+          payment_method: {
+            name: "Invalid Payment Method",
+            type: "Spree::InvalidType",
+            distributor_ids: [enterprise.id]
+          }
+        )
+      }
+        .to(change { Spree::PaymentMethod.count }.by(0))
 
-      expect(response).to be_redirect
-      expect(response).to redirect_to spree.new_admin_payment_method_path
+      expect(response).to(be_redirect)
+      expect(response).to(redirect_to(spree.new_admin_payment_method_path))
     end
   end
 
   describe "#update" do
-    context "updating a payment method" do
+    context("updating a payment method") do
       let!(:payment_method) { create(:payment_method, :flat_rate) }
       let(:params) {
         {
@@ -122,7 +149,7 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
             type: "Spree::PaymentMethod::Check",
             calculator_attributes: {
               id: payment_method.calculator.id,
-              preferred_amount: 456,
+              preferred_amount: 456
             }
           }
         }
@@ -131,15 +158,15 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
       before { controller_login_as_admin }
 
       it "updates the payment method" do
-        spree_post :update, params
+        spree_post(:update, params)
         payment_method.reload
 
-        expect(payment_method.name).to eq "Updated"
-        expect(payment_method.description).to eq "Updated"
-        expect(payment_method.calculator.preferred_amount).to eq 456
+        expect(payment_method.name).to(eq("Updated"))
+        expect(payment_method.description).to(eq("Updated"))
+        expect(payment_method.calculator.preferred_amount).to(eq(456))
       end
 
-      context "when the given payment method type does not match" do
+      context("when the given payment method type does not match") do
         let(:params) {
           {
             id: payment_method.id,
@@ -150,15 +177,15 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
         }
 
         it "updates the payment method type" do
-          spree_post :update, params
+          spree_post(:update, params)
 
           type = Spree::PaymentMethod.find(payment_method.id).type
-          expect(type).to eq "Spree::Gateway::PayPalExpress"
+          expect(type).to(eq("Spree::Gateway::PayPalExpress"))
         end
       end
     end
 
-    context "on a StripeSCA payment method" do
+    context("on a StripeSCA payment method") do
       let!(:user) { create(:user, enterprise_limit: 2) }
       let!(:enterprise1) { create(:distributor_enterprise, owner: user) }
       let!(:enterprise2) { create(:distributor_enterprise, owner: create(:user)) }
@@ -170,10 +197,12 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
         )
       }
 
-      before { allow(controller).to receive(:spree_current_user) { user } }
+      before { allow(controller).to(receive(:spree_current_user) { user }) }
 
-      context "when an attempt is made to change " \
-              "the stripe account holder (preferred_enterprise_id)" do
+      context(
+        "when an attempt is made to change " \
+          "the stripe account holder (preferred_enterprise_id)"
+      ) do
         let(:params) {
           {
             id: payment_method.id,
@@ -184,43 +213,51 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
           }
         }
 
-        context "as a user that does not manage the existing stripe account holder" do
+        context("as a user that does not manage the existing stripe account holder") do
           it "prevents the stripe account holder from being updated" do
-            spree_put :update, params
-            expect(payment_method.reload.preferred_enterprise_id).to eq enterprise2.id
+            spree_put(:update, params)
+            expect(payment_method.reload.preferred_enterprise_id).to(eq(enterprise2.id))
           end
         end
 
-        context "as a user that manages the existing stripe account holder" do
+        context("as a user that manages the existing stripe account holder") do
           before { enterprise2.update!(owner_id: user.id) }
 
           it "allows the stripe account holder to be updated" do
-            spree_put :update, params
-            expect(payment_method.reload.preferred_enterprise_id).to eq enterprise1.id
+            spree_put(:update, params)
+            expect(payment_method.reload.preferred_enterprise_id).to(eq(enterprise1.id))
           end
 
-          context "when no enterprise is selected as the account holder" do
+          context("when no enterprise is selected as the account holder") do
             before { payment_method.update_attribute(:preferred_enterprise_id, nil) }
 
-            context "id not provided at all" do
+            context("id not provided at all") do
               before { params[:payment_method].delete(:preferred_enterprise_id) }
 
               it "does not save the payment method" do
-                spree_put :update, params
-                expect(response).to render_template :edit
-                expect(assigns(:payment_method).errors
-                  .messages[:stripe_account_owner]).to include 'can\'t be blank'
+                spree_put(:update, params)
+                expect(response).to(render_template(:edit))
+                expect(
+                  assigns(:payment_method)
+                    .errors
+                    .messages[:stripe_account_owner]
+                )
+                  .to(include("can't be blank"))
               end
             end
 
-            context "enterprise_id of 0" do
+            context("enterprise_id of 0") do
               before { params[:payment_method][:preferred_enterprise_id] = 0 }
 
               it "does not save the payment method" do
-                spree_put :update, params
-                expect(response).to render_template :edit
-                expect(assigns(:payment_method).errors
-                  .messages[:stripe_account_owner]).to include 'can\'t be blank'
+                spree_put(:update, params)
+                expect(response).to(render_template(:edit))
+                expect(
+                  assigns(:payment_method)
+                    .errors
+                    .messages[:stripe_account_owner]
+                )
+                  .to(include("can't be blank"))
               end
             end
           end
@@ -232,68 +269,80 @@ RSpec.describe Spree::Admin::PaymentMethodsController do
   describe "#show_provider_preferences" do
     let(:enterprise) { create(:distributor_enterprise) }
     let(:user) do
-      new_user = create(:user, email: 'enterprise@hub.com', password: 'blahblah',
-                               password_confirmation: 'blahblah', )
+      new_user = create(
+        :user,
+        email: "enterprise@hub.com",
+        password: "blahblah",
+        password_confirmation: "blahblah"
+      )
       new_user.enterprise_roles.build(enterprise:).save
       new_user.save
       new_user
     end
 
     before do
-      allow(controller).to receive_messages spree_current_user: user
+      allow(controller).to(receive_messages(spree_current_user: user))
     end
 
-    context "with an existing payment method" do
+    context("with an existing payment method") do
       let(:payment_method) { create(:payment_method) }
 
-      context "where I have permission" do
+      context("where I have permission") do
         before do
           payment_method.distributors << user.enterprises.is_distributor.first
         end
 
-        context "without an altered provider type" do
+        context("without an altered provider type") do
           it "renders provider settings with same payment method" do
-            spree_get :show_provider_preferences,
-                      pm_id: payment_method.id,
-                      provider_type: "Spree::PaymentMethod::Check"
-            expect(assigns(:payment_method)).to eq payment_method
-            expect(response).to render_template partial: '_provider_settings'
+            spree_get(
+              :show_provider_preferences,
+              pm_id: payment_method.id,
+              provider_type: "Spree::PaymentMethod::Check"
+            )
+            expect(assigns(:payment_method)).to(eq(payment_method))
+            expect(response).to(render_template(partial: "_provider_settings"))
           end
         end
 
-        context "with an altered provider type" do
+        context("with an altered provider type") do
           it "renders provider settings with a different payment method" do
-            spree_get :show_provider_preferences,
-                      pm_id: payment_method.id,
-                      provider_type: "Spree::Gateway::PayPalExpress"
-            expect(assigns(:payment_method)).not_to eq payment_method
-            expect(response).to render_template partial: '_provider_settings'
+            spree_get(
+              :show_provider_preferences,
+              pm_id: payment_method.id,
+              provider_type: "Spree::Gateway::PayPalExpress"
+            )
+            expect(assigns(:payment_method)).not_to(eq(payment_method))
+            expect(response).to(render_template(partial: "_provider_settings"))
           end
         end
       end
 
-      context "when I do not have permission" do
+      context("when I do not have permission") do
         before do
           payment_method.distributors = []
         end
 
         it "renders unauthorised" do
-          spree_get :show_provider_preferences,
-                    pm_id: payment_method.id,
-                    provider_type: "Spree::PaymentMethod::Check"
-          expect(assigns(:payment_method)).to eq payment_method
-          expect(flash[:error]).to eq "Authorization Failure"
+          spree_get(
+            :show_provider_preferences,
+            pm_id: payment_method.id,
+            provider_type: "Spree::PaymentMethod::Check"
+          )
+          expect(assigns(:payment_method)).to(eq(payment_method))
+          expect(flash[:error]).to(eq("Authorization Failure"))
         end
       end
     end
 
-    context "with a new payment method" do
+    context("with a new payment method") do
       it "renders provider settings with a new payment method of type" do
-        spree_get :show_provider_preferences,
-                  pm_id: "",
-                  provider_type: "Spree::Gateway::PayPalExpress"
-        expect(assigns(:payment_method)).to be_a_new Spree::Gateway::PayPalExpress
-        expect(response).to render_template partial: '_provider_settings'
+        spree_get(
+          :show_provider_preferences,
+          pm_id: "",
+          provider_type: "Spree::Gateway::PayPalExpress"
+        )
+        expect(assigns(:payment_method)).to(be_a_new(Spree::Gateway::PayPalExpress))
+        expect(response).to(render_template(partial: "_provider_settings"))
       end
     end
   end

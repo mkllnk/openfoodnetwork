@@ -40,7 +40,7 @@ module Orders
 
     def advance_order_options
       shipping_method_id = order.shipping_method.id if order.shipping_method.present?
-      { "shipping_method_id" => shipping_method_id }
+      {"shipping_method_id" => shipping_method_id}
     end
 
     def advance_to_state(target_state, options = {})

@@ -4,7 +4,7 @@ module Spree
   class UsersController < ::BaseController
     include I18nHelper
 
-    layout 'darkswarm'
+    layout "darkswarm"
 
     invisible_captcha only: [:create], on_timestamp_spam: :render_alert_timestamp_error_message
     skip_before_action :set_current_order, only: :show
@@ -28,13 +28,17 @@ module Spree
       @user = Spree::User.new(user_params)
 
       if @user.save
-        flash[:success] = t('devise.user_registrations.spree_user.signed_up_but_unconfirmed')
-        redirect_to main_app.root_path
+        flash[:success] = t("devise.user_registrations.spree_user.signed_up_but_unconfirmed")
+        redirect_to(main_app.root_path)
       else
-        render turbo_stream: turbo_stream.update(
-          'signup-tab',
-          partial: 'layouts/signup_tab', locals: { signup_form_user: @user }
-        ), status: :unprocessable_entity
+        render(
+          turbo_stream: turbo_stream.update(
+            "signup-tab",
+            partial: "layouts/signup_tab",
+            locals: {signup_form_user: @user}
+          ),
+          status: :unprocessable_entity
+        )
       end
     end
 
@@ -45,9 +49,10 @@ module Spree
           Spree::User.reset_password_by_token(params[:user])
           bypass_sign_in(@user)
         end
-        redirect_to spree.account_url, notice: Spree.t(:account_updated)
+
+        redirect_to(spree.account_url, notice: Spree.t(:account_updated))
       else
-        render :edit
+        render(:edit)
       end
     end
 
@@ -60,14 +65,14 @@ module Spree
     def load_object
       @user ||= spree_current_user
       if @user && !@user.disabled
-        authorize! params[:action].to_sym, @user
+        authorize!(params[:action].to_sym, @user)
       else
-        redirect_to main_app.login_path
+        redirect_to(main_app.login_path)
       end
     end
 
     def authorize_actions
-      authorize! params[:action].to_sym, Spree::User.new
+      authorize!(params[:action].to_sym, Spree::User.new)
     end
 
     def accurate_title
@@ -79,10 +84,12 @@ module Spree
     end
 
     def render_alert_timestamp_error_message
-      render turbo_stream: turbo_stream.update(
-        'signup-feedback',
-        partial: 'layouts/alert',
-        locals: { type: "alert", message: InvisibleCaptcha.timestamp_error_message }
+      render(
+        turbo_stream: turbo_stream.update(
+          "signup-feedback",
+          partial: "layouts/alert",
+          locals: {type: "alert", message: InvisibleCaptcha.timestamp_error_message}
+        )
       )
     end
   end

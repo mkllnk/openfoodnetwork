@@ -4,7 +4,7 @@ class SuppliedProductBuilder < DfcBuilder
   def self.semantic_id(variant)
     urls.enterprise_supplied_product_url(
       enterprise_id: variant.supplier_id,
-      id: variant.id,
+      id: variant.id
     )
   end
 

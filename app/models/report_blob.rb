@@ -11,7 +11,7 @@ class ReportBlob < ActiveStorage::Blob
       filename:,
       content_type: content_type(filename),
       identify: false,
-      service_name: :local,
+      service_name: :local
     )
   end
 
@@ -24,10 +24,11 @@ class ReportBlob < ActiveStorage::Blob
       byte_size: 0,
       checksum: "0",
       content_type: content_type(filename),
-      service_name: :local,
-    ).tap do |blob|
-      ActiveStorage::PurgeJob.set(wait: LIFETIME).perform_later(blob)
-    end
+      service_name: :local
+    )
+      .tap do |blob|
+        ActiveStorage::PurgeJob.set(wait: LIFETIME).perform_later(blob)
+      end
   end
 
   def self.content_type(filename)

@@ -5,11 +5,13 @@ module Spree
     module BaseHelper
       def field_container(model, method, options = {}, &)
         css_classes = options[:class].to_a
-        css_classes << 'field'
-        content_tag(:div,
-                    capture(&),
-                    class: css_classes.join(' '),
-                    id: "#{model}_#{method}_field")
+        css_classes << "field"
+        content_tag(
+          :div,
+          capture(&),
+          class: css_classes.join(" "),
+          id: "#{model}_#{method}_field"
+        )
       end
 
       def error_message_on(object, method, options = {})
@@ -18,11 +20,11 @@ module Spree
 
         if obj && obj.errors[method].present?
           # rubocop:disable Rails/OutputSafety
-          errors = obj.errors[method].map { |err| h(err) }.join('<br />').html_safe
+          errors = obj.errors[method].map { |err| h(err) }.join("<br />").html_safe
           # rubocop:enable Rails/OutputSafety
-          content_tag(:span, errors, class: 'formError', **options)
+          content_tag(:span, errors, class: "formError", **options)
         else
-          ''
+          ""
         end
       end
 
@@ -38,7 +40,7 @@ module Spree
         when :text
           text_area_tag(name, value, preference_field_options(options))
         when :file
-          file_field_tag name, preference_field_options(options)
+          file_field_tag(name, preference_field_options(options))
         else
           text_field_tag(name, value, preference_field_options(options))
         end
@@ -66,33 +68,35 @@ module Spree
       # In this specific case, to render the dropdown, the object provided must have a method named
       # like "#{field}_values" that returns an array with the string options to be listed.
       def preference_field_for_text_field(form, field, options, object)
-        if field.end_with?('_from_list') && object.respond_to?("#{field}_values")
+        if field.end_with?("_from_list") && object.respond_to?("#{field}_values")
           list_values = object.__send__("#{field}_values")
           selected_value = object.__send__(field)
-          form.select(field, options_for_select(list_values, selected_value),
-                      preference_field_options(options))
+          form.select(
+            field,
+            options_for_select(list_values, selected_value),
+            preference_field_options(options)
+          )
         else
           form.text_field(field, preference_field_options(options))
         end
       end
 
       def preference_field_options(options)
-        field_options =
-          case options[:type]
-          when :integer
-            { class: 'input_integer', step: 1 }
-          when :decimal
-            # Allow any number of decimal places
-            { class: 'input_integer', step: :any }
-          when :boolean
-            {}
-          when :password
-            { class: 'password_string fullwidth' }
-          when :text
-            { rows: 15, cols: 85, class: 'fullwidth' }
-          else
-            { class: 'input_string fullwidth' }
-          end
+        field_options = case options[:type]
+        when :integer
+          {class: "input_integer", step: 1}
+        when :decimal
+          # Allow any number of decimal places
+          {class: "input_integer", step: :any}
+        when :boolean
+          {}
+        when :password
+          {class: "password_string fullwidth"}
+        when :text
+          {rows: 15, cols: 85, class: "fullwidth"}
+        else
+          {class: "input_string fullwidth"}
+        end
 
         field_options.merge!(
           options.slice(:autocomplete, :readonly, :disabled, :size)
@@ -105,45 +109,52 @@ module Spree
         return unless object.respond_to?(:preferences)
 
         object.preferences.keys.map { |key|
-          preference_label = form.label("preferred_#{key}",
-                                        "#{Spree.t(key.to_s.gsub('_from_list', ''))}: ")
-          field_options = { type: object.preference_type(key), autocomplete: "off" }
+          preference_label = form.label(
+            "preferred_#{key}",
+            "#{Spree.t(key.to_s.gsub("_from_list", ""))}: "
+          )
+          field_options = {type: object.preference_type(key), autocomplete: "off"}
           preference_field = preference_field_for(
             form,
             "preferred_#{key}",
-            field_options, object
+            field_options,
+            object
           )
-          { label: preference_label, field: preference_field }
+          {label: preference_label, field: preference_field}
         }
       end
 
       def link_to_add_fields(name, target, options = {})
-        name = '' if options[:no_text]
+        name = "" if options[:no_text]
         css_classes = options[:class] ? "#{options[:class]} spree_add_fields" : "spree_add_fields"
-        link_to_with_icon('icon-plus',
-                          name,
-                          'javascript:',
-                          data: { target: },
-                          class: css_classes)
+        link_to_with_icon(
+          "icon-plus",
+          name,
+          "javascript:",
+          data: {target:},
+          class: css_classes
+        )
       end
 
       # renders hidden field and link to remove record using nested_attributes
       # add support for options[:html], allowing additional HTML attributes
       def link_to_remove_fields(name, form, options = {})
-        name = '' if options[:no_text]
-        options[:class] = '' unless options[:class]
-        options[:class] += 'no-text with-tip' if options[:no_text]
+        name = "" if options[:no_text]
+        options[:class] = "" unless options[:class]
+        options[:class] += "no-text with-tip" if options[:no_text]
 
-        html_options = { class: "remove_fields #{options[:class]}",
-                         data: { action: 'remove' },
-                         title: t(:remove) }
-        html_options.merge!(options[:html]) if options.key? :html
+        html_options = {
+          class: "remove_fields #{options[:class]}",
+          data: {action: "remove"},
+          title: t(:remove)
+        }
+        html_options.merge!(options[:html]) if options.key?(:html)
 
-        link_to_with_icon('icon-trash', name, '#', html_options) + form.hidden_field(:_destroy)
+        link_to_with_icon("icon-trash", name, "#", html_options) + form.hidden_field(:_destroy)
       end
 
       def spree_dom_id(record)
-        dom_id(record, 'spree')
+        dom_id(record, "spree")
       end
 
       def inventory_enabled?(enterprises)
@@ -153,7 +164,7 @@ module Spree
       private
 
       def attribute_name_for(field_name)
-        field_name.tr(' ', '_').downcase
+        field_name.tr(" ", "_").downcase
       end
     end
   end

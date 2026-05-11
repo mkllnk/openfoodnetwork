@@ -1,6 +1,6 @@
 class FixPreferencesKeys < ActiveRecord::Migration[4.2]
   def up
-    unmigrated_preferences = Spree::Preference.exists?(['key NOT LIKE ?', '/%'])
+    unmigrated_preferences = Spree::Preference.exists?(["key NOT LIKE ?", "/%"])
     return unless unmigrated_preferences
 
     new_preferences = Spree::Preference.where("key LIKE '/%'")

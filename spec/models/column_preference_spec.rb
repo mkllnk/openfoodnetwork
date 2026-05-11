@@ -3,97 +3,117 @@
 RSpec.describe ColumnPreference do
   subject {
     ColumnPreference.new(
-      user:, action_name: :customers_index, column_name: :email
+      user:,
+      action_name: :customers_index,
+      column_name: :email
     )
   }
   let(:user) { build(:user) }
 
-  it { is_expected.to belong_to(:user).required }
+  it { is_expected.to(belong_to(:user).required) }
 
   describe "finding stored preferences for a user and action" do
     before do
-      allow(ColumnPreference).to receive(:known_actions) { ['some_action'] }
-      allow(ColumnPreference).to receive(:valid_columns_for) { ['col1', 'col2', 'col3'] }
+      allow(ColumnPreference).to(receive(:known_actions) { ["some_action"] })
+      allow(ColumnPreference).to(receive(:valid_columns_for) { ["col1", "col2", "col3"] })
     end
 
     let!(:col1_pref) {
-      ColumnPreference.create(user:, action_name: 'some_action', column_name: 'col1',
-                              visible: true)
+      ColumnPreference.create(
+        user:,
+        action_name: "some_action",
+        column_name: "col1",
+        visible: true
+      )
     }
     let!(:col2_pref) {
-      ColumnPreference.create(user:, action_name: 'some_action', column_name: 'col2',
-                              visible: false)
+      ColumnPreference.create(
+        user:,
+        action_name: "some_action",
+        column_name: "col2",
+        visible: false
+      )
     }
     let(:defaults) {
       {
-        col1: { name: "col1", visible: false },
-        col2: { name: "col2", visible: true },
-        col3: { name: "col3", visible: false },
+        col1: {name: "col1", visible: false},
+        col2: {name: "col2", visible: true},
+        col3: {name: "col3", visible: false}
       }
     }
 
-    context "when the user has preferences stored for the given action" do
+    context("when the user has preferences stored for the given action") do
       before do
-        allow(ColumnPreference).to receive(:some_action_columns) { defaults }
+        allow(ColumnPreference).to(receive(:some_action_columns) { defaults })
       end
 
       let(:preferences) { ColumnPreference.for(user, :some_action) }
 
       it "builds an entry for each column listed in the defaults" do
-        expect(preferences.count).to eq 3
+        expect(preferences.count).to(eq(3))
       end
 
       it "uses values from stored preferences where present" do
-        expect(preferences).to include col1_pref, col2_pref
+        expect(preferences).to(include(col1_pref, col2_pref))
       end
 
       it "uses defaults where no stored preference exists" do
         default_pref = preferences.last
-        expect(default_pref).to be_a_new ColumnPreference
-        expect(default_pref.visible).to be false # As per default
+        expect(default_pref).to(be_a_new(ColumnPreference))
+        # As per default
+        expect(default_pref.visible).to(be(false))
       end
     end
 
-    context "where the user does not have preferences stored for the given action" do
+    context("where the user does not have preferences stored for the given action") do
       before do
-        allow(ColumnPreference).to receive(:some_action_columns) { defaults }
+        allow(ColumnPreference).to(receive(:some_action_columns) { defaults })
       end
 
       let(:preferences) { ColumnPreference.for(create(:user), :some_action) }
 
       it "builds an entry for each column listed in the defaults" do
-        expect(preferences.count).to eq 3
+        expect(preferences.count).to(eq(3))
       end
 
       it "uses defaults where no stored preference exists" do
-        expect(preferences.all?(&:new_record?)).to be true
-        expect(preferences.map(&:column_name)).to eq ["col1", "col2", "col3"]
-        expect(preferences.map(&:visible)).to eq [false, true, false]
+        expect(preferences.all?(&:new_record?)).to(be(true))
+        expect(preferences.map(&:column_name)).to(eq(["col1", "col2", "col3"]))
+        expect(preferences.map(&:visible)).to(eq([false, true, false]))
       end
     end
   end
 
   describe "validating column_name" do
-    context "when the column is only valid for users with a feature toggle" do
+    context("when the column is only valid for users with a feature toggle") do
       let(:user) { create(:user) }
       let(:enterprise) { create(:distributor_enterprise, owner: user) }
 
-      it "is valid when the feature toggle is enabled for the user's enterprise",
-         feature: :variant_tag do
-        enterprise # ensure enterprise is created and associated
+      it(
+        "is valid when the feature toggle is enabled for the user's enterprise",
+        feature: :variant_tag
+      ) do
+        # ensure enterprise is created and associated
+        enterprise
 
-        pref = ColumnPreference.new(user:, action_name: "products_v3_index",
-                                    column_name: "tags")
-        expect(pref).to be_valid
+        pref = ColumnPreference.new(
+          user:,
+          action_name: "products_v3_index",
+          column_name: "tags"
+        )
+        expect(pref).to(be_valid)
       end
 
       it "is invalid when the feature toggle is not enabled" do
-        allow(OpenFoodNetwork::FeatureToggle).to receive(:enabled?).and_return(false)
+        allow(OpenFoodNetwork::FeatureToggle).to(receive(:enabled?).and_return(false))
 
-        pref = ColumnPreference.new(user:, action_name: "products_v3_index",
-                                    column_name: "tags")
-        expect(pref).not_to be_valid
-        expect(pref.errors[:column_name]).to be_present
+        pref = ColumnPreference.new(
+          user:,
+          action_name: "products_v3_index",
+          column_name: "tags"
+        )
+        expect(pref).not_to(be_valid)
+        expect(pref.errors[:column_name]).to(be_present)
       end
     end
   end
@@ -101,25 +121,25 @@ RSpec.describe ColumnPreference do
   describe "filtering default_preferences" do
     let(:name_preference) { double(:name_preference) }
     let(:schedules_preference) { double(:scheudles_preference) }
-    let(:default_preferences) { { name: name_preference, schedules: schedules_preference } }
-    context "when the action is order_cycles_index" do
+    let(:default_preferences) { {name: name_preference, schedules: schedules_preference} }
+    context("when the action is order_cycles_index") do
       let(:action_name) { "order_cycles_index" }
 
-      context "and the user owns a subscriptions-enabled enterprise" do
+      context("and the user owns a subscriptions-enabled enterprise") do
         let!(:enterprise) { create(:distributor_enterprise, enable_subscriptions: true) }
 
         it "removes the schedules column from the defaults" do
           ColumnPreference.filter(default_preferences, enterprise.owner, action_name)
-          expect(default_preferences[:schedules]).to eq schedules_preference
+          expect(default_preferences[:schedules]).to(eq(schedules_preference))
         end
       end
 
-      context "and the user does not own a subscriptions-enabled enterprise" do
+      context("and the user does not own a subscriptions-enabled enterprise") do
         let!(:enterprise) { create(:distributor_enterprise, enable_subscriptions: false) }
 
         it "removes the schedules column from the defaults" do
           ColumnPreference.filter(default_preferences, enterprise.owner, action_name)
-          expect(default_preferences[:schedules]).to be nil
+          expect(default_preferences[:schedules]).to(be(nil))
         end
       end
     end

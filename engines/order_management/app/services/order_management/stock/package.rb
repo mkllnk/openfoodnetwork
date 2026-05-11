@@ -31,10 +31,12 @@ module OrderManagement
       end
 
       def find_item(variant, state = :on_hand)
-        contents.select do |item|
-          item.variant == variant &&
-            item.state == state
-        end.first
+        contents
+          .select do |item|
+            item.variant == variant &&
+              item.state == state
+          end
+          .first
       end
 
       def quantity(state = nil)
@@ -59,6 +61,7 @@ module OrderManagement
             flat << ContentItem.new(item.variant, 1, item.state)
           end
         end
+
         flat
       end
 
@@ -85,9 +88,12 @@ module OrderManagement
 
       def inspect
         out = "#{order} - "
-        out.dup << contents.map do |content_item|
-          "#{content_item.variant.name} #{content_item.quantity} #{content_item.state}"
-        end.join('/')
+        out.dup <<
+          contents
+            .map do |content_item|
+              "#{content_item.variant.name} #{content_item.quantity} #{content_item.state}"
+            end
+            .join("/")
       end
 
       def to_shipment

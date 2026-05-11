@@ -6,7 +6,7 @@
 # but we disable database persistence in testing to speed up tests
 #
 
-require 'singleton'
+require "singleton"
 
 module Spree
   module Preferences

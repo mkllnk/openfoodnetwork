@@ -16,12 +16,12 @@ module EmbeddedPages
   def enable_embedded_pages
     return unless embed_service.use_embedded_layout
 
-    @shopfront_layout = 'embedded'
+    @shopfront_layout = "embedded"
   end
 
   def embed_service
-    @embed_service ||= EmbeddedPageService.
-      new(params, session, request, response).
-      tap(&:embed!)
+    @embed_service ||= EmbeddedPageService
+      .new(params, session, request, response)
+      .tap(&:embed!)
   end
 end

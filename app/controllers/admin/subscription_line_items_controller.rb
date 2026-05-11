@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'open_food_network/permissions'
-require 'open_food_network/order_cycle_permissions'
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/permissions"
+require "open_food_network/order_cycle_permissions"
+require "open_food_network/scope_variant_to_hub"
 
 module Admin
   class SubscriptionLineItemsController < Admin::ResourceController
@@ -15,8 +15,12 @@ module Admin
     def build
       @subscription_line_item.assign_attributes(subscription_line_item_params)
       @subscription_line_item.price_estimate = price_estimate
-      render json: @subscription_line_item, serializer: Api::Admin::SubscriptionLineItemSerializer,
-             shop: @shop, schedule: @schedule
+      render(
+        json: @subscription_line_item,
+        serializer: Api::Admin::SubscriptionLineItemSerializer,
+        shop: @shop,
+        schedule: @schedule
+      )
     end
 
     private
@@ -33,20 +37,21 @@ module Admin
     end
 
     def new_actions
-      [:new, :create, :build] # Added build
+      # Added build
+      [:new, :create, :build]
     end
 
     def ensure_shop
       return if @shop
 
-      render json: { errors: ['Unauthorised'] }, status: :unauthorized
+      render(json: {errors: ["Unauthorised"]}, status: :unauthorized)
     end
 
     def ensure_variant
       return if @variant
 
       error = "#{@shop.name} is not permitted to sell the selected product"
-      render json: { errors: [error] }, status: :unprocessable_entity
+      render(json: {errors: [error]}, status: :unprocessable_entity)
     end
 
     def price_estimate

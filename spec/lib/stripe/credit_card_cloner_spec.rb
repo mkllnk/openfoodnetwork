@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'stripe/credit_card_cloner'
+require "stripe/credit_card_cloner"
 
 module Stripe
   RSpec.describe CreditCardCloner do
@@ -9,10 +9,12 @@ module Stripe
 
     describe "#find_or_clone", :vcr, :stripe_version do
       let(:customer) do
-        Stripe::Customer.create({
-                                  name: 'Apple Customer',
-                                  email: 'apple.customer@example.com',
-                                })
+        Stripe::Customer.create(
+          {
+            name: "Apple Customer",
+            email: "apple.customer@example.com"
+          }
+        )
       end
 
       let(:customer_id) { customer.id }
@@ -22,23 +24,25 @@ module Stripe
       let(:pm_card) {
         Stripe::PaymentMethod.create(
           {
-            type: 'card',
+            type: "card",
             card: {
-              number: '4242424242424242',
+              number: "4242424242424242",
               exp_month: 8,
               exp_year: Time.zone.now.year.next,
-              cvc: '314',
-            },
-          },
+              cvc: "314"
+            }
+          }
         )
       }
 
       let(:connected_account) do
-        Stripe::Account.create({
-                                 type: 'standard',
-                                 country: 'AU',
-                                 email: 'apple.producer@example.com'
-                               })
+        Stripe::Account.create(
+          {
+            type: "standard",
+            country: "AU",
+            email: "apple.producer@example.com"
+          }
+        )
       end
 
       let(:cloner) { Stripe::CreditCardCloner.new(credit_card, connected_account.id) }
@@ -66,7 +70,7 @@ module Stripe
         before do
           Stripe::PaymentMethod.attach(
             payment_method_id,
-            { customer: customer_id },
+            {customer: customer_id}
           )
 
           credit_card.update_attribute :gateway_customer_profile_id, customer_id

@@ -1,34 +1,36 @@
 # frozen_string_literal: true
 
 RSpec.describe "spree/orders/show.html.haml" do
-  helper InjectionHelper
-  helper ShopHelper
-  helper ApplicationHelper
-  helper CheckoutHelper
-  helper SharedHelper
-  helper FooterLinksHelper
-  helper MarkdownHelper
-  helper TermsAndConditionsHelper
+  helper(InjectionHelper)
+  helper(ShopHelper)
+  helper(ApplicationHelper)
+  helper(CheckoutHelper)
+  helper(SharedHelper)
+  helper(FooterLinksHelper)
+  helper(MarkdownHelper)
+  helper(TermsAndConditionsHelper)
 
   let(:order) {
     create(
       :completed_order_with_fees,
-      number: "R123456789",
+      number: "R123456789"
     )
   }
 
   before do
     assign(:order, order)
     assign(:paid_with_credit, 0.00)
-    allow(view).to receive_messages(
-      current_order: order,
-      last_payment_method: nil,
+    allow(view).to(
+      receive_messages(
+        current_order: order,
+        last_payment_method: nil
+      )
     )
   end
 
   it "shows the order number" do
     render
-    expect(rendered).to have_content("R123456789")
+    expect(rendered).to(have_content("R123456789"))
   end
 
   it "shows product images" do
@@ -38,7 +40,7 @@ RSpec.describe "spree/orders/show.html.haml" do
 
     render
 
-    expect(rendered).to have_css("img[src*='logo.png']")
+    expect(rendered).to(have_css("img[src*='logo.png']"))
   end
 
   it "handles broken images" do
@@ -50,7 +52,7 @@ RSpec.describe "spree/orders/show.html.haml" do
 
     render
 
-    expect(rendered).to have_css("img[src*='logo.png']")
-    expect(rendered).to have_content("R123456789")
+    expect(rendered).to(have_css("img[src*='logo.png']"))
+    expect(rendered).to(have_content("R123456789"))
   end
 end

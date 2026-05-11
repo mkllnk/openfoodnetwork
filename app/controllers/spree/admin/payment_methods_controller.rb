@@ -10,12 +10,13 @@ module Spree
 
       respond_to :html
 
-      PAYMENT_METHODS = %w{
+      PAYMENT_METHODS = %w[
         Spree::Gateway::PayPalExpress
         Spree::Gateway::StripeSCA
         Spree::PaymentMethod::Check
         Spree::PaymentMethod::Taler
-      }.freeze
+      ]
+        .freeze
 
       def create
         force_environment
@@ -31,7 +32,7 @@ module Spree
 
         if @payment_method.save
           flash[:success] = Spree.t(:successfully_created, resource: Spree.t(:payment_method))
-          redirect_to spree.edit_admin_payment_method_path(@payment_method)
+          redirect_to(spree.edit_admin_payment_method_path(@payment_method))
         else
           respond_with(@payment_method)
         end
@@ -51,7 +52,7 @@ module Spree
 
         if @payment_method.update(update_params)
           flash[:success] = Spree.t(:successfully_updated, resource: Spree.t(:payment_method))
-          redirect_to spree.edit_admin_payment_method_path(@payment_method)
+          redirect_to(spree.edit_admin_payment_method_path(@payment_method))
         else
           respond_with(@payment_method)
           clear_preference_cache
@@ -64,19 +65,20 @@ module Spree
         return parent.public_send(controller_name) if parent_data.present?
 
         collection = if model_class.respond_to?(:accessible_by) &&
-                        !current_ability.has_block?(params[:action], model_class)
+            !current_ability.has_block?(params[:action], model_class)
 
-                       model_class.accessible_by(current_ability, action)
+          model_class.accessible_by(current_ability, action)
 
-                     else
-                       model_class.where(nil)
-                     end
+        else
+          model_class.where(nil)
+        end
 
-        collection = collection.managed_by(spree_current_user).by_name # This line added
+        # This line added
+        collection = collection.managed_by(spree_current_user).by_name
 
         # This block added
-        if params.key? :enterprise_id
-          distributor = Enterprise.find params[:enterprise_id]
+        if params.key?(:enterprise_id)
+          distributor = Enterprise.find(params[:enterprise_id])
           collection = collection.for_distributor(distributor)
         end
 
@@ -86,9 +88,9 @@ module Spree
       def show_provider_preferences
         if params[:pm_id].present?
           @payment_method = PaymentMethod.find(params[:pm_id])
-          authorize! :show_provider_preferences, @payment_method
+          authorize!(:show_provider_preferences, @payment_method)
           payment_method_type = params[:provider_type]
-          if @payment_method['type'].to_s != payment_method_type
+          if @payment_method["type"].to_s != payment_method_type
             @payment_method.update_columns(
               type: payment_method_type,
               updated_at: Time.zone.now
@@ -99,7 +101,7 @@ module Spree
           @payment_method = PaymentMethod.new(type: params[:provider_type])
         end
 
-        render partial: 'provider_settings'
+        render(partial: "provider_settings")
       end
 
       private
@@ -122,13 +124,13 @@ module Spree
         return if valid_payment_methods.include?(params[:payment_method][:type])
 
         flash[:error] = Spree.t(:invalid_payment_provider)
-        redirect_to spree.new_admin_payment_method_path
+        redirect_to(spree.new_admin_payment_method_path)
       end
 
       def load_hubs
         # rubocop:disable Style/TernaryParentheses
         @hubs = Enterprise.managed_by(spree_current_user).is_distributor.to_a.sort_by! do |d|
-          [(@payment_method.has_distributor? d) ? 0 : 1, d.name]
+          [(@payment_method.has_distributor?(d)) ? 0 : 1, d.name]
         end
         # rubocop:enable Style/TernaryParentheses
       end
@@ -154,7 +156,7 @@ module Spree
         return unless @payment_method.preferred_enterprise_id&.positive?
 
         @stripe_account_holder = Enterprise.find(@payment_method.preferred_enterprise_id)
-        return if spree_current_user.enterprises.include? @stripe_account_holder
+        return if spree_current_user.enterprises.include?(@stripe_account_holder)
 
         update_params[:preferred_enterprise_id] = @stripe_account_holder.id
       end
@@ -164,8 +166,11 @@ module Spree
       end
 
       def base_params
-        @base_params ||= PermittedAttributes::PaymentMethod.new(params[:payment_method]).
-          call.to_h.with_indifferent_access
+        @base_params ||= PermittedAttributes::PaymentMethod
+          .new(params[:payment_method])
+          .call
+          .to_h
+          .with_indifferent_access
       end
 
       def gateway_params

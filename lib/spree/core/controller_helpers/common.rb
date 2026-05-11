@@ -24,7 +24,7 @@ module Spree
           def title
             title_string = @title.presence || accurate_title
             if title_string.present?
-              [title_string, default_title].join(' - ')
+              [title_string, default_title].join(" - ")
             else
               default_title
             end
@@ -42,12 +42,14 @@ module Spree
           def render404(_exception = nil)
             respond_to do |type|
               type.html {
-                render status: :not_found,
-                       file: Rails.public_path.join('404.html'),
-                       formats: [:html],
-                       layout: nil
+                render(
+                  status: :not_found,
+                  file: Rails.public_path.join("404.html"),
+                  formats: [:html],
+                  layout: nil
+                )
               }
-              type.all { render status: :not_found, body: nil }
+              type.all { render(status: :not_found, body: nil) }
             end
           end
 
@@ -60,6 +62,7 @@ module Spree
             unless I18n.available_locales.map(&:to_s).include?(locale)
               locale ||= I18n.default_locale
             end
+
             I18n.locale = locale
           end
 

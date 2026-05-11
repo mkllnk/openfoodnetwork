@@ -23,10 +23,10 @@ RSpec.describe FdcOfferBroker do
       solution = subject.best_offer(product.semanticId)
 
       # These values depend on the test data but are a good sanity check:
-      expect(product.name).to eq "Baked British Beans - Retail can, 400g (can)"
-      expect(solution.product.name).to eq "Baked British Beans - Case, 12 x 400g (can)"
-      expect(solution.factor).to eq 12
-      expect(solution.offer.offeredItem).to eq solution.product
+      expect(product.name).to(eq("Baked British Beans - Retail can, 400g (can)"))
+      expect(solution.product.name).to(eq("Baked British Beans - Case, 12 x 400g (can)"))
+      expect(solution.factor).to(eq(12))
+      expect(solution.offer.offeredItem).to(eq(solution.product))
     end
 
     it "falls back to the original product offer" do
@@ -34,9 +34,9 @@ RSpec.describe FdcOfferBroker do
       fallback_solution = subject.best_offer(solution.product.semanticId)
 
       # These values depend on the test data but are a good sanity check:
-      expect(fallback_solution.product.name).to eq "Baked British Beans - Case, 12 x 400g (can)"
-      expect(fallback_solution.factor).to eq 1
-      expect(fallback_solution.offer.offeredItem).to eq fallback_solution.product
+      expect(fallback_solution.product.name).to(eq("Baked British Beans - Case, 12 x 400g (can)"))
+      expect(fallback_solution.factor).to(eq(1))
+      expect(fallback_solution.offer.offeredItem).to(eq(fallback_solution.product))
     end
   end
 
@@ -45,15 +45,15 @@ RSpec.describe FdcOfferBroker do
       offer_solution = subject.best_offer(product.semanticId)
       retail_solution = subject.wholesale_to_retail(offer_solution.product.semanticId)
 
-      expect(retail_solution.retail_product_id).to eq product.semanticId
-      expect(retail_solution.factor).to eq 12
+      expect(retail_solution.retail_product_id).to(eq(product.semanticId))
+      expect(retail_solution.factor).to(eq(12))
     end
 
     it "falls back to the wholesale product id" do
       retail_solution = subject.wholesale_to_retail(product.semanticId)
 
-      expect(retail_solution.retail_product_id).to eq product.semanticId
-      expect(retail_solution.factor).to eq 1
+      expect(retail_solution.retail_product_id).to(eq(product.semanticId))
+      expect(retail_solution.factor).to(eq(1))
     end
   end
 end

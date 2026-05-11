@@ -3,54 +3,54 @@
 RSpec.describe Api::Admin::CustomerWithBalanceSerializer do
   let(:serialized_customer) { described_class.new(customer) }
 
-  describe '#balance' do
+  describe "#balance" do
     let(:customer) { double(Customer, balance_value: 1.2) }
     let(:money) { instance_double(Spree::Money, to_s: "$1.20") }
 
     before do
-      allow(Spree::Money).to receive(:new).with(1.2, currency: "AUD") { money }
+      allow(Spree::Money).to(receive(:new).with(1.2, currency: "AUD") { money })
     end
 
-    it 'returns the balance_value as a money amount' do
-      expect(serialized_customer.balance).to eq("$1.20")
+    it "returns the balance_value as a money amount" do
+      expect(serialized_customer.balance).to(eq("$1.20"))
     end
   end
 
-  describe '#available_credit' do
+  describe "#available_credit" do
     let(:customer) { double(Customer, credit_value: 5.3) }
     let(:money) { instance_double(Spree::Money, to_s: "$5.30") }
 
     before do
-      allow(Spree::Money).to receive(:new).with(5.3) { money }
+      allow(Spree::Money).to(receive(:new).with(5.3) { money })
     end
 
-    it 'returns the available_credit as a money amount' do
-      expect(serialized_customer.available_credit).to eq("$5.30")
+    it "returns the available_credit as a money amount" do
+      expect(serialized_customer.available_credit).to(eq("$5.30"))
     end
   end
 
-  describe '#balance_status' do
-    context 'when the balance_value is positive' do
+  describe "#balance_status" do
+    context("when the balance_value is positive") do
       let(:customer) { double(Customer, balance_value: 1) }
 
-      it 'returns credit_owed' do
-        expect(serialized_customer.balance_status).to eq("credit_owed")
+      it "returns credit_owed" do
+        expect(serialized_customer.balance_status).to(eq("credit_owed"))
       end
     end
 
-    context 'when the balance_value is negative' do
+    context("when the balance_value is negative") do
       let(:customer) { double(Customer, balance_value: -1) }
 
-      it 'returns credit_owed' do
-        expect(serialized_customer.balance_status).to eq("balance_due")
+      it "returns credit_owed" do
+        expect(serialized_customer.balance_status).to(eq("balance_due"))
       end
     end
 
-    context 'when the balance_value is zero' do
+    context("when the balance_value is zero") do
       let(:customer) { double(Customer, balance_value: 0) }
 
-      it 'returns credit_owed' do
-        expect(serialized_customer.balance_status).to eq("")
+      it "returns credit_owed" do
+        expect(serialized_customer.balance_status).to(eq(""))
       end
     end
   end

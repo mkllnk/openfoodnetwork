@@ -25,13 +25,16 @@ module Checkout
 
     def apply_strong_parameters
       @order_params = params.require(:order).permit(
-        :email, :shipping_method_id, :special_instructions,
-        :save_bill_address, :save_ship_address,
+        :email,
+        :shipping_method_id,
+        :special_instructions,
+        :save_bill_address,
+        :save_ship_address,
         bill_address_attributes: ::PermittedAttributes::Address.attributes,
         ship_address_attributes: ::PermittedAttributes::Address.attributes,
         payments_attributes: [
           :payment_method_id,
-          { source_attributes: PermittedAttributes::PaymentSource.attributes }
+          {source_attributes: PermittedAttributes::PaymentSource.attributes}
         ]
       )
     end
@@ -89,8 +92,7 @@ module Checkout
 
     def set_basic_details
       [:firstname, :lastname, :phone].each do |attr|
-        @order_params[:ship_address_attributes][attr] =
-          @order_params[:bill_address_attributes][attr]
+        @order_params[:ship_address_attributes][attr] = @order_params[:bill_address_attributes][attr]
       end
     end
   end

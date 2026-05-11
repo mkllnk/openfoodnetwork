@@ -20,23 +20,24 @@ module CheckoutSteps
   def redirect_to_step_based_on_order
     case @order.state
     when "cart", "address", "delivery"
-      redirect_to checkout_step_path(:details)
+      redirect_to(checkout_step_path(:details))
     when "payment"
-      redirect_to checkout_step_path(:payment)
+      redirect_to(checkout_step_path(:payment))
     when "confirmation"
-      redirect_to checkout_step_path(:summary)
+      redirect_to(checkout_step_path(:summary))
     else
-      redirect_to order_path(@order, order_token: @order.token)
+      redirect_to(order_path(@order, order_token: @order.token))
     end
   end
 
   def redirect_to_step
     case params[:step]
     when "details"
-      return redirect_to checkout_step_path(:payment)
+      return redirect_to(checkout_step_path(:payment))
     when "payment"
-      return redirect_to checkout_step_path(:summary)
+      return redirect_to(checkout_step_path(:summary))
     end
+
     redirect_to_step_based_on_order
   end
 
@@ -47,9 +48,9 @@ module CheckoutSteps
   def check_step
     case @order.state
     when "cart", "address", "delivery"
-      redirect_to checkout_step_path(:details) unless details_step?
+      redirect_to(checkout_step_path(:details)) unless details_step?
     when "payment"
-      redirect_to checkout_step_path(:payment) if summary_step?
+      redirect_to(checkout_step_path(:payment)) if summary_step?
     end
   end
 end

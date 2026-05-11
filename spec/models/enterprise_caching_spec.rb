@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Enterprise do
-  context "key-based caching invalidation" do
+  context("key-based caching invalidation") do
     describe "is touched when a(n)" do
       let(:enterprise) { create(:distributor_enterprise) }
       let(:taxon) { create(:taxon) }
@@ -17,32 +17,36 @@ RSpec.describe Enterprise do
         let(:variant) { product.variants.first }
 
         before do
-          product.set_property 'Organic', 'NASAA 12345'
-          enterprise.set_producer_property 'Biodynamic', 'ASDF 4321'
+          product.set_property("Organic", "NASAA 12345")
+          enterprise.set_producer_property("Biodynamic", "ASDF 4321")
         end
 
         it "touches enterprise when a taxon on that variant changes" do
           expect {
             later { variant.update(primary_taxon_id: taxon2.id) }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
 
         it "touches enterprise when a property on that product changes" do
           expect {
             later { property.touch }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
 
         it "touches enterprise when a producer property on that product changes" do
           expect {
             later { producer_property.touch }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
 
         it "touches enterprise when the supplier of a product changes" do
           expect {
             later { variant.update!(supplier: supplier2) }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
       end
 
@@ -50,8 +54,11 @@ RSpec.describe Enterprise do
         let(:product) { create(:simple_product, primary_taxon_id: taxon.id) }
         let(:variant) { product.variants.first }
         let(:oc) {
-          create(:simple_order_cycle, distributors: [enterprise],
-                                      variants: [product.variants.first])
+          create(
+            :simple_order_cycle,
+            distributors: [enterprise],
+            variants: [product.variants.first]
+          )
         }
         let(:supplier) { variant.supplier }
         let(:property) { product.product_properties.last }
@@ -60,50 +67,56 @@ RSpec.describe Enterprise do
 
         before do
           product.variants = []
-          product.variants <<  variant
+          product.variants << variant
 
-          product.set_property 'Organic', 'NASAA 12345'
-          supplier.set_producer_property 'Biodynamic', 'ASDF 4321'
+          product.set_property("Organic", "NASAA 12345")
+          supplier.set_producer_property("Biodynamic", "ASDF 4321")
         end
 
-        context "with an order cycle" do
+        context("with an order cycle") do
           before { oc }
 
           it "touches enterprise when a taxon on that variant changes" do
             expect {
               later { variant.update(primary_taxon_id: taxon2.id) }
-            }.to change { enterprise.reload.updated_at }
+            }
+              .to(change { enterprise.reload.updated_at })
           end
 
           it "touches enterprise when a property on that product changes" do
             expect {
               later { property.touch }
-            }.to change { enterprise.reload.updated_at }
+            }
+              .to(change { enterprise.reload.updated_at })
           end
 
           it "touches enterprise when a producer property on that product changes" do
             expect {
               later { producer_property.touch }
-            }.to change { enterprise.reload.updated_at }
+            }
+              .to(change { enterprise.reload.updated_at })
           end
 
           it "touches enterprise when the supplier of a variant changes" do
             expect {
               later { variant.update!(supplier: supplier2) }
-            }.to change { enterprise.reload.updated_at }
+            }
+              .to(change { enterprise.reload.updated_at })
           end
 
           it "touches enterprise when a relevant exchange is updated" do
             expect {
               later { oc.exchanges.first.update!(updated_at: Time.zone.now) }
-            }.to change { enterprise.reload.updated_at }
+            }
+              .to(change { enterprise.reload.updated_at })
           end
         end
 
         it "touches enterprise when the product's variant is added to order cycle" do
           expect {
             later { oc }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
       end
 
@@ -114,7 +127,8 @@ RSpec.describe Enterprise do
         it "touches enterprise when enterprise relationship is updated" do
           expect {
             later { er.touch }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
       end
 
@@ -128,20 +142,23 @@ RSpec.describe Enterprise do
         it "touches enterprise when distributor_shipping_method is updated" do
           expect {
             later { enterprise.distributor_shipping_methods.first.touch }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
 
         it "touches enterprise when shipping method is updated" do
           expect {
             later { sm.save! }
-          }.to change { enterprise.reload.updated_at }
+          }
+            .to(change { enterprise.reload.updated_at })
         end
       end
 
       it "touches enterprise when address is updated" do
         expect {
           later { enterprise.address.save! }
-        }.to change { enterprise.reload.updated_at }
+        }
+          .to(change { enterprise.reload.updated_at })
       end
     end
   end

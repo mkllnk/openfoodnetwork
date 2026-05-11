@@ -53,9 +53,9 @@ module Api
         expect(json_response.first.symbolize_keys.keys).to include(*attributes)
       end
 
-      it 'can query the results through a paramter' do
-        api_get :index, q: { name_cont: 'Vic' }
-        expect(json_response.first['name']).to eq("Victoria")
+      it "can query the results through a paramter" do
+        api_get :index, q: {name_cont: "Vic"}
+        expect(json_response.first["name"]).to eq("Victoria")
       end
     end
 

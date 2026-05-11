@@ -8,16 +8,19 @@ module PermittedAttributes
     end
 
     def call(extra_permitted_attributes = [])
-      @params.require(@resource_name).
-        permit(permitted_attributes + extra_permitted_attributes)
+      @params.require(@resource_name).permit(permitted_attributes + extra_permitted_attributes)
     end
 
     private
 
     def permitted_attributes
       [
-        :email, :locale, :password, :password_confirmation, :disabled,
-        { webhook_endpoints_attributes: [:id, :url] },
+        :email,
+        :locale,
+        :password,
+        :password_confirmation,
+        :disabled,
+        {webhook_endpoints_attributes: [:id, :url]}
       ]
     end
   end

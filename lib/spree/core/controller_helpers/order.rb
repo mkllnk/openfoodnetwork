@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 module Spree
   module Core
@@ -8,9 +8,9 @@ module Spree
       module Order
         def self.included(base)
           base.class_eval do
-            helper_method :current_order
-            helper_method :current_currency
-            before_action :set_current_order
+            helper_method(:current_order)
+            helper_method(:current_currency)
+            before_action(:set_current_order)
           end
         end
 
@@ -32,7 +32,8 @@ module Spree
           return @current_order if @current_order
 
           if session[:order_id]
-            current_order = Spree::Order.includes(:adjustments)
+            current_order = Spree::Order
+              .includes(:adjustments)
               .find_by(id: session[:order_id], currency: current_currency)
             @current_order = current_order unless current_order.try(:completed?)
           end
@@ -83,7 +84,7 @@ module Spree
         end
 
         def ip_address
-          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR']
+          request.env["HTTP_X_REAL_IP"] || request.env["REMOTE_ADDR"]
         end
       end
     end

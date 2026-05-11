@@ -8,47 +8,50 @@ RSpec.describe Spree::UserSessionsController do
   end
 
   describe "create" do
-    context "success" do
-      context "when referer is not '/checkout'" do
+    context("success") do
+      context("when referer is not '/checkout'") do
         it "redirects to root" do
-          spree_post :create, spree_user: { email: user.email, password: user.password }
+          spree_post(:create, spree_user: {email: user.email, password: user.password})
 
-          expect(response).to have_http_status(:found)
-          expect(response.location).to eq root_url
+          expect(response).to(have_http_status(:found))
+          expect(response.location).to(eq(root_url))
         end
       end
 
-      context "when referer is '/checkout'" do
-        before { @request.env['HTTP_REFERER'] = 'http://test.host/checkout' }
+      context("when referer is '/checkout'") do
+        before { @request.env["HTTP_REFERER"] = "http://test.host/checkout" }
 
         it "redirects to checkout" do
-          spree_post :create, spree_user: { email: user.email, password: user.password }
+          spree_post(:create, spree_user: {email: user.email, password: user.password})
 
-          expect(response).to have_http_status(:found)
-          expect(response).to redirect_to(checkout_url)
+          expect(response).to(have_http_status(:found))
+          expect(response).to(redirect_to(checkout_url))
         end
       end
     end
 
-    context "failing to log in" do
+    context("failing to log in") do
       render_views
 
       it "returns an error" do
-        spree_post :create, spree_user: { email: user.email, password: "wrong" },
-                            format: :turbo_stream
+        spree_post(
+          :create,
+          spree_user: {email: user.email, password: "wrong"},
+          format: :turbo_stream
+        )
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.body).to include "Invalid email or password"
+        expect(response).to(have_http_status(:unprocessable_entity))
+        expect(response.body).to(include("Invalid email or password"))
       end
     end
   end
 
   describe "destroy" do
     it "redirects to root with flash message" do
-      spree_post :destroy
+      spree_post(:destroy)
 
-      expect(response).to redirect_to root_path
-      expect(flash[:notice]).to eq "Signed out successfully."
+      expect(response).to(redirect_to(root_path))
+      expect(flash[:notice]).to(eq("Signed out successfully."))
     end
   end
 end

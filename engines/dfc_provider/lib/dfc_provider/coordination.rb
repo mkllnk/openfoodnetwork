@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
-if defined? DataFoodConsortium::ConnectorV1::Coordination
-  ActiveSupport::Deprecation.warn <<~TEXT
-    DataFoodConsortium::ConnectorV1::Coordination is now available.
-    Please replace your own implementation with the official class.
-  TEXT
+if defined?(DataFoodConsortium::ConnectorV1::Coordination)
+  ActiveSupport::Deprecation.warn(
+    <<~TEXT
+      DataFoodConsortium::ConnectorV1::Coordination is now available.
+      Please replace your own implementation with the official class.
+    TEXT
+  )
 end
 
 module DfcProvider
@@ -21,8 +23,7 @@ module DfcProvider
       self.semanticType = SEMANTIC_TYPE
 
       @coordinator = coordinator
-      registerSemanticProperty("dfc-b:coordinatedBy", &method("coordinator"))
-        .valueSetter = method("coordinator=")
+      registerSemanticProperty("dfc-b:coordinatedBy", &method("coordinator")).valueSetter = method("coordinator=")
     end
   end
 end

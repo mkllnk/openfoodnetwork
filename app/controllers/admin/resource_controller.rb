@@ -12,15 +12,15 @@ module Admin
 
     def new
       respond_with(@object) do |format|
-        format.html { render layout: !request.xhr? }
-        format.js   { render layout: false }
+        format.html { render(layout: !request.xhr?) }
+        format.js { render(layout: false) }
       end
     end
 
     def edit
       respond_with(@object) do |format|
-        format.html { render layout: !request.xhr? }
-        format.js   { render layout: false }
+        format.html { render(layout: !request.xhr?) }
+        format.js { render(layout: false) }
       end
     end
 
@@ -29,8 +29,8 @@ module Admin
       if @object.save
         flash[:success] = flash_message_for(@object, :successfully_created)
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_save }
-          format.js   { render layout: false }
+          format.html { redirect_to(location_after_save) }
+          format.js { render(layout: false) }
         end
       else
         respond_with(@object)
@@ -41,8 +41,8 @@ module Admin
       if @object.update(permitted_resource_params)
         flash[:success] = flash_message_for(@object, :successfully_updated)
         respond_with(@object) do |format|
-          format.html { redirect_to location_after_save }
-          format.js   { render layout: false }
+          format.html { redirect_to(location_after_save) }
+          format.js { render(layout: false) }
         end
       else
         respond_with(@object)
@@ -55,7 +55,7 @@ module Admin
       end
 
       respond_to do |format|
-        format.js { render plain: 'Ok' }
+        format.js { render(plain: "Ok") }
       end
     end
 
@@ -63,12 +63,12 @@ module Admin
       if @object.destroy
         flash[:success] = Spree.t(:successfully_removed)
         respond_with(@object) do |format|
-          format.html { redirect_to collection_url }
-          format.js   { render partial: "spree/admin/shared/destroy" }
+          format.html { redirect_to(collection_url) }
+          format.js { render(partial: "spree/admin/shared/destroy") }
         end
       else
         respond_with(@object) do |format|
-          format.html { redirect_to collection_url }
+          format.html { redirect_to(collection_url) }
         end
       end
     end
@@ -77,7 +77,7 @@ module Admin
 
     def resource_not_found
       flash[:error] = Spree.t(:not_found)
-      redirect_to collection_url
+      redirect_to(collection_url)
     end
 
     class << self
@@ -96,7 +96,7 @@ module Admin
     end
 
     def model_name
-      parent_data[:model_name].gsub('spree/', '')
+      parent_data[:model_name].gsub("spree/", "")
     end
 
     def object_name
@@ -110,16 +110,16 @@ module Admin
         # call authorize! a third time (called twice already in Admin::BaseController)
         # this time we pass the actual instance so fine-grained abilities can control
         # access to individual records, not just entire models.
-        authorize! action, @object
+        authorize!(action, @object)
 
         instance_variable_set("@#{object_name}", @object)
 
         # If we don't have access, clear the object
-        unless can? action, @object
+        unless can?(action, @object)
           instance_variable_set("@#{object_name}", nil)
         end
 
-        authorize! action, @object
+        authorize!(action, @object)
       else
         @collection ||= collection
 
@@ -145,8 +145,7 @@ module Admin
     def parent
       return nil if parent_data.blank?
 
-      @parent ||= parent_data[:model_class].
-        find_by(parent_data[:find_by] => params["#{model_name}_id"])
+      @parent ||= parent_data[:model_class].find_by(parent_data[:find_by] => params["#{model_name}_id"])
       instance_variable_set("@#{model_name}", @parent)
     end
 
@@ -170,7 +169,7 @@ module Admin
       return parent.public_send(controller_name) if parent_data.present?
 
       if model_class.respond_to?(:accessible_by) &&
-         !current_ability.has_block?(params[:action], model_class)
+          !current_ability.has_block?(params[:action], model_class)
         model_class.accessible_by(current_ability, action)
       else
         model_class.scoped
@@ -192,20 +191,27 @@ module Admin
 
     def edit_object_url(object, options = {})
       if parent_data.present?
-        url_helper.public_send "edit_admin_#{model_name}_#{object_name}_url",
-                               parent, object, options
+        url_helper.public_send(
+          "edit_admin_#{model_name}_#{object_name}_url",
+          parent,
+          object,
+          options
+        )
       else
-        url_helper.public_send "edit_admin_#{object_name}_url",
-                               object, options
+        url_helper.public_send(
+          "edit_admin_#{object_name}_url",
+          object,
+          options
+        )
       end
     end
 
     def object_url(object = nil, options = {})
       target = object || @object
       if parent_data.present?
-        url_helper.public_send "admin_#{model_name}_#{object_name}_url", parent, target, options
+        url_helper.public_send("admin_#{model_name}_#{object_name}_url", parent, target, options)
       else
-        url_helper.public_send "admin_#{object_name}_url", target, options
+        url_helper.public_send("admin_#{object_name}_url", target, options)
       end
     end
 
@@ -229,7 +235,7 @@ module Admin
     end
 
     def member_action?
-      collection_actions.exclude? action
+      collection_actions.exclude?(action)
     end
 
     def new_actions
@@ -255,7 +261,7 @@ module Admin
     end
 
     def spree_controller?
-      controller_path.starts_with? "spree"
+      controller_path.starts_with?("spree")
     end
   end
 end

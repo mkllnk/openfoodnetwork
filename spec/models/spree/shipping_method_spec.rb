@@ -5,9 +5,10 @@ RSpec.describe Spree::ShippingMethod do
     expect(
       build(
         :shipping_method,
-        shipping_categories: [Spree::ShippingCategory.new(name: 'Test')]
+        shipping_categories: [Spree::ShippingCategory.new(name: "Test")]
       )
-    ).to be_valid
+    )
+      .to(be_valid)
   end
 
   it "can have distributors" do
@@ -19,7 +20,7 @@ RSpec.describe Spree::ShippingMethod do
     sm.distributors << d1
     sm.distributors << d2
 
-    expect(sm.reload.distributors).to match_array [d1, d2]
+    expect(sm.reload.distributors).to(match_array([d1, d2]))
   end
 
   describe "scope" do
@@ -36,9 +37,9 @@ RSpec.describe Spree::ShippingMethod do
 
       it "includes only unique records under specified distributors" do
         result = described_class.for_distributors([distributor_a, distributor_b])
-        expect(result.length).to eq(2)
-        expect(result).to include(shipping_method_a)
-        expect(result).to include(shipping_method_b)
+        expect(result.length).to(eq(2))
+        expect(result).to(include(shipping_method_a))
+        expect(result).to(include(shipping_method_b))
       end
     end
 
@@ -48,16 +49,16 @@ RSpec.describe Spree::ShippingMethod do
       sm1 = create(:shipping_method, distributors: [d1])
       sm2 = create(:shipping_method, distributors: [d2])
 
-      expect(described_class.for_distributor(d1)).to eq([sm1])
+      expect(described_class.for_distributor(d1)).to(eq([sm1]))
     end
   end
 
   it "orders shipping methods by name" do
-    sm1 = create(:shipping_method, name: 'ZZ')
-    sm2 = create(:shipping_method, name: 'AA')
-    sm3 = create(:shipping_method, name: 'BB')
+    sm1 = create(:shipping_method, name: "ZZ")
+    sm2 = create(:shipping_method, name: "AA")
+    sm3 = create(:shipping_method, name: "BB")
 
-    expect(described_class.by_name).to eq([sm2, sm3, sm1])
+    expect(described_class.by_name).to(eq([sm2, sm3, sm1]))
   end
 
   describe "finding services offered by all distributors" do
@@ -75,31 +76,31 @@ RSpec.describe Spree::ShippingMethod do
     }
 
     it "reports when the services are available" do
-      expect(described_class.services[d1.id]).to eq(pickup: true, delivery: true)
+      expect(described_class.services[d1.id]).to(eq(pickup: true, delivery: true))
     end
 
     it "reports when only pickup is available" do
-      expect(described_class.services[d2.id]).to eq(pickup: true, delivery: false)
+      expect(described_class.services[d2.id]).to(eq(pickup: true, delivery: false))
     end
 
     it "reports when only delivery is available" do
-      expect(described_class.services[d3.id]).to eq(pickup: false, delivery: true)
+      expect(described_class.services[d3.id]).to(eq(pickup: false, delivery: true))
     end
 
     it "returns no entry when no service is available" do
-      expect(described_class.services[d4.id]).to be_nil
+      expect(described_class.services[d4.id]).to(be_nil)
     end
   end
 
-  describe '#delivery?' do
-    context 'when the shipping method requires an address' do
+  describe "#delivery?" do
+    context("when the shipping method requires an address") do
       let(:shipping_method) { build(:shipping_method, require_ship_address: true) }
-      it { expect(shipping_method.delivery?).to be true }
+      it { expect(shipping_method.delivery?).to(be(true)) }
     end
 
-    context 'when the shipping method does not require address' do
+    context("when the shipping method does not require address") do
       let(:shipping_method) { build(:shipping_method, require_ship_address: false) }
-      it { expect(shipping_method.delivery?).to be false }
+      it { expect(shipping_method.delivery?).to(be(false)) }
     end
   end
 
@@ -107,16 +108,16 @@ RSpec.describe Spree::ShippingMethod do
     let(:shipping_method) { build_stubbed(:shipping_method) }
 
     it "does not deliver to a nil address" do
-      expect(shipping_method.delivers_to?(nil)).to be false
+      expect(shipping_method.delivers_to?(nil)).to(be(false))
     end
 
     it "includes an address that is not included in the zones of the shipping method" do
       address = create(:address)
       zone_mock = instance_double(Spree::Zone)
-      allow(zone_mock).to receive(:contains?).with(address).and_return(false)
-      allow(shipping_method).to receive(:zones) { [zone_mock] }
+      allow(zone_mock).to(receive(:contains?).with(address).and_return(false))
+      allow(shipping_method).to(receive(:zones) { [zone_mock] })
 
-      expect(shipping_method.delivers_to?(address)).to be true
+      expect(shipping_method.delivers_to?(address)).to(be(true))
     end
   end
 
@@ -126,82 +127,83 @@ RSpec.describe Spree::ShippingMethod do
     let(:add_distributor) { shipping_method.distributors << distributor }
 
     it "is touched when applied to a distributor" do
-      expect{ add_distributor }.to change { shipping_method.reload.updated_at }
+      expect { add_distributor }.to(change { shipping_method.reload.updated_at })
     end
   end
 
-  context "validations" do
+  context("validations") do
     it "validates presence of name" do
       shipping_method = build_stubbed(
         :shipping_method,
-        name: ''
+        name: ""
       )
-      expect(shipping_method).not_to be_valid
-      expect(shipping_method.errors[:name].first).to eq "can't be blank"
+      expect(shipping_method).not_to(be_valid)
+      expect(shipping_method.errors[:name].first).to(eq("can't be blank"))
     end
 
     describe "#display_on" do
       it "is valid when it's set to nil, an empty string or 'back_end'" do
         shipping_method = build_stubbed(
           :shipping_method,
-          shipping_categories: [Spree::ShippingCategory.new(name: 'Test')]
+          shipping_categories: [Spree::ShippingCategory.new(name: "Test")]
         )
         [nil, "", "back_end"].each do |display_on_option|
           shipping_method.display_on = display_on_option
-          expect(shipping_method).to be_valid
+          expect(shipping_method).to(be_valid)
         end
       end
 
       it "is not valid when it's set to an unknown value" do
         shipping_method = build_stubbed(:shipping_method, display_on: "front_end")
-        expect(shipping_method).not_to be_valid
-        expect(shipping_method.errors[:display_on]).to eq ["is not included in the list"]
+        expect(shipping_method).not_to(be_valid)
+        expect(shipping_method.errors[:display_on]).to(eq(["is not included in the list"]))
       end
     end
 
-    context "shipping category" do
+    context("shipping category") do
       it "validates presence of at least one" do
         shipping_method = build_stubbed(
           :shipping_method,
           shipping_categories: []
         )
-        expect(shipping_method).not_to be_valid
+        expect(shipping_method).not_to(be_valid)
         expect(shipping_method.errors[:base].first)
-          .to eq "You need to select at least one shipping category"
+          .to(eq("You need to select at least one shipping category"))
       end
 
-      context "one associated" do
+      context("one associated") do
         let(:shipping_method) do
           build_stubbed(
             :shipping_method,
-            shipping_categories: [Spree::ShippingCategory.new(name: 'Test')]
+            shipping_categories: [Spree::ShippingCategory.new(name: "Test")]
           )
         end
-        it { expect(shipping_method).to be_valid }
+
+        it { expect(shipping_method).to(be_valid) }
       end
     end
   end
 
   # Regression test for Spree #4320
-  context "soft deletion" do
+  context("soft deletion") do
     let(:shipping_method) { create(:shipping_method) }
 
     it "soft-deletes when destroy is called" do
       shipping_method.destroy
-      expect(shipping_method.deleted_at).not_to be_blank
+      expect(shipping_method.deleted_at).not_to(be_blank)
     end
   end
 
-  context 'factory' do
-    let(:shipping_method){ create :shipping_method }
+  context("factory") do
+    let(:shipping_method) { create(:shipping_method) }
 
     it "should set calculable correctly" do
-      expect(shipping_method.calculator.calculable).to eq(shipping_method)
+      expect(shipping_method.calculator.calculable).to(eq(shipping_method))
     end
   end
 
   # Regression test for Spree #4492
-  context "#shipments" do
+  context("#shipments") do
     let!(:shipping_method) { create(:shipping_method) }
     let!(:shipment) do
       shipment = create(:shipment)
@@ -210,7 +212,7 @@ RSpec.describe Spree::ShippingMethod do
     end
 
     it "can gather all the related shipments" do
-      expect(shipping_method.shipments).to include(shipment)
+      expect(shipping_method.shipments).to(include(shipment))
     end
   end
 end

@@ -35,7 +35,7 @@ module Spree
 
             if format_value.is_a?(Proc)
               options = {
-                action_name.to_sym => { format_name.to_sym => { success: format_value } }
+                action_name.to_sym => {format_name.to_sym => {success: format_value}}
               }
             end
 

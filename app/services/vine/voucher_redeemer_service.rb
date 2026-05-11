@@ -4,7 +4,7 @@ module Vine
   class VoucherRedeemerService
     attr_reader :order, :errors
 
-    def initialize(order: )
+    def initialize(order:)
       @order = order
       @errors = {}
     end
@@ -27,7 +27,7 @@ module Vine
       handle_errors(e.response)
       false
     rescue Faraday::Error => e
-      Rails.logger.error e.inspect
+      Rails.logger.error(e.inspect)
       Bugsnag.notify(e)
 
       errors[:vine_api] = I18n.t("vine_voucher_validator_service.errors.vine_api")
@@ -47,7 +47,9 @@ module Vine
       # Voucher adjustment amount is stored in dollars and negative, VINE expect cents
       amount = -1 * @voucher_adjustment.amount * 100
       vine_api.voucher_redemptions(
-        @voucher.external_voucher_id, @voucher.external_voucher_set_id, amount
+        @voucher.external_voucher_id,
+        @voucher.external_voucher_set_id,
+        amount
       )
     end
 

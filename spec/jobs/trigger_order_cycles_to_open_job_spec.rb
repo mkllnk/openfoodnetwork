@@ -12,9 +12,17 @@ RSpec.describe TriggerOrderCyclesToOpenJob do
   }
 
   it "enqueues jobs for recently opened order cycles only" do
-    expect{ TriggerOrderCyclesToOpenJob.perform_now }
-      .to enqueue_job(OpenOrderCycleJob).with(oc_opened_now.id)
-      .and enqueue_job(OpenOrderCycleJob).with(oc_opened_before.id).exactly(0).times
-      .and enqueue_job(OpenOrderCycleJob).with(oc_opening_soon.id).exactly(0).times
+    expect { TriggerOrderCyclesToOpenJob.perform_now }
+      .to(
+        enqueue_job(OpenOrderCycleJob)
+          .with(oc_opened_now.id)
+          .and(
+            enqueue_job(OpenOrderCycleJob)
+              .with(oc_opened_before.id)
+              .exactly(0)
+              .times
+              .and(enqueue_job(OpenOrderCycleJob).with(oc_opening_soon.id).exactly(0).times)
+          )
+      )
   end
 end

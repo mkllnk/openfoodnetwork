@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 module Spree
   class LineItem < ApplicationRecord
@@ -27,28 +27,45 @@ module Spree
     before_validation :copy_product_name, on: :create
     before_validation :copy_variant_name, on: :create
 
-    validates :quantity, numericality: {
-      only_integer: true,
-      greater_than: -1,
-      message: Spree.t('validation.must_be_int')
-    }
+    validates(
+      :quantity,
+      numericality: {
+        only_integer: true,
+        greater_than: -1,
+        message: Spree.t("validation.must_be_int")
+      }
+    )
     validates :price, numericality: true
     validates_with Stock::AvailabilityValidator
 
     before_save :update_inventory
-    before_save :calculate_final_weight_volume, if: :quantity_changed?,
-                                                unless: :final_weight_volume_changed?
-    before_save :assign_units, if: ->(line_item) {
-      line_item.new_record? || line_item.final_weight_volume_changed?
-    }
+    before_save(
+      :calculate_final_weight_volume,
+      if: :quantity_changed?,
+      unless: :final_weight_volume_changed?
+    )
+    before_save(
+      :assign_units,
+      if: -> (line_item) {
+        line_item.new_record? || line_item.final_weight_volume_changed?
+      }
+    )
 
     before_destroy :update_inventory_before_destroy
 
     after_destroy :update_order
     after_save :update_order
 
-    delegate :product, :variant_unit, :unit_description, :display_name, :display_as,
-             :variant_unit_scale, :variant_unit_name, to: :variant
+    delegate(
+      :product,
+      :variant_unit,
+      :unit_description,
+      :display_name,
+      :display_as,
+      :variant_unit_scale,
+      :variant_unit_name,
+      to: :variant
+    )
 
     # Allows manual skipping of Stock::AvailabilityValidator
     attr_accessor :skip_stock_check, :target_shipment
@@ -56,66 +73,97 @@ module Spree
     attribute :restock_item, type: :boolean, default: true
 
     # -- Scopes
-    scope :managed_by, lambda { |user|
-      if user.admin?
-        where(nil)
-      else
-        # Find line items that are from orders distributed by the user or supplied by the user
-        joins(variant: :product).
-          joins(:order).
-          where('spree_orders.distributor_id IN (?) OR spree_products.supplier_id IN (?)',
-                user.enterprises, user.enterprises).
-          select('spree_line_items.*')
-      end
-    }
+    scope(
+      :managed_by,
+      lambda { |user|
+        if user.admin?
+          where(nil)
+        else
+          # Find line items that are from orders distributed by the user or supplied by the user
+          joins(variant: :product)
+            .joins(:order)
+            .where(
+              "spree_orders.distributor_id IN (?) OR spree_products.supplier_id IN (?)",
+              user.enterprises,
+              user.enterprises
+            )
+            .select("spree_line_items.*")
+        end
+      }
+    )
 
-    scope :in_orders, lambda { |orders|
-      where(order_id: orders)
-    }
+    scope(
+      :in_orders,
+      lambda { |orders|
+        where(order_id: orders)
+      }
+    )
 
     # Find line items that are from order sorted by variant name and unit value
-    scope :sorted_by_name_and_unit_value, -> {
-      joins(variant: :product).
-        reorder(Arel.sql("
+    scope(
+      :sorted_by_name_and_unit_value,
+      -> {
+        joins(variant: :product).reorder(
+          Arel.sql(
+            "
           lower(spree_products.name) asc,
             lower(spree_variants.display_name) asc,
-            spree_variants.unit_value asc"))
-    }
+            spree_variants.unit_value asc"
+          )
+        )
+      }
+    )
 
-    scope :from_order_cycle, lambda { |order_cycle|
-      joins(order: :order_cycle).
-        where(order_cycles: { id: order_cycle })
-    }
+    scope(
+      :from_order_cycle,
+      lambda { |order_cycle|
+        joins(order: :order_cycle).where(order_cycles: {id: order_cycle})
+      }
+    )
 
     # Here we are simply joining the line item to its variant
     # We dont use joins here to avoid the default scopes, and with that, include deleted variants
-    scope :supplied_by_any, lambda { |enterprises|
-      variant_ids = Spree::Variant.unscoped.where(supplier: enterprises).select(:id)
-      where(variant_id: variant_ids)
-    }
+    scope(
+      :supplied_by_any,
+      lambda { |enterprises|
+        variant_ids = Spree::Variant.unscoped.where(supplier: enterprises).select(:id)
+        where(variant_id: variant_ids)
+      }
+    )
 
-    scope :with_tax, -> {
-      joins(:adjustments).
-        where(spree_adjustments: { originator_type: 'Spree::TaxRate' }).
-        select('DISTINCT spree_line_items.*')
-    }
+    scope(
+      :with_tax,
+      -> {
+        joins(:adjustments)
+          .where(spree_adjustments: {originator_type: "Spree::TaxRate"})
+          .select("DISTINCT spree_line_items.*")
+      }
+    )
 
     # Line items without a Spree::TaxRate-originated adjustment
-    scope :without_tax, -> {
-      joins("
+    scope(
+      :without_tax,
+      -> {
+        joins(
+          "
         LEFT OUTER JOIN spree_adjustments
           ON (spree_adjustments.adjustable_id=spree_line_items.id
             AND spree_adjustments.adjustable_type = 'Spree::LineItem'
-            AND spree_adjustments.originator_type='Spree::TaxRate')").
-        where(spree_adjustments: { id: nil })
-    }
+            AND spree_adjustments.originator_type='Spree::TaxRate')"
+        )
+          .where(spree_adjustments: {id: nil})
+      }
+    )
 
-    scope :editable_by_producers, ->(enterprises_ids) {
-      joins(variant: :supplier, order: :distributor).where(
-        distributor: { enable_producers_to_edit_orders: true },
-        spree_variants: { supplier_id: enterprises_ids }
-      )
-    }
+    scope(
+      :editable_by_producers,
+      -> (enterprises_ids) {
+        joins(variant: :supplier, order: :distributor).where(
+          distributor: {enable_producers_to_edit_orders: true},
+          spree_variants: {supplier_id: enterprises_ids}
+        )
+      }
+    )
 
     def copy_price
       return unless variant
@@ -142,16 +190,19 @@ module Spree
     def amount
       price * quantity
     end
+
     alias total amount
 
     def single_money
       Spree::Money.new(price, currency:)
     end
+
     alias single_display_amount single_money
 
     def money
       Spree::Money.new(amount, currency:)
     end
+
     alias display_total money
     alias display_amount money
 
@@ -240,7 +291,7 @@ module Spree
       unit_price = UnitPrice.new(variant)
       {
         amount: price_with_adjustments / unit_price.denominator,
-        unit: unit_price.unit,
+        unit: unit_price.unit
       }
     end
 
@@ -317,7 +368,7 @@ module Spree
       if final_weight_volume.present? && quantity_was > 0
         self.final_weight_volume = final_weight_volume * quantity / quantity_was
       elsif variant&.unit_value.present?
-        self.final_weight_volume = variant&.unit_value&.* quantity
+        self.final_weight_volume = variant&.unit_value&.*(quantity)
       end
     end
   end

@@ -21,7 +21,7 @@ module Reporting
           [
             {
               group_by: :producer,
-              header: true,
+              header: true
             },
             {
               group_by: proc { |line_items, _row| line_items.first.variant },
@@ -34,14 +34,18 @@ module Reporting
                   quantity: rows.map(&:quantity).sum(&:to_i),
                   total_cost: rows.map(&:total_cost).compact.sum
                 }
-              end,
+              end
             }
           ]
         end
 
         def line_item_includes
-          [{ order: :distributor,
-             variant: [:product, :supplier] }]
+          [
+            {
+              order: :distributor,
+              variant: [:product, :supplier]
+            }
+          ]
         end
       end
     end

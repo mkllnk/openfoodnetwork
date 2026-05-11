@@ -8,39 +8,39 @@ RSpec.describe CartController do
     let(:errors) { instance_double(ActiveModel::Errors) }
 
     before do
-      allow(CartService).to receive(:new).and_return(cart_service)
+      allow(CartService).to(receive(:new).and_return(cart_service))
     end
 
     it "returns HTTP success when successful" do
-      allow(cart_service).to receive(:populate) { true }
-      allow(cart_service).to receive(:valid?) { true }
-      post :populate, xhr: true, params: { use_route: :spree }, as: :json
-      expect(response).to have_http_status(:ok)
+      allow(cart_service).to(receive(:populate) { true })
+      allow(cart_service).to(receive(:valid?) { true })
+      post(:populate, xhr: true, params: {use_route: :spree}, as: :json)
+      expect(response).to(have_http_status(:ok))
     end
 
     it "returns failure when unsuccessful" do
-      allow(cart_service).to receive(:populate).and_return false
-      allow(cart_service).to receive(:valid?) { false }
-      allow(cart_service).to receive(:errors) { errors }
-      allow(errors).to receive(:full_messages).and_return(["Error: foo"])
-      post :populate, xhr: true, params: { use_route: :spree }, as: :json
-      expect(response).to have_http_status(:precondition_failed)
+      allow(cart_service).to(receive(:populate).and_return(false))
+      allow(cart_service).to(receive(:valid?) { false })
+      allow(cart_service).to(receive(:errors) { errors })
+      allow(errors).to(receive(:full_messages).and_return(["Error: foo"]))
+      post(:populate, xhr: true, params: {use_route: :spree}, as: :json)
+      expect(response).to(have_http_status(:precondition_failed))
     end
 
     it "returns stock levels as JSON on success" do
-      allow(controller).to receive(:variant_ids_in) { [123] }
-      allow_any_instance_of(VariantsStockLevels).to receive(:call).and_return("my_stock_levels")
-      allow(cart_service).to receive(:populate) { true }
-      allow(cart_service).to receive(:valid?) { true }
+      allow(controller).to(receive(:variant_ids_in) { [123] })
+      allow_any_instance_of(VariantsStockLevels).to(receive(:call).and_return("my_stock_levels"))
+      allow(cart_service).to(receive(:populate) { true })
+      allow(cart_service).to(receive(:valid?) { true })
 
-      post :populate, xhr: true, params: { use_route: :spree }, as: :json
+      post(:populate, xhr: true, params: {use_route: :spree}, as: :json)
 
       data = response.parsed_body
-      expect(data['stock_levels']).to eq('my_stock_levels')
+      expect(data["stock_levels"]).to(eq("my_stock_levels"))
     end
   end
 
-  context "handling variant overrides correctly", feature: :inventory do
+  context("handling variant overrides correctly", feature: :inventory) do
     let(:product) { create(:simple_product, supplier: producer) }
     let(:producer) { create(:supplier_enterprise) }
     let!(:variant_in_the_order) { create(:variant) }
@@ -48,12 +48,25 @@ RSpec.describe CartController do
 
     let(:hub) { create(:distributor_enterprise, with_payment_and_shipping: true) }
     let!(:variant_override_in_the_order) {
-      create(:variant_override, hub:, variant: variant_in_the_order, price: 55.55,
-                                count_on_hand: 20, default_stock: nil, resettable: false)
+      create(
+        :variant_override,
+        hub:,
+        variant: variant_in_the_order,
+        price: 55.55,
+        count_on_hand: 20,
+        default_stock: nil,
+        resettable: false
+      )
     }
     let!(:variant_override_not_in_the_order) {
-      create(:variant_override, hub:, variant: variant_not_in_the_order, count_on_hand: 7,
-                                default_stock: nil, resettable: false)
+      create(
+        :variant_override,
+        hub:,
+        variant: variant_not_in_the_order,
+        count_on_hand: 7,
+        default_stock: nil,
+        resettable: false
+      )
     }
 
     let(:order_cycle) {
@@ -67,18 +80,20 @@ RSpec.describe CartController do
     before do
       variant_in_the_order.on_hand = 4
       variant_not_in_the_order.on_hand = 2
-      order_cycle.exchanges.outgoing.first.variants = [variant_in_the_order,
-                                                       variant_not_in_the_order]
+      order_cycle.exchanges.outgoing.first.variants = [
+        variant_in_the_order,
+        variant_not_in_the_order
+      ]
       order.order_cycle = order_cycle
       order.distributor = hub
       order.save
     end
 
     it "returns the variant override stock levels of the variant in the order" do
-      spree_post :populate, variants: { variant_in_the_order.id => 1 }
+      spree_post(:populate, variants: {variant_in_the_order.id => 1})
 
       data = response.parsed_body
-      expect(data['stock_levels'][variant_in_the_order.id.to_s]["on_hand"]).to eq 20
+      expect(data["stock_levels"][variant_in_the_order.id.to_s]["on_hand"]).to(eq(20))
     end
 
     it "returns the variant override stock levels of the variant requested but not in the order" do
@@ -87,14 +102,14 @@ RSpec.describe CartController do
       # VariantsStockLevels alternative calculation would fail
       # See #3222 for more details
       # This indicates that the VariantsStockLevels alternative calculation is never reached
-      spree_post :populate, variants: { variant_not_in_the_order.id => 1 }
+      spree_post(:populate, variants: {variant_not_in_the_order.id => 1})
 
       data = response.parsed_body
-      expect(data['stock_levels'][variant_not_in_the_order.id.to_s]["on_hand"]).to eq 7
+      expect(data["stock_levels"][variant_not_in_the_order.id.to_s]["on_hand"]).to(eq(7))
     end
   end
 
-  context "adding a group buy product to the cart" do
+  context("adding a group buy product to the cart") do
     it "sets a variant attribute for the max quantity" do
       distributor = create(:distributor_enterprise)
       product = create(:product, group_buy: true)
@@ -102,14 +117,18 @@ RSpec.describe CartController do
       order_cycle = create(:simple_order_cycle, distributors: [distributor], variants: [variant])
 
       order = subject.current_order(true)
-      allow(order).to receive(:distributor) { distributor }
-      allow(order).to receive(:order_cycle) { order_cycle }
-      allow(controller).to receive(:current_order).and_return(order)
+      allow(order).to(receive(:distributor) { distributor })
+      allow(order).to(receive(:order_cycle) { order_cycle })
+      allow(controller).to(receive(:current_order).and_return(order))
 
       expect do
-        spree_post :populate, variants: { variant.id => 1 },
-                              variant_attributes: { variant.id => { max_quantity: "3" } }
-      end.to change { Spree::LineItem.count }.by(1)
+        spree_post(
+          :populate,
+          variants: {variant.id => 1},
+          variant_attributes: {variant.id => {max_quantity: "3"}}
+        )
+      end
+        .to(change { Spree::LineItem.count }.by(1))
     end
   end
 end

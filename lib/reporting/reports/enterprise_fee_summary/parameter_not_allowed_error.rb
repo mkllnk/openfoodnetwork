@@ -3,7 +3,8 @@
 module Reporting
   module Reports
     module EnterpriseFeeSummary
-      class ParameterNotAllowedError < StandardError; end
+      class ParameterNotAllowedError < StandardError
+      end
     end
   end
 end

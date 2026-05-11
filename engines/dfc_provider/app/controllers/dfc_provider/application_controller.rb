@@ -3,7 +3,8 @@
 # Controller used to provide the API products for the DFC application
 module DfcProvider
   class ApplicationController < ActionController::Base
-    class Unauthorized < StandardError; end
+    class Unauthorized < StandardError
+    end
 
     include ActiveStorage::SetCurrent
 
@@ -20,7 +21,7 @@ module DfcProvider
     private
 
     def require_permission(scope)
-      return if current_user.is_a? Spree::User
+      return if current_user.is_a?(Spree::User)
       return if current_user.permissions(scope).where(enterprise: current_enterprise).exists?
 
       raise Unauthorized
@@ -37,13 +38,12 @@ module DfcProvider
     end
 
     def current_enterprise
-      @current_enterprise ||=
-        case params[enterprise_id_param_name]
-        when 'default'
-          current_user.enterprises.first!
-        else
-          current_user.enterprises.find(params[enterprise_id_param_name])
-        end
+      @current_enterprise ||= case params[enterprise_id_param_name]
+      when "default"
+        current_user.enterprises.first!
+      else
+        current_user.enterprises.find(params[enterprise_id_param_name])
+      end
     end
 
     def enterprise_id_param_name
@@ -59,11 +59,11 @@ module DfcProvider
     end
 
     def not_found
-      head :not_found
+      head(:not_found)
     end
 
     def unauthorized
-      head :unauthorized
+      head(:unauthorized)
     end
 
     def current_ability

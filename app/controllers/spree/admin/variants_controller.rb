@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variants_for_search'
+require "open_food_network/scope_variants_for_search"
 
 module Spree
   module Admin
     class VariantsController < ::Admin::ResourceController
       helper ::Admin::ProductsHelper
 
-      belongs_to 'spree/product'
+      belongs_to "spree/product"
 
       before_action :load_data, only: [:new, :edit]
 
@@ -33,10 +33,10 @@ module Spree
         @object.attributes = permitted_resource_params
         if @object.save
           flash[:success] = flash_message_for(@object, :successfully_created)
-          redirect_to spree.admin_product_variants_url(params[:product_id], @url_filters)
+          redirect_to(spree.admin_product_variants_url(params[:product_id], @url_filters))
         else
           flash[:error] = @object.errors.full_messages.to_sentence if @object.errors.any?
-          redirect_to spree.new_admin_product_variant_url(params[:product_id], @url_filters)
+          redirect_to(spree.new_admin_product_variant_url(params[:product_id], @url_filters))
         end
 
         return unless @object.present? && @object.valid?
@@ -56,10 +56,10 @@ module Spree
           end
 
           flash[:success] = flash_message_for(@object, :successfully_updated)
-          redirect_to spree.admin_product_variants_url(params[:product_id], @url_filters)
+          redirect_to(spree.admin_product_variants_url(params[:product_id], @url_filters))
         else
           load_data
-          render :edit
+          render(:edit)
         end
       end
 
@@ -69,7 +69,7 @@ module Spree
           spree_current_user
         )
         @variants = scoper.search
-        render json: @variants, each_serializer: ::Api::Admin::VariantSerializer
+        render(json: @variants, each_serializer: ::Api::Admin::VariantSerializer)
       end
 
       def destroy
@@ -78,16 +78,16 @@ module Spree
         @variant = Spree::Variant.find(params[:id])
         flash[:success] = delete_variant
 
-        redirect_to spree.admin_product_variants_url(params[:product_id], @url_filters)
+        redirect_to(spree.admin_product_variants_url(params[:product_id], @url_filters))
       end
 
       protected
 
       def delete_variant
         if VariantDeleter.new.delete(@variant)
-          Spree.t('notice_messages.variant_deleted')
+          Spree.t("notice_messages.variant_deleted")
         else
-          Spree.t('notice_messages.variant_not_deleted')
+          Spree.t("notice_messages.variant_not_deleted")
         end
       end
 
@@ -99,10 +99,11 @@ module Spree
         @deleted = params.key?(:deleted) && params[:deleted] == "on" ? "checked" : ""
 
         @collection ||= if @deleted.blank?
-                          super
-                        else
-                          Variant.unscoped.where(product_id: parent.id).deleted
-                        end
+          super
+        else
+          Variant.unscoped.where(product_id: parent.id).deleted
+        end
+
         @collection
       end
 
@@ -115,17 +116,29 @@ module Spree
       end
 
       def variant_search_params
-        params.permit(
-          :q, :distributor_id, :order_cycle_id, :schedule_id, :eligible_for_subscriptions,
-          :include_out_of_stock, :search_variants_as, :order_id
-        ).to_h.with_indifferent_access
+        params
+          .permit(
+            :q,
+            :distributor_id,
+            :order_cycle_id,
+            :schedule_id,
+            :eligible_for_subscriptions,
+            :include_out_of_stock,
+            :search_variants_as,
+            :order_id
+          )
+          .to_h
+          .with_indifferent_access
       end
 
       private
 
       def load_data
-        @producers = OpenFoodNetwork::Permissions.new(spree_current_user).
-          managed_product_enterprises.is_primary_producer.by_name
+        @producers = OpenFoodNetwork::Permissions
+          .new(spree_current_user)
+          .managed_product_enterprises
+          .is_primary_producer
+          .by_name
         @tax_categories = TaxCategory.order(:name)
         @shipping_categories = ShippingCategory.order(:name)
       end

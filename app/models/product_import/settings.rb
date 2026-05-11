@@ -9,7 +9,7 @@ module ProductImport
     def defaults(entry)
       @import_settings.key?(:settings) &&
         settings[entry.enterprise_id.to_s] &&
-        settings[entry.enterprise_id.to_s]['defaults']
+        settings[entry.enterprise_id.to_s]["defaults"]
     end
 
     def settings
@@ -25,11 +25,11 @@ module ProductImport
     end
 
     def importing_into_inventory?
-      settings && settings['import_into'] == 'inventories'
+      settings && settings["import_into"] == "inventories"
     end
 
     def reset_all_absent?
-      settings['reset_all_absent']
+      settings["reset_all_absent"]
     end
 
     def data_for_stock_reset?

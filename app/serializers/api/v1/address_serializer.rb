@@ -14,13 +14,14 @@ module Api
       attribute :region do |object|
         {
           name: object.state.name,
-          code: object.state.abbr,
+          code: object.state.abbr
         }
       end
+
       attribute :country do |object|
         {
           name: object.country.name,
-          code: object.country.iso,
+          code: object.country.iso
         }
       end
     end

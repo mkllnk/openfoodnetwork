@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'open_food_network/permissions'
-require 'open_food_network/order_cycle_form_applicator'
+require "open_food_network/permissions"
+require "open_food_network/order_cycle_form_applicator"
 
 module OrderCycles
   class FormService
     def initialize(order_cycle, order_cycle_params, user)
       @order_cycle = order_cycle
-      @confirm_datetime_change = order_cycle_params.delete :confirm_datetime_change
-      @error_class = order_cycle_params.delete :error_class
+      @confirm_datetime_change = order_cycle_params.delete(:confirm_datetime_change)
+      @error_class = order_cycle_params.delete(:error_class)
       @order_cycle_params = order_cycle_params
       @specified_params = order_cycle_params.keys
       @user = user
@@ -39,9 +39,11 @@ module OrderCycles
           attach_selected_distributor_payment_methods
           attach_selected_distributor_shipping_methods
         end
+
         sync_subscriptions
         true
       end
+
     rescue ActiveRecord::RecordInvalid => e
       add_exception_to_order_cycle_errors(e)
       false
@@ -74,9 +76,9 @@ module OrderCycles
         payment_method_ids += user_only_selected_distributor_payment_method_ids
         order_cycle.selected_distributor_payment_method_ids = payment_method_ids
       else
-        order_cycle
-          .selected_distributor_payment_method_ids = selected_distributor_payment_method_ids
+        order_cycle.selected_distributor_payment_method_ids = selected_distributor_payment_method_ids
       end
+
       order_cycle.save!
     end
 
@@ -93,21 +95,18 @@ module OrderCycles
         shipping_method_ids += user_only_selected_distributor_shipping_method_ids
         order_cycle.selected_distributor_shipping_method_ids = shipping_method_ids
       else
-        order_cycle.selected_distributor_shipping_method_ids =
-          selected_distributor_shipping_method_ids
+        order_cycle.selected_distributor_shipping_method_ids = selected_distributor_shipping_method_ids
       end
 
       order_cycle.save!
     end
 
     def attachable_distributor_payment_method_ids
-      @attachable_distributor_payment_method_ids ||=
-        order_cycle.attachable_distributor_payment_methods.map(&:id)
+      @attachable_distributor_payment_method_ids ||= order_cycle.attachable_distributor_payment_methods.map(&:id)
     end
 
     def attachable_distributor_shipping_method_ids
-      @attachable_distributor_shipping_method_ids ||=
-        order_cycle.attachable_distributor_shipping_methods.map(&:id)
+      @attachable_distributor_shipping_method_ids ||= order_cycle.attachable_distributor_shipping_methods.map(&:id)
     end
 
     def exchanges_unchanged?
@@ -117,13 +116,10 @@ module OrderCycles
     end
 
     def selected_distributor_payment_method_ids
-      @selected_distributor_payment_method_ids = (
-        attachable_distributor_payment_method_ids &
-        @selected_distributor_payment_method_ids.compact_blank.map(&:to_i)
-      )
+      @selected_distributor_payment_method_ids = (attachable_distributor_payment_method_ids &
+        @selected_distributor_payment_method_ids.compact_blank.map(&:to_i))
 
-      if attachable_distributor_payment_method_ids.sort ==
-         @selected_distributor_payment_method_ids.sort
+      if attachable_distributor_payment_method_ids.sort == @selected_distributor_payment_method_ids.sort
         @selected_distributor_payment_method_ids = []
       end
 
@@ -135,13 +131,10 @@ module OrderCycles
     end
 
     def selected_distributor_shipping_method_ids
-      @selected_distributor_shipping_method_ids = (
-        attachable_distributor_shipping_method_ids &
-        @selected_distributor_shipping_method_ids.compact_blank.map(&:to_i)
-      )
+      @selected_distributor_shipping_method_ids = (attachable_distributor_shipping_method_ids &
+        @selected_distributor_shipping_method_ids.compact_blank.map(&:to_i))
 
-      if attachable_distributor_shipping_method_ids.sort ==
-         @selected_distributor_shipping_method_ids.sort
+      if attachable_distributor_shipping_method_ids.sort == @selected_distributor_shipping_method_ids.sort
         @selected_distributor_shipping_method_ids = []
       end
 
@@ -156,7 +149,8 @@ module OrderCycles
       return unless parameter_specified?(:schedule_ids)
 
       result = existing_schedule_ids
-      result |= (requested_schedule_ids & permitted_schedule_ids) # Add permitted and requested
+      # Add permitted and requested
+      result |= (requested_schedule_ids & permitted_schedule_ids)
       # Remove permitted but not requested
       result -= ((result & permitted_schedule_ids) - requested_schedule_ids)
       result
@@ -186,8 +180,10 @@ module OrderCycles
     end
 
     def permitted_schedule_ids
-      Schedule.where(id: requested_schedule_ids | existing_schedule_ids)
-        .merge(permissions.editable_schedules).pluck(:id)
+      Schedule
+        .where(id: requested_schedule_ids | existing_schedule_ids)
+        .merge(permissions.editable_schedules)
+        .pluck(:id)
     end
 
     def existing_schedule_ids
@@ -219,29 +215,37 @@ module OrderCycles
     end
 
     def user_distributors_ids
-      @user_distributors_ids ||= @user.enterprises.pluck(:id)
+      @user_distributors_ids ||= @user
+        .enterprises
+        .pluck(:id)
         .intersection(@order_cycle.distributors.pluck(:id))
     end
 
     def user_distributor_payment_method_ids
-      @user_distributor_payment_method_ids ||=
-        DistributorPaymentMethod.where(distributor_id: user_distributors_ids)
-          .pluck(:id)
+      @user_distributor_payment_method_ids ||= DistributorPaymentMethod
+        .where(distributor_id: user_distributors_ids)
+        .pluck(:id)
     end
 
     def user_distributor_shipping_method_ids
-      @user_distributor_shipping_method_ids ||=
-        DistributorShippingMethod.where(distributor_id: user_distributors_ids)
-          .pluck(:id)
+      @user_distributor_shipping_method_ids ||= DistributorShippingMethod
+        .where(distributor_id: user_distributors_ids)
+        .pluck(:id)
     end
 
     def verify_datetime_change!
       return unless @confirm_datetime_change
       return unless @order_cycle.orders.exists?
-      return if @order_cycle.same_datetime_value(:orders_open_at,
-                                                 @order_cycle_params[:orders_open_at]) &&
-                @order_cycle.same_datetime_value(:orders_close_at,
-                                                 @order_cycle_params[:orders_close_at])
+      if @order_cycle.same_datetime_value(
+          :orders_open_at,
+          @order_cycle_params[:orders_open_at]
+        ) &&
+          @order_cycle.same_datetime_value(
+            :orders_close_at,
+            @order_cycle_params[:orders_close_at]
+          )
+        return
+      end
 
       raise @error_class
     end

@@ -32,6 +32,7 @@ module Reporting
       unless report.unformatted_render?
         result = result.to_h { |k, v| [k, format_cell(v, k)] }
       end
+
       OpenStruct.new(result)
     end
 
@@ -54,7 +55,7 @@ module Reporting
     private
 
     def add_summary_row_type(row)
-      row.reverse_merge!({ report_row_type: "summary" })
+      row.reverse_merge!({report_row_type: "summary"})
     end
 
     def add_summary_row_label(row, rule, proc_args)
@@ -69,6 +70,7 @@ module Reporting
 
         previous_key = key
       end
+
       row
     end
 
@@ -83,25 +85,25 @@ module Reporting
       # Currency
       if report.columns_format[column] == :currency
         format_currency(value)
-      # Quantity
+        # Quantity
       elsif report.columns_format[column] == :quantity && report.html_render?
         format_quantity(value)
-      # Numeric
+        # Numeric
       elsif report.columns_format[column] == :numeric
         format_numeric(value)
-      # Percentage, a number between 0 and 1
+        # Percentage, a number between 0 and 1
       elsif report.columns_format[column] == :percentage
         format_percentage(value)
-      # Boolean
-      elsif value.in? [true, false]
+        # Boolean
+      elsif value.in?([true, false])
         format_boolean(value)
-      # Time
+        # Time
       elsif value.is_a?(Time)
         format_time(value)
-      # Date
+        # Date
       elsif value.is_a?(Date)
         format_date(value)
-      # Default
+        # Default
       else
         value
       end
@@ -121,11 +123,11 @@ module Reporting
     end
 
     def format_time(value)
-      value.to_datetime.in_time_zone.strftime "%Y-%m-%d %H:%M"
+      value.to_datetime.in_time_zone.strftime("%Y-%m-%d %H:%M")
     end
 
     def format_date(value)
-      value.to_datetime.in_time_zone.strftime "%Y-%m-%d"
+      value.to_datetime.in_time_zone.strftime("%Y-%m-%d")
     end
 
     def format_numeric(value)
@@ -133,9 +135,9 @@ module Reporting
     end
 
     def format_percentage(value)
-      return '' if value.blank?
+      return "" if value.blank?
 
-      I18n.t('admin.reports.percentage', value: value * 100)
+      I18n.t("admin.reports.percentage", value: value * 100)
     end
   end
 end

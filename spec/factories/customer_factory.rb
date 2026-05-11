@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :customer, class: Customer do
+  factory(:customer, class: Customer) do
     email { generate(:random_email) }
     enterprise
     code { SecureRandom.base64(150) }

@@ -9,18 +9,18 @@ module Admin
     before_action :load_settings, only: [:edit]
 
     def edit
-      return @stripe_account = { status: :empty_api_key_error_html } if Stripe.api_key.blank?
+      return @stripe_account = {status: :empty_api_key_error_html} if Stripe.api_key.blank?
 
       attrs = %i[id business_name charges_enabled]
       @obfuscated_secret_key = obfuscated_secret_key
       @stripe_account = Stripe::Account.retrieve.to_hash.slice(*attrs).merge(status: :ok)
     rescue Stripe::AuthenticationError
-      @stripe_account = { status: :auth_fail_error }
+      @stripe_account = {status: :auth_fail_error}
     end
 
     def update
       Spree::Config.set(settings_params.to_h)
-      resource = t('admin.controllers.stripe_connect_settings.resource')
+      resource = t("admin.controllers.stripe_connect_settings.resource")
       flash[:success] = t(:successfully_updated, resource:)
       redirect_to_edit
     end
@@ -32,7 +32,7 @@ module Admin
     end
 
     def redirect_to_edit
-      redirect_to main_app.edit_admin_stripe_connect_settings_path
+      redirect_to(main_app.edit_admin_stripe_connect_settings_path)
     end
 
     def obfuscated_secret_key
@@ -42,7 +42,7 @@ module Admin
 
     def settings_params
       params.require(:settings).permit(
-        :stripe_connect_enabled,
+        :stripe_connect_enabled
       )
     end
   end

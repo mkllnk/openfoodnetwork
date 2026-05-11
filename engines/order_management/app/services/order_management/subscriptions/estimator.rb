@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 # Responsible for estimating prices and fees for subscriptions
 # Used by Form as part of the create/update process
@@ -26,8 +26,7 @@ module OrderManagement
 
       def assign_price_estimates
         subscription_line_items.each do |item|
-          item.price_estimate =
-            price_estimate_for(item.variant, item.price_estimate_was)
+          item.price_estimate = price_estimate_for(item.variant, item.price_estimate_was)
         end
       end
 

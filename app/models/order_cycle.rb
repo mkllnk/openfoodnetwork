@@ -1,43 +1,72 @@
 # frozen_string_literal: true
 
-require 'open_food_network/scope_variant_to_hub'
+require "open_food_network/scope_variant_to_hub"
 
 class OrderCycle < ApplicationRecord
   searchable_attributes :orders_open_at, :orders_close_at, :coordinator_id
-  searchable_scopes :active, :inactive, :active_or_complete, :upcoming, :closed, :not_closed,
-                    :dated, :undated, :soonest_opening, :soonest_closing, :most_recently_closed
+  searchable_scopes(
+    :active,
+    :inactive,
+    :active_or_complete,
+    :upcoming,
+    :closed,
+    :not_closed,
+    :dated,
+    :undated,
+    :soonest_opening,
+    :soonest_closing,
+    :most_recently_closed
+  )
 
-  belongs_to :coordinator, class_name: 'Enterprise'
+  belongs_to :coordinator, class_name: "Enterprise"
 
-  has_many :coordinator_fee_refs, class_name: 'CoordinatorFee', dependent: :destroy
-  has_many :coordinator_fees, through: :coordinator_fee_refs, source: :enterprise_fee,
-                              dependent: :destroy
+  has_many :coordinator_fee_refs, class_name: "CoordinatorFee", dependent: :destroy
+  has_many(
+    :coordinator_fees,
+    through: :coordinator_fee_refs,
+    source: :enterprise_fee,
+    dependent: :destroy
+  )
 
   has_many :exchanges, dependent: :destroy
 
   # These scope names are prepended with "cached_" because there are existing accessor methods
   # :incoming_exchanges and :outgoing_exchanges.
-  has_many :cached_incoming_exchanges, -> {
-                                         where incoming: true
-                                       }, class_name: "Exchange", inverse_of: :order_cycle,
-                                          dependent: :destroy
-  has_many :cached_outgoing_exchanges, -> {
-                                         where incoming: false
-                                       }, class_name: "Exchange", inverse_of: :order_cycle,
-                                          dependent: :destroy
+  has_many(
+    :cached_incoming_exchanges,
+    -> {
+      where incoming: true
+    },
+    class_name: "Exchange",
+    inverse_of: :order_cycle,
+    dependent: :destroy
+  )
+  has_many(
+    :cached_outgoing_exchanges,
+    -> {
+      where incoming: false
+    },
+    class_name: "Exchange",
+    inverse_of: :order_cycle,
+    dependent: :destroy
+  )
 
-  has_many :orders, class_name: 'Spree::Order', dependent: :restrict_with_exception
+  has_many :orders, class_name: "Spree::Order", dependent: :restrict_with_exception
   has_many :suppliers, -> { distinct }, source: :sender, through: :cached_incoming_exchanges
   has_many :distributors, -> { distinct }, source: :receiver, through: :cached_outgoing_exchanges
   has_many :order_cycle_schedules, dependent: :destroy
   has_many :schedules, through: :order_cycle_schedules
-  has_and_belongs_to_many :selected_distributor_payment_methods,
-                          class_name: 'DistributorPaymentMethod',
-                          join_table: 'order_cycles_distributor_payment_methods'
-  has_and_belongs_to_many :selected_distributor_shipping_methods,
-                          class_name: 'DistributorShippingMethod',
-                          join_table: 'order_cycles_distributor_shipping_methods'
-  has_paper_trail meta: { custom_data: proc { |order_cycle| order_cycle.schedule_ids.to_s } }
+  has_and_belongs_to_many(
+    :selected_distributor_payment_methods,
+    class_name: "DistributorPaymentMethod",
+    join_table: "order_cycles_distributor_payment_methods"
+  )
+  has_and_belongs_to_many(
+    :selected_distributor_shipping_methods,
+    class_name: "DistributorShippingMethod",
+    join_table: "order_cycles_distributor_shipping_methods"
+  )
+  has_paper_trail meta: {custom_data: proc { |order_cycle| order_cycle.schedule_ids.to_s }}
 
   attr_accessor :incoming_exchanges, :outgoing_exchanges
 
@@ -50,91 +79,134 @@ class OrderCycle < ApplicationRecord
 
   preference :product_selection_from_coordinator_inventory_only, :boolean, default: false
 
-  scope :active, lambda {
-    where('order_cycles.orders_open_at <= ? AND order_cycles.orders_close_at >= ?',
-          Time.zone.now,
-          Time.zone.now)
-  }
-  scope :active_or_complete, lambda { where(order_cycles: { orders_open_at: ..Time.zone.now }) }
-  scope :inactive, lambda {
-    where('order_cycles.orders_open_at > ? OR order_cycles.orders_close_at < ?',
-          Time.zone.now,
-          Time.zone.now)
-  }
-  scope :upcoming, lambda { where('order_cycles.orders_open_at > ?', Time.zone.now) }
-  scope :not_closed, lambda {
-    where('order_cycles.orders_close_at > ? OR order_cycles.orders_close_at IS NULL', Time.zone.now)
-  }
-  scope :closed, lambda {
-    where(order_cycles: { orders_close_at: ...Time.zone.now })
-      .order("order_cycles.orders_close_at DESC")
-  }
+  scope(
+    :active,
+    lambda {
+      where(
+        "order_cycles.orders_open_at <= ? AND order_cycles.orders_close_at >= ?",
+        Time.zone.now,
+        Time.zone.now
+      )
+    }
+  )
+  scope :active_or_complete, lambda { where(order_cycles: {orders_open_at: ..Time.zone.now}) }
+  scope(
+    :inactive,
+    lambda {
+      where(
+        "order_cycles.orders_open_at > ? OR order_cycles.orders_close_at < ?",
+        Time.zone.now,
+        Time.zone.now
+      )
+    }
+  )
+  scope :upcoming, lambda { where("order_cycles.orders_open_at > ?", Time.zone.now) }
+  scope(
+    :not_closed,
+    lambda {
+      where("order_cycles.orders_close_at > ? OR order_cycles.orders_close_at IS NULL", Time.zone.now)
+    }
+  )
+  scope(
+    :closed,
+    lambda {
+      where(order_cycles: {orders_close_at: ...Time.zone.now})
+        .order("order_cycles.orders_close_at DESC")
+    }
+  )
   scope :unprocessed, -> { where(processed_at: nil) }
-  scope :undated, -> { where('order_cycles.orders_open_at IS NULL OR orders_close_at IS NULL') }
-  scope :dated, -> { where('orders_open_at IS NOT NULL AND orders_close_at IS NOT NULL') }
+  scope :undated, -> { where("order_cycles.orders_open_at IS NULL OR orders_close_at IS NULL") }
+  scope :dated, -> { where("orders_open_at IS NOT NULL AND orders_close_at IS NOT NULL") }
 
-  scope :soonest_closing,      lambda { active.order('order_cycles.orders_close_at ASC') }
+  scope :soonest_closing, lambda { active.order("order_cycles.orders_close_at ASC") }
   # This scope returns all the closed orders
-  scope :most_recently_closed, lambda { closed.order('order_cycles.orders_close_at DESC') }
+  scope :most_recently_closed, lambda { closed.order("order_cycles.orders_close_at DESC") }
 
-  scope :soonest_opening,      lambda { upcoming.order('order_cycles.orders_open_at ASC') }
+  scope :soonest_opening, lambda { upcoming.order("order_cycles.orders_open_at ASC") }
 
-  scope :by_name, -> { order('name') }
+  scope :by_name, -> { order("name") }
 
-  scope :with_distributor, lambda { |distributor|
-    joins(:exchanges).merge(Exchange.outgoing).merge(Exchange.to_enterprise(distributor))
-  }
+  scope(
+    :with_distributor,
+    lambda { |distributor|
+      joins(:exchanges).merge(Exchange.outgoing).merge(Exchange.to_enterprise(distributor))
+    }
+  )
 
-  scope :managed_by, lambda { |user|
-    if user.admin?
-      where(nil)
-    else
-      where(coordinator_id: user.enterprises.to_a)
-    end
-  }
+  scope(
+    :managed_by,
+    lambda { |user|
+      if user.admin?
+        where(nil)
+      else
+        where(coordinator_id: user.enterprises.to_a)
+      end
+    }
+  )
 
   # Return order cycles that user coordinates, sends to or receives from
-  scope :visible_by, lambda { |user|
-    if user.admin?
-      where(nil)
-    else
-      with_exchanging_enterprises_outer.
-        where('order_cycles.coordinator_id IN (?) OR enterprises.id IN (?)',
-              user.enterprises.map(&:id),
-              user.enterprises.map(&:id)).
-        select('DISTINCT order_cycles.*')
-    end
-  }
+  scope(
+    :visible_by,
+    lambda { |user|
+      if user.admin?
+        where(nil)
+      else
+        with_exchanging_enterprises_outer
+          .where(
+            "order_cycles.coordinator_id IN (?) OR enterprises.id IN (?)",
+            user.enterprises.map(&:id),
+            user.enterprises.map(&:id)
+          )
+          .select("DISTINCT order_cycles.*")
+      end
+    }
+  )
 
-  scope :with_exchanging_enterprises_outer, lambda {
-    joins("LEFT OUTER JOIN exchanges ON (exchanges.order_cycle_id = order_cycles.id)").
-      joins("LEFT OUTER JOIN enterprises
-          ON (enterprises.id = exchanges.sender_id OR enterprises.id = exchanges.receiver_id)")
-  }
+  scope(
+    :with_exchanging_enterprises_outer,
+    lambda {
+      joins("LEFT OUTER JOIN exchanges ON (exchanges.order_cycle_id = order_cycles.id)").joins(
+        "LEFT OUTER JOIN enterprises
+          ON (enterprises.id = exchanges.sender_id OR enterprises.id = exchanges.receiver_id)"
+      )
+    }
+  )
 
-  scope :involving_managed_distributors_of, lambda { |user|
-    enterprises = Enterprise.managed_by(user)
+  scope(
+    :involving_managed_distributors_of,
+    lambda { |user|
+      enterprises = Enterprise.managed_by(user)
 
-    # Order cycles where I managed an enterprise at either end of an outgoing exchange
-    # ie. coordinator or distributor
-    joins(:exchanges).merge(Exchange.outgoing).
-      where('exchanges.receiver_id IN (?) OR exchanges.sender_id IN (?)',
-            enterprises.pluck(:id),
-            enterprises.pluck(:id)).
-      select('DISTINCT order_cycles.*')
-  }
+      # Order cycles where I managed an enterprise at either end of an outgoing exchange
+      # ie. coordinator or distributor
+      joins(:exchanges)
+        .merge(Exchange.outgoing)
+        .where(
+          "exchanges.receiver_id IN (?) OR exchanges.sender_id IN (?)",
+          enterprises.pluck(:id),
+          enterprises.pluck(:id)
+        )
+        .select("DISTINCT order_cycles.*")
+    }
+  )
 
-  scope :involving_managed_producers_of, lambda { |user|
-    enterprises = Enterprise.managed_by(user)
+  scope(
+    :involving_managed_producers_of,
+    lambda { |user|
+      enterprises = Enterprise.managed_by(user)
 
-    # Order cycles where I managed an enterprise at either end of an incoming exchange
-    # ie. coordinator or producer
-    joins(:exchanges).merge(Exchange.incoming).
-      where('exchanges.receiver_id IN (?) OR exchanges.sender_id IN (?)',
-            enterprises.pluck(:id),
-            enterprises.pluck(:id)).
-      select('DISTINCT order_cycles.*')
-  }
+      # Order cycles where I managed an enterprise at either end of an incoming exchange
+      # ie. coordinator or producer
+      joins(:exchanges)
+        .merge(Exchange.incoming)
+        .where(
+          "exchanges.receiver_id IN (?) OR exchanges.sender_id IN (?)",
+          enterprises.pluck(:id),
+          enterprises.pluck(:id)
+        )
+        .select("DISTINCT order_cycles.*")
+    }
+  )
 
   def self.first_opening_for(distributor)
     with_distributor(distributor).soonest_opening.first
@@ -153,29 +225,34 @@ class OrderCycle < ApplicationRecord
   #
   # Optionally, specify some distributor_ids as a parameter to scope the results
   def self.earliest_closing_times(distributor_ids = nil)
-    cycles = Exchange.
-      outgoing.
-      joins(:order_cycle).
-      merge(OrderCycle.active).
-      group('exchanges.receiver_id')
+    cycles = Exchange
+      .outgoing
+      .joins(:order_cycle)
+      .merge(OrderCycle.active)
+      .group("exchanges.receiver_id")
 
     cycles = cycles.where(receiver_id: distributor_ids) if distributor_ids.present?
 
-    cycles.pluck("exchanges.receiver_id AS receiver_id",
-                 "MIN(order_cycles.orders_close_at) AS earliest_close_at")
+    cycles
+      .pluck(
+        "exchanges.receiver_id AS receiver_id",
+        "MIN(order_cycles.orders_close_at) AS earliest_close_at"
+      )
       .to_h
   end
 
   def attachable_distributor_payment_methods
-    DistributorPaymentMethod.joins(:payment_method).
-      merge(Spree::PaymentMethod.available).
-      where(distributor_id: distributor_ids)
+    DistributorPaymentMethod
+      .joins(:payment_method)
+      .merge(Spree::PaymentMethod.available)
+      .where(distributor_id: distributor_ids)
   end
 
   def attachable_distributor_shipping_methods
-    DistributorShippingMethod.joins(:shipping_method).
-      merge(Spree::ShippingMethod.frontend).
-      where(distributor_id: distributor_ids)
+    DistributorShippingMethod
+      .joins(:shipping_method)
+      .merge(Spree::ShippingMethod.frontend)
+      .where(distributor_id: distributor_ids)
   end
 
   def clone!
@@ -183,11 +260,12 @@ class OrderCycle < ApplicationRecord
   end
 
   def variants
-    Spree::Variant.
-      joins(:exchanges).
-      merge(Exchange.in_order_cycle(self)).
-      select('DISTINCT spree_variants.*').
-      to_a # http://stackoverflow.com/q/15110166
+    Spree::Variant
+      .joins(:exchanges)
+      .merge(Exchange.in_order_cycle(self))
+      .select("DISTINCT spree_variants.*")
+      # http://stackoverflow.com/q/15110166
+      .to_a
   end
 
   def supplied_variants
@@ -201,12 +279,12 @@ class OrderCycle < ApplicationRecord
   def variants_distributed_by(distributor)
     return Spree::Variant.where("1=0") if distributor.blank?
 
-    Spree::Variant.
-      joins(:exchanges).
-      merge(distributor.inventory_variants).
-      merge(Exchange.in_order_cycle(self)).
-      merge(Exchange.outgoing).
-      merge(Exchange.to_enterprise(distributor))
+    Spree::Variant
+      .joins(:exchanges)
+      .merge(distributor.inventory_variants)
+      .merge(Exchange.in_order_cycle(self))
+      .merge(Exchange.outgoing)
+      .merge(Exchange.to_enterprise(distributor))
   end
 
   def products_distributed_by(distributor)
@@ -218,11 +296,11 @@ class OrderCycle < ApplicationRecord
   end
 
   def has_distributor?(distributor)
-    distributors.include? distributor
+    distributors.include?(distributor)
   end
 
   def has_variant?(variant)
-    variants.include? variant
+    variants.include?(variant)
   end
 
   def dated?
@@ -238,8 +316,10 @@ class OrderCycle < ApplicationRecord
   end
 
   def open?
-    orders_open_at && orders_close_at &&
-      Time.zone.now > orders_open_at && Time.zone.now < orders_close_at
+    orders_open_at &&
+      orders_close_at &&
+      Time.zone.now > orders_open_at &&
+      Time.zone.now < orders_close_at
   end
 
   def closed?
@@ -276,16 +356,18 @@ class OrderCycle < ApplicationRecord
   end
 
   def coordinated_by?(user)
-    coordinator.users.include? user
+    coordinator.users.include?(user)
   end
 
   def items_bought_by_user(user, distributor)
     # The Spree::Order.complete scope only checks for completed_at date
     #   it does not ensure state is "complete"
-    orders = Spree::Order.complete.where(state: "complete",
-                                         user_id: user,
-                                         distributor_id: distributor,
-                                         order_cycle_id: self)
+    orders = Spree::Order.complete.where(
+      state: "complete",
+      user_id: user,
+      distributor_id: distributor,
+      order_cycle_id: self
+    )
 
     items = Spree::LineItem.includes(:variant).joins(:order).merge(orders)
 
@@ -320,7 +402,7 @@ class OrderCycle < ApplicationRecord
   end
 
   def simple?
-    coordinator.sells == 'own'
+    coordinator.sells == "own"
   end
 
   def same_datetime_value(attribute, string)
@@ -343,9 +425,11 @@ class OrderCycle < ApplicationRecord
   def sync_subscriptions
     return unless schedule_ids.any?
 
-    OrderManagement::Subscriptions::ProxyOrderSyncer.new(
-      Subscription.where(schedule_id: schedule_ids)
-    ).sync!
+    OrderManagement::Subscriptions::ProxyOrderSyncer
+      .new(
+        Subscription.where(schedule_id: schedule_ids)
+      )
+      .sync!
   end
 
   def orders_close_at_after_orders_open_at?

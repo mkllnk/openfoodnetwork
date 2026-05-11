@@ -24,32 +24,32 @@ RSpec.describe Reporting::ReportLoader do
       let(:arguments) { ["bananas", "yellow"] }
 
       it "returns a report class when given type and subtype" do
-        expect(service.report_class).to eq Reporting::Reports::Bananas::Yellow
+        expect(service.report_class).to(eq(Reporting::Reports::Bananas::Yellow))
       end
     end
 
     describe "given report type only" do
-      context "when the report has no subtypes" do
+      context("when the report has no subtypes") do
         let(:arguments) { ["bananas"] }
 
         it "returns base class" do
-          expect(service.report_class).to eq Reporting::Reports::Bananas::Base
+          expect(service.report_class).to(eq(Reporting::Reports::Bananas::Base))
         end
       end
 
-      context "when the subtype is not implemented, fallback to base" do
+      context("when the subtype is not implemented, fallback to base") do
         let(:arguments) { ["bananas", "not_existing"] }
 
         it "returns base class" do
-          expect(service.report_class).to eq Reporting::Reports::Bananas::Base
+          expect(service.report_class).to(eq(Reporting::Reports::Bananas::Base))
         end
       end
 
-      context "given a report type that does not exist" do
+      context("given a report type that does not exist") do
         let(:arguments) { ["apples"] }
 
         it "raises an error" do
-          expect{ service.report_class }.to raise_error(Reporting::Errors::ReportNotFound)
+          expect { service.report_class }.to(raise_error(Reporting::Errors::ReportNotFound))
         end
       end
     end

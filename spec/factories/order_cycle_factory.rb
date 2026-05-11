@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :order_cycle, parent: :simple_order_cycle do
+  factory(:order_cycle, parent: :simple_order_cycle) do
     coordinator_fees { [create(:enterprise_fee, enterprise: coordinator)] }
 
     transient do
@@ -35,9 +35,10 @@ FactoryBot.define do
           variant.supplier = exchange.sender
           variant.save!
         end
+
         Spree::Image.create(
           viewable_id: product.id,
-          viewable_type: 'Spree::Product',
+          viewable_type: "Spree::Product",
           alt: "position 1",
           attachment: white_logo_file,
           position: 1
@@ -53,12 +54,15 @@ FactoryBot.define do
     end
   end
 
-  factory :order_cycle_with_overrides, parent: :order_cycle do
+  factory(:order_cycle_with_overrides, parent: :order_cycle) do
     after(:create) do |oc|
       oc.variants.each do |variant|
-        create(:variant_override, variant:,
-                                  hub: oc.distributors.first,
-                                  price: variant.price + 100)
+        create(
+          :variant_override,
+          variant:,
+          hub: oc.distributors.first,
+          price: variant.price + 100
+        )
       end
     end
   end
@@ -67,10 +71,10 @@ FactoryBot.define do
   # own produce i.e. :sells = 'own'. However the 'simple_order_cycle' name does not mean this
   # and may need to be renamed to avoid potential confusion because it actually can create
   # 'non-simple' order cycles too for distributors selling produce from other enterprises.
-  factory :simple_order_cycle, class: OrderCycle do
+  factory(:simple_order_cycle, class: OrderCycle) do
     sequence(:name) { |n| "Order Cycle #{n}" }
 
-    orders_open_at  { 1.day.ago }
+    orders_open_at { 1.day.ago }
     orders_close_at { 1.week.from_now }
 
     coordinator { Enterprise.is_distributor.first || FactoryBot.create(:distributor_enterprise) }
@@ -84,52 +88,58 @@ FactoryBot.define do
     after(:create) do |oc, proxy|
       # Incoming Exchanges
       proxy.suppliers.each.with_index do |supplier, i|
-        ex = create(:exchange, order_cycle: oc,
-                               sender: supplier,
-                               receiver: oc.coordinator,
-                               incoming: true,
-                               receival_instructions: "instructions #{i}")
+        ex = create(
+          :exchange,
+          order_cycle: oc,
+          sender: supplier,
+          receiver: oc.coordinator,
+          incoming: true,
+          receival_instructions: "instructions #{i}"
+        )
         proxy.variants.each { |v| ex.variants << v }
       end
 
       # Outgoing Exchanges
       proxy.distributors.each.with_index do |distributor, i|
-        ex = create(:exchange, order_cycle: oc,
-                               sender: oc.coordinator,
-                               receiver: distributor,
-                               incoming: false,
-                               pickup_time: "time #{i}",
-                               pickup_instructions: "instructions #{i}")
+        ex = create(
+          :exchange,
+          order_cycle: oc,
+          sender: oc.coordinator,
+          receiver: distributor,
+          incoming: false,
+          pickup_time: "time #{i}",
+          pickup_instructions: "instructions #{i}"
+        )
         proxy.variants.each { |v| ex.variants << v }
       end
     end
   end
 
-  factory :undated_order_cycle, parent: :simple_order_cycle do
+  factory(:undated_order_cycle, parent: :simple_order_cycle) do
     orders_open_at { nil }
     orders_close_at { nil }
   end
 
-  factory :upcoming_order_cycle, parent: :simple_order_cycle do
-    orders_open_at  { 1.week.from_now }
+  factory(:upcoming_order_cycle, parent: :simple_order_cycle) do
+    orders_open_at { 1.week.from_now }
     orders_close_at { 2.weeks.from_now }
   end
 
-  factory :open_order_cycle, parent: :simple_order_cycle do
-    orders_open_at  { 1.week.ago }
+  factory(:open_order_cycle, parent: :simple_order_cycle) do
+    orders_open_at { 1.week.ago }
     orders_close_at { 1.week.from_now }
   end
 
-  factory :closed_order_cycle, parent: :simple_order_cycle do
-    orders_open_at  { 2.weeks.ago }
+  factory(:closed_order_cycle, parent: :simple_order_cycle) do
+    orders_open_at { 2.weeks.ago }
     orders_close_at { 1.week.ago }
   end
 
-  factory :distributor_order_cycle, parent: :simple_order_cycle do
+  factory(:distributor_order_cycle, parent: :simple_order_cycle) do
     coordinator { create(:distributor_enterprise) }
   end
 
-  factory :sells_own_order_cycle, parent: :simple_order_cycle do
+  factory(:sells_own_order_cycle, parent: :simple_order_cycle) do
     coordinator { create(:enterprise, sells: "own") }
   end
 end

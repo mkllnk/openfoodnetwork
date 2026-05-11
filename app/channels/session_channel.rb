@@ -8,6 +8,6 @@ class SessionChannel < ApplicationCable::Channel
   def subscribed
     return reject if current_user.nil?
 
-    stream_from "SessionChannel:#{session_id}"
+    stream_from("SessionChannel:#{session_id}")
   end
 end

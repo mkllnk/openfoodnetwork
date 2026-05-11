@@ -15,7 +15,9 @@ module UIComponentHelper
   end
 
   def browse_with_window_size(width, height, &block)
-    Capybara.current_session.current_window
+    Capybara
+      .current_session
+      .current_window
       .resize_to(width, height)
     return unless block
 
@@ -24,22 +26,23 @@ module UIComponentHelper
   end
 
   def click_login_button
-    click_button "Login"
+    click_button("Login")
   end
 
   def click_signup_button
-    click_button "Sign up now"
+    click_button("Sign up now")
   end
 
   def click_reset_password_button
-    click_button "Reset password"
+    click_button("Reset password")
   end
 
   def select_login_tab(text)
-    within ".login-modal" do
+    within(".login-modal") do
       page.find("a", text:).click
     end
-    sleep 0.2
+
+    sleep(0.2)
   end
 
   def open_login_modal
@@ -51,7 +54,7 @@ module UIComponentHelper
   end
 
   def have_login_modal
-    have_selector ".login-modal"
+    have_selector(".login-modal")
   end
 
   def open_product_modal(product)
@@ -63,8 +66,8 @@ module UIComponentHelper
   end
 
   def modal_should_be_open_for(object)
-    within ".reveal-modal" do
-      expect(page).to have_content object.name
+    within(".reveal-modal") do
+      expect(page).to(have_content(object.name))
     end
   end
 
@@ -73,31 +76,32 @@ module UIComponentHelper
   end
 
   def have_reset_password
-    have_content "An email with instructions on resetting your password has been sent!"
+    have_content("An email with instructions on resetting your password has been sent!")
   end
 
   def have_in_cart(name)
     toggle_cart
-    within ".cart-sidebar" do
-      have_content name
+    within(".cart-sidebar") do
+      have_content(name)
     end
   end
 
   def toggle_cart
     page.find("#cart").click
-    sleep 0.3 # Allow 300ms for sidebar animation to finish
+    # Allow 300ms for sidebar animation to finish
+    sleep(0.3)
   end
 
   def be_logged_in_as(user_or_email)
-    if user_or_email.is_a? Spree::User
-      have_content user_or_email.email
+    if user_or_email.is_a?(Spree::User)
+      have_content(user_or_email.email)
     else
-      have_content user_or_email
+      have_content(user_or_email)
     end
   end
 
   def be_logged_out
-    have_content "Log in"
+    have_content("Log in")
   end
 
   def expand_active_table_node(name)
@@ -110,8 +114,8 @@ module UIComponentHelper
   end
 
   def fill_in_using_keyboard
-    page.find('#spree_user_email').send_keys(user.email, :tab, user.password, :tab, :space)
-    expect(page.find('#spree_user_remember_me')).to be_checked
-    page.find('#spree_user_remember_me').send_keys(:tab, :enter)
+    page.find("#spree_user_email").send_keys(user.email, :tab, user.password, :tab, :space)
+    expect(page.find("#spree_user_remember_me")).to(be_checked)
+    page.find("#spree_user_remember_me").send_keys(:tab, :enter)
   end
 end

@@ -13,7 +13,7 @@ module Spree
       end
 
       def actions
-        %w{internal_void}
+        %w[internal_void]
       end
 
       # We should only void complete payment, otherwise we will be refunding credit that was
@@ -52,6 +52,7 @@ module Spree
             description:
           )
         end
+
         message = I18n.t("success", scope: "credit_payment_method")
         ActiveMerchant::Billing::Response.new(true, message)
       end
@@ -88,7 +89,8 @@ module Spree
       end
 
       def method_type
-        "check" # empty view
+        # empty view
+        "check"
       end
 
       def source_required?

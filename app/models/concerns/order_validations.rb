@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/concern'
+require "active_support/concern"
 
 module OrderValidations
   extend ActiveSupport::Concern
@@ -10,13 +10,16 @@ module OrderValidations
   def disallow_guest_order
     return unless using_guest_checkout? && registered_email?
 
-    errors.add(:email, I18n.t('devise.failure.already_registered'))
+    errors.add(:email, I18n.t("devise.failure.already_registered"))
   end
 
   # Check that line_items in the current order are available from a newly selected distribution
   def products_available_from_new_distribution
-    return if OrderCycles::DistributedVariantsService.new(order_cycle, distributor)
-      .distributes_order_variants?(self)
+    if OrderCycles::DistributedVariantsService
+        .new(order_cycle, distributor)
+        .distributes_order_variants?(self)
+      return
+    end
 
     errors.add(:base, I18n.t(:spree_order_availability_error))
   end

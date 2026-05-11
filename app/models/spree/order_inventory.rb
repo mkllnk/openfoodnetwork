@@ -34,7 +34,7 @@ module Spree
     end
 
     def inventory_units_for(variant)
-      units = order.shipments.collect{ |s| s.inventory_units.to_a }.flatten
+      units = order.shipments.collect { |s| s.inventory_units.to_a }.flatten
       units.group_by(&:variant_id)[variant.id] || []
     end
 
@@ -49,10 +49,12 @@ module Spree
         order.shipments.each do |each_shipment|
           break if quantity == 0
 
-          quantity -= remove_from_shipment(each_shipment,
-                                           line_item.variant,
-                                           quantity,
-                                           line_item.restock_item)
+          quantity -= remove_from_shipment(
+            each_shipment,
+            line_item.variant,
+            quantity,
+            line_item.restock_item
+          )
         end
       end
     end
@@ -65,16 +67,17 @@ module Spree
         (shipment.ready? || shipment.pending?) && shipment.contains?(variant)
       end
 
-      target_shipment || order.shipments.detect do |shipment|
-        shipment.ready? || shipment.pending?
-      end
+      target_shipment ||
+        order.shipments.detect do |shipment|
+          shipment.ready? || shipment.pending?
+        end
     end
 
     def add_to_shipment(shipment, variant, quantity)
       on_hand, back_order = variant.fill_status(quantity)
 
-      on_hand.times { shipment.set_up_inventory('on_hand', variant, order) }
-      back_order.times { shipment.set_up_inventory('backordered', variant, order) }
+      on_hand.times { shipment.set_up_inventory("on_hand", variant, order) }
+      back_order.times { shipment.set_up_inventory("backordered", variant, order) }
 
       if order.completed?
         variant.move(-quantity)
@@ -86,9 +89,12 @@ module Spree
     def remove_from_shipment(shipment, variant, quantity, restock_item)
       return 0 if quantity == 0 || shipment.shipped?
 
-      shipment_units = shipment.inventory_units_for(variant).reject do |variant_unit|
-        variant_unit.state == 'shipped'
-      end.sort_by(&:state)
+      shipment_units = shipment
+        .inventory_units_for(variant)
+        .reject do |variant_unit|
+          variant_unit.state == "shipped"
+        end
+        .sort_by(&:state)
 
       removed_quantity = 0
 
@@ -98,6 +104,7 @@ module Spree
         inventory_unit.destroy
         removed_quantity += 1
       end
+
       shipment.destroy if shipment.inventory_units.reload.count == 0
 
       if order.completed? && restock_item

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/property_merge'
+require "open_food_network/property_merge"
 
 # PRODUCTS
 # Products represent an entity for sale in a store.
@@ -26,13 +26,22 @@ module Spree
     # because they are declared as attr_accessor below, declaring them as ignored columns has no
     # effect
     self.ignored_columns += [
-      :supplier_id, :primary_taxon_id, :variant_unit, :variant_unit_scale, :variant_unit_name
+      :supplier_id,
+      :primary_taxon_id,
+      :variant_unit,
+      :variant_unit_scale,
+      :variant_unit_name
     ]
 
     acts_as_paranoid
 
-    searchable_attributes :meta_keywords, :sku, :on_hand, :backorderable_priority,
-                          :backorderable_name
+    searchable_attributes(
+      :meta_keywords,
+      :sku,
+      :on_hand,
+      :backorderable_priority,
+      :backorderable_name
+    )
     searchable_associations :properties, :variants
     searchable_scopes :active, :with_properties
 
@@ -41,20 +50,28 @@ module Spree
 
     has_many :product_properties, dependent: :destroy
     has_many :properties, through: :product_properties
-    has_many :variants, -> { order("spree_variants.id ASC") }, class_name: 'Spree::Variant',
-                                                               inverse_of: :product,
-                                                               dependent: :destroy
+    has_many(
+      :variants,
+      -> { order("spree_variants.id ASC") },
+      class_name: "Spree::Variant",
+      inverse_of: :product,
+      dependent: :destroy
+    )
 
-    has_many :prices, -> { order('spree_variants.id, currency') }, through: :variants
+    has_many :prices, -> { order("spree_variants.id, currency") }, through: :variants
 
     has_many :stock_items, through: :variants
-    has_many :variant_images, -> { order(:position) }, source: :images,
-                                                       through: :variants
+    has_many(
+      :variant_images,
+      -> { order(:position) },
+      source: :images,
+      through: :variants
+    )
 
     validates_lengths_from_database
     validates :name, presence: true
     validate :validate_image
-    validates :price, numericality: { greater_than_or_equal_to: 0, if: ->{ new_record? } }
+    validates :price, numericality: {greater_than_or_equal_to: 0, if: -> { new_record? }}
 
     # These validators are used to make sure the standard variant created via
     # `ensure_standard_variant` will be valid. The are only used when creating a new product
@@ -62,123 +79,195 @@ module Spree
       validates :supplier_id, presence: true
       validates :primary_taxon_id, presence: true
       validates :variant_unit, presence: true
-      validates :unit_value, presence: true, if: ->(product) {
-        %w(weight volume).include?(product.variant_unit)
-      }
-      validates :unit_value, numericality: { greater_than: 0 }, allow_blank: true
-      validates :unit_description, presence: true, if: ->(product) {
-        product.variant_unit.present? && product.unit_value.nil?
-      }
-      validates :variant_unit_scale, presence: true, if: ->(product) {
-        %w(weight volume).include?(product.variant_unit)
-      }
-      validates :variant_unit_name, presence: true, if: ->(product) {
-        product.variant_unit == 'items'
-      }
+      validates(
+        :unit_value,
+        presence: true,
+        if: -> (product) {
+          %w[weight volume].include?(product.variant_unit)
+        }
+      )
+      validates :unit_value, numericality: {greater_than: 0}, allow_blank: true
+      validates(
+        :unit_description,
+        presence: true,
+        if: -> (product) {
+          product.variant_unit.present? && product.unit_value.nil?
+        }
+      )
+      validates(
+        :variant_unit_scale,
+        presence: true,
+        if: -> (product) {
+          %w[weight volume].include?(product.variant_unit)
+        }
+      )
+      validates(
+        :variant_unit_name,
+        presence: true,
+        if: -> (product) {
+          product.variant_unit == "items"
+        }
+      )
     end
 
     accepts_nested_attributes_for :image
-    accepts_nested_attributes_for :product_properties,
-                                  allow_destroy: true,
-                                  reject_if: ->(pp) { pp[:property_name].blank? }
+    accepts_nested_attributes_for(
+      :product_properties,
+      allow_destroy: true,
+      reject_if: -> (pp) { pp[:property_name].blank? }
+    )
 
     # Transient attributes used temporarily when creating a new product,
     # these values are persisted on the product's variant
-    attr_accessor :price, :display_as, :unit_value, :unit_description, :variant_unit,
-                  :variant_unit_name, :variant_unit_scale, :tax_category_id, :shipping_category_id,
-                  :primary_taxon_id, :supplier_id
+    attr_accessor(
+      :price,
+      :display_as,
+      :unit_value,
+      :unit_description,
+      :variant_unit,
+      :variant_unit_name,
+      :variant_unit_scale,
+      :tax_category_id,
+      :shipping_category_id,
+      :primary_taxon_id,
+      :supplier_id
+    )
 
     after_create :ensure_standard_variant
     around_destroy :destruction
     after_touch :touch_supplier
 
     # -- Scopes
-    scope :with_properties, ->(*property_ids) {
-      left_outer_joins(:product_properties).
-        where(inherits_properties: true).
-        where(spree_product_properties: { property_id: property_ids })
-    }
+    scope(
+      :with_properties,
+      -> (*property_ids) {
+        left_outer_joins(:product_properties)
+          .where(inherits_properties: true)
+          .where(spree_product_properties: {property_id: property_ids})
+      }
+    )
 
-    scope :with_order_cycles_outer, lambda {
-      joins("
+    scope(
+      :with_order_cycles_outer,
+      lambda {
+        joins(
+          "
         LEFT OUTER JOIN spree_variants AS o_spree_variants
-          ON (o_spree_variants.product_id = spree_products.id)").
-        joins("
+          ON (o_spree_variants.product_id = spree_products.id)"
+        )
+          .joins(
+            "
           LEFT OUTER JOIN exchange_variants AS o_exchange_variants
-            ON (o_exchange_variants.variant_id = o_spree_variants.id)").
-        joins("
+            ON (o_exchange_variants.variant_id = o_spree_variants.id)"
+          )
+          .joins(
+            "
           LEFT OUTER JOIN exchanges AS o_exchanges
-            ON (o_exchanges.id = o_exchange_variants.exchange_id)").
-        joins("
+            ON (o_exchanges.id = o_exchange_variants.exchange_id)"
+          )
+          .joins(
+            "
           LEFT OUTER JOIN order_cycles AS o_order_cycles
-            ON (o_order_cycles.id = o_exchanges.order_cycle_id)")
-    }
+            ON (o_order_cycles.id = o_exchanges.order_cycle_id)"
+          )
+      }
+    )
 
-    scope :imported_on, lambda { |import_date|
-      import_date = Time.zone.parse import_date if import_date.is_a? String
-      import_date = import_date.to_date
-      joins(:variants).merge(Spree::Variant.
-        where(import_date: import_date.all_day))
-    }
+    scope(
+      :imported_on,
+      lambda { |import_date|
+        import_date = Time.zone.parse import_date if import_date.is_a? String
+        import_date = import_date.to_date
+        joins(:variants).merge(
+          Spree::Variant.where(import_date: import_date.all_day)
+        )
+      }
+    )
 
-    scope :with_order_cycles_inner, -> { joins(variants: { exchanges: :order_cycle }) }
+    scope :with_order_cycles_inner, -> { joins(variants: {exchanges: :order_cycle}) }
 
-    scope :visible_for, lambda { |enterprise|
-      joins('
+    scope(
+      :visible_for,
+      lambda { |enterprise|
+        joins(
+          "
         LEFT OUTER JOIN spree_variants AS o_spree_variants
-          ON (o_spree_variants.product_id = spree_products.id)').
-        joins('
+          ON (o_spree_variants.product_id = spree_products.id)"
+        )
+          .joins(
+            "
           LEFT OUTER JOIN inventory_items AS o_inventory_items
-            ON (o_spree_variants.id = o_inventory_items.variant_id)').
-        where('o_inventory_items.enterprise_id = (?) AND visible = (?)', enterprise, true).
-        distinct
-    }
+            ON (o_spree_variants.id = o_inventory_items.variant_id)"
+          )
+          .where("o_inventory_items.enterprise_id = (?) AND visible = (?)", enterprise, true)
+          .distinct
+      }
+    )
 
-    scope :in_supplier, lambda { |supplier|
-      distinct.joins(:variants).where(spree_variants: { supplier: })
-    }
+    scope(
+      :in_supplier,
+      lambda { |supplier|
+        distinct.joins(:variants).where(spree_variants: {supplier:})
+      }
+    )
 
     # Products distributed via the given distributor through an OC
-    scope :in_distributor, lambda { |distributor|
-      distributor = distributor.respond_to?(:id) ? distributor.id : distributor.to_i
+    scope(
+      :in_distributor,
+      lambda { |distributor|
+        distributor = distributor.respond_to?(:id) ? distributor.id : distributor.to_i
 
-      with_order_cycles_outer.
-        where('(o_exchanges.incoming = ? AND o_exchanges.receiver_id = ?)', false, distributor).
-        select('distinct spree_products.*')
-    }
+        with_order_cycles_outer
+          .where("(o_exchanges.incoming = ? AND o_exchanges.receiver_id = ?)", false, distributor)
+          .select("distinct spree_products.*")
+      }
+    )
 
-    scope :in_distributors, lambda { |distributors|
-      with_order_cycles_outer.
-        where('(o_exchanges.incoming = ? AND o_exchanges.receiver_id IN (?))', false, distributors).
-        distinct
-    }
+    scope(
+      :in_distributors,
+      lambda { |distributors|
+        with_order_cycles_outer
+          .where("(o_exchanges.incoming = ? AND o_exchanges.receiver_id IN (?))", false, distributors)
+          .distinct
+      }
+    )
 
     # Products distributed by the given order cycle
-    scope :in_order_cycle, lambda { |order_cycle|
-      with_order_cycles_inner.
-        merge(Exchange.outgoing).
-        where(order_cycles: { id: order_cycle })
-    }
+    scope(
+      :in_order_cycle,
+      lambda { |order_cycle|
+        with_order_cycles_inner
+          .merge(Exchange.outgoing)
+          .where(order_cycles: {id: order_cycle})
+      }
+    )
 
-    scope :in_an_active_order_cycle, lambda {
-      with_order_cycles_inner.
-        merge(OrderCycle.active).
-        merge(Exchange.outgoing).
-        where.not(order_cycles: { id: nil })
-    }
+    scope(
+      :in_an_active_order_cycle,
+      lambda {
+        with_order_cycles_inner
+          .merge(OrderCycle.active)
+          .merge(Exchange.outgoing)
+          .where
+          .not(order_cycles: {id: nil})
+      }
+    )
 
-    scope :by_producer, -> { joins(variants: :supplier).order('enterprises.name') }
-    scope :by_name, -> { order('spree_products.name') }
+    scope :by_producer, -> { joins(variants: :supplier).order("enterprises.name") }
+    scope :by_name, -> { order("spree_products.name") }
 
-    scope :managed_by, lambda { |user|
-      if user.admin?
-        where(nil)
-      else
-        in_supplier(user.enterprises)
-      end
-    }
+    scope(
+      :managed_by,
+      lambda { |user|
+        if user.admin?
+          where(nil)
+        else
+          in_supplier(user.enterprises)
+        end
+      }
+    )
 
-    scope :active, lambda { where(spree_products: { deleted_at: nil }) }
+    scope :active, lambda { where(spree_products: {deleted_at: nil}) }
 
     def self.group_by_products_id
       group(column_names.map { |col_name| "#{table_name}.#{col_name}" })
@@ -191,11 +280,17 @@ module Spree
     end
 
     def self.like_any(fields, values)
-      where fields.map { |field|
-        values.map { |value|
-          arel_table[field].matches("%#{value}%")
-        }.inject(:or)
-      }.inject(:or)
+      where(
+        fields
+          .map { |field|
+            values
+              .map { |value|
+                arel_table[field].matches("%#{value}%")
+              }
+              .inject(:or)
+          }
+          .inject(:or)
+      )
     end
 
     def property(property_name)
@@ -207,8 +302,12 @@ module Spree
     def set_property(property_name, property_value)
       ActiveRecord::Base.transaction do
         property = Property.where(name: property_name).first_or_create!(presentation: property_name)
-        product_property = ProductProperty.where(product: self,
-                                                 property:).first_or_initialize
+        product_property = ProductProperty
+          .where(
+            product: self,
+            property:
+          )
+          .first_or_initialize
         product_property.value = property_value
         product_property.save!
       end
@@ -225,17 +324,17 @@ module Spree
         ps = OpenFoodNetwork::PropertyMerge.merge(ps, supplier&.producer_properties || [])
       end
 
-      ps.
-        sort_by(&:position).
-        map { |pp| { id: pp.property.id, name: pp.property.presentation, value: pp.value } }
+      ps
+        .sort_by(&:position)
+        .map { |pp| {id: pp.property.id, name: pp.property.presentation, value: pp.value} }
     end
 
     def in_distributor?(distributor)
-      self.class.in_distributor(distributor).include? self
+      self.class.in_distributor(distributor).include?(self)
     end
 
     def in_order_cycle?(order_cycle)
-      self.class.in_order_cycle(order_cycle).include? self
+      self.class.in_order_cycle(order_cycle).include?(self)
     end
 
     def variants_distributed_by(order_cycle, distributor)
@@ -249,9 +348,13 @@ module Spree
 
     def destruction
       transaction do
-        ExchangeVariant.
-          where(exchange_variants: { variant_id: variants.with_deleted.
-            select(:id) }).destroy_all
+        ExchangeVariant
+          .where(
+            exchange_variants: {
+              variant_id: variants.with_deleted.select(:id)
+            }
+          )
+          .destroy_all
 
         yield
       end
@@ -301,7 +404,7 @@ module Spree
     def validate_image
       return if image.blank? || !image.changed? || image.valid?
 
-      errors.add(:base, I18n.t('spree.admin.products.image_not_processable'))
+      errors.add(:base, I18n.t("spree.admin.products.image_not_processable"))
     end
   end
 end

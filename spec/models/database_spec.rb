@@ -2,10 +2,15 @@
 
 RSpec.describe "Database" do
   let(:models_todo) {
-    ["Spree::CreditCard", "Spree::Adjustment",
-     "StripeAccount", "ColumnPreference",
-     "Spree::LineItem", "Spree::ShippingMethod",
-     "Spree::ShippingRate"].freeze
+    [
+      "Spree::CreditCard",
+      "Spree::Adjustment",
+      "StripeAccount",
+      "ColumnPreference",
+      "Spree::LineItem",
+      "Spree::ShippingMethod",
+      "Spree::ShippingRate"
+    ].freeze
   }
 
   it "should have foreign keys for models with a belongs_to relationship" do
@@ -14,15 +19,16 @@ RSpec.describe "Database" do
 
     migrations = generate_migrations(model_classes)
 
-    expect(migrations.length).to eq(0)
+    expect(migrations.length).to(eq(0))
   end
 
   def filter_model_classes
-    Dir.glob(Rails.root.join('app/models/**/*.rb').to_s)
+    Dir
+      .glob(Rails.root.join("app/models/**/*.rb").to_s)
       .map do |file|
-        relative_path = Pathname.new(file).relative_path_from(Rails.root.join('app/models')).to_s
+        relative_path = Pathname.new(file).relative_path_from(Rails.root.join("app/models")).to_s
         subdirectory = File.dirname(relative_path)
-        base_name = File.basename(file, '.rb').camelize
+        base_name = File.basename(file, ".rb").camelize
         subdirectory == "." ? base_name : "#{subdirectory.camelize}::#{base_name}"
       end
   end
@@ -44,8 +50,8 @@ RSpec.describe "Database" do
 
     print_missing_foreign_key_warnings(migrations)
 
-    puts "The following models are marked as todo in #{__FILE__}:"
-    puts pending_models.join(", ")
+    puts("The following models are marked as todo in #{__FILE__}:")
+    puts(pending_models.join(", "))
 
     migrations
   end
@@ -53,11 +59,15 @@ RSpec.describe "Database" do
   def print_missing_foreign_key_warnings(migrations)
     return if migrations.empty?
 
-    puts "Foreign key(s) appear to be absent from the database. " \
-         "You can add it/them using the following migration(s):"
-    puts migrations.join("\n")
-    puts "\nTo disable this warning, add the class name(s) of the model(s) to models_todo " \
-         "in #{__FILE__}"
+    puts(
+      "Foreign key(s) appear to be absent from the database. " \
+        "You can add it/them using the following migration(s):"
+    )
+    puts(migrations.join("\n"))
+    puts(
+      "\nTo disable this warning, add the class name(s) of the model(s) to models_todo " \
+        "in #{__FILE__}"
+    )
   end
 
   def process_association(model_class, association)
@@ -68,10 +78,12 @@ RSpec.describe "Database" do
     foreign_keys = model_class.connection.foreign_keys(model_class.table_name)
 
     # Check if there is a foreign key that already exists for the column
-    return if foreign_keys.any? { |fk|
-                fk.column == foreign_key_column &&
-                fk.to_table == foreign_key_table_name
-              }
+    if foreign_keys.any? { |fk|
+        fk.column == foreign_key_column &&
+          fk.to_table == foreign_key_table_name
+      }
+      return
+    end
 
     generate_migration(model_class, foreign_key_table_name, foreign_key_column)
   end
@@ -84,8 +96,9 @@ RSpec.describe "Database" do
       foreign_key_table_name = association.class_name.underscore.parameterize.tableize
       namespace = model_class.name.deconstantize
 
-      unless association.class_name.deconstantize == namespace || namespace == "" ||
-             ActiveRecord::Base.connection.table_exists?(foreign_key_table_name)
+      unless association.class_name.deconstantize == namespace ||
+          namespace == "" ||
+          ActiveRecord::Base.connection.table_exists?(foreign_key_table_name)
         foreign_key_table_name = "#{namespace.underscore}_#{foreign_key_table_name}"
       end
     end
@@ -95,10 +108,13 @@ RSpec.describe "Database" do
 
   def generate_migration(model_class, foreign_key_table_name, foreign_key_column)
     migration_name = "add_foreign_key_to_#{model_class.table_name}_" \
-                     "#{foreign_key_table_name}_#{foreign_key_column}"
+      "#{foreign_key_table_name}_#{foreign_key_column}"
     migration_class_name = migration_name.camelize
-    orphaned_records_query = generate_orphaned_records_query(model_class, foreign_key_table_name,
-                                                             foreign_key_column)
+    orphaned_records_query = generate_orphaned_records_query(
+      model_class,
+      foreign_key_table_name,
+      foreign_key_column
+    )
 
     <<~MIGRATION
       # Orphaned records can be found before running this migration with the following SQL:
@@ -114,7 +130,8 @@ RSpec.describe "Database" do
   end
 
   def generate_orphaned_records_query(model_class, foreign_key_table_name, foreign_key_column)
-    <<~SQL # rubocop:disable Rails/SquishedSQLHeredocs # Using squish deletes the newlines
+    # rubocop:disable Rails/SquishedSQLHeredocs # Using squish deletes the newlines
+    <<~SQL
       # SELECT COUNT(*)
       # FROM #{model_class.table_name}
       # LEFT JOIN #{foreign_key_table_name}

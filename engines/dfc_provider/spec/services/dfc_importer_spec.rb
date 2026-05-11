@@ -16,8 +16,12 @@ RSpec.describe DfcImporter do
   it "fetches a list of enterprises", :vcr do
     expect {
       subject.import_enterprise_profiles("lf-dev", endpoint)
-    }.to have_enqueued_mail(Spree::UserMailer, :confirmation_instructions).exactly(7)
-      .and have_enqueued_mail(EnterpriseMailer, :welcome).exactly(6)
+    }
+      .to(
+        have_enqueued_mail(Spree::UserMailer, :confirmation_instructions)
+          .exactly(7)
+          .and(have_enqueued_mail(EnterpriseMailer, :welcome).exactly(6))
+      )
 
     # You can show the emails in your browser.
     # Consider creating a test helper if you find this useful elsewhere.
@@ -27,19 +31,20 @@ RSpec.describe DfcImporter do
     # Repeating works without creating duplicates:
     expect {
       subject.import_enterprise_profiles("lf-dev", endpoint)
-    }.not_to have_enqueued_mail
+    }
+      .not_to(have_enqueued_mail)
 
-    enterprise = Enterprise.joins(:semantic_link).find_by(semantic_link: { semantic_id: })
-    expect(enterprise.name).to eq "DFC Test Farm Beta (All Supplied Fields)"
-    expect(enterprise.email_address).to eq "dfcshop@example.com"
-    expect(enterprise.logo.blob.content_type).to eq "image/webp"
-    expect(enterprise.logo.blob.byte_size).to eq 8974
-    expect(enterprise.visible).to eq "public"
+    enterprise = Enterprise.joins(:semantic_link).find_by(semantic_link: {semantic_id:})
+    expect(enterprise.name).to(eq("DFC Test Farm Beta (All Supplied Fields)"))
+    expect(enterprise.email_address).to(eq("dfcshop@example.com"))
+    expect(enterprise.logo.blob.content_type).to(eq("image/webp"))
+    expect(enterprise.logo.blob.byte_size).to(eq(8974))
+    expect(enterprise.visible).to(eq("public"))
 
-    expect(subject.errors.count).to eq 2
+    expect(subject.errors.count).to(eq(2))
     expect(subject.errors.first.record.semantic_link.semantic_id)
-      .to eq "https://api.beta.litefarm.org/dfc/enterprises/13152ea2-8d19-4309-a443-c95d8879d299"
+      .to(eq("https://api.beta.litefarm.org/dfc/enterprises/13152ea2-8d19-4309-a443-c95d8879d299"))
     expect(subject.errors.first.message)
-      .to eq "Validation failed: Address zipcode can't be blank, Address is invalid"
+      .to(eq("Validation failed: Address zipcode can't be blank, Address is invalid"))
   end
 end

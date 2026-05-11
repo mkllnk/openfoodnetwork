@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'active_merchant'
-require 'acts_as_list'
-require 'cancan'
-require 'pagy'
-require 'mail'
-require 'paranoia'
-require 'ransack'
-require 'state_machines'
+require "active_merchant"
+require "acts_as_list"
+require "cancan"
+require "pagy"
+require "mail"
+require "paranoia"
+require "ransack"
+require "state_machines"
 
 module Spree
   # Used to configure Spree.
@@ -25,12 +25,12 @@ module Spree
   end
 end
 
-require 'spree/core/engine'
+require "spree/core/engine"
 
-require 'spree/i18n'
-require 'spree/money'
+require "spree/i18n"
+require "spree/money"
 
-require 'spree/core/permalinks'
-require 'spree/core/token_resource'
-require 'spree/core/product_duplicator'
-require 'spree/core/gateway_error'
+require "spree/core/permalinks"
+require "spree/core/token_resource"
+require "spree/core/product_duplicator"
+require "spree/core/gateway_error"

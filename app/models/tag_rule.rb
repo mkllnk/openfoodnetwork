@@ -5,8 +5,8 @@ class TagRule < ApplicationRecord
 
   preference :customer_tags, :string, default: ""
 
-  scope :for, ->(enterprise) { where(enterprise_id: enterprise) }
-  scope :prioritised, -> { order('priority ASC') }
+  scope :for, -> (enterprise) { where(enterprise_id: enterprise) }
+  scope :prioritised, -> { order("priority ASC") }
   scope :exclude_inventory, -> { where.not(type: "TagRule::FilterProducts") }
   scope :exclude_variant, -> { where.not(type: "TagRule::FilterVariants") }
 
@@ -16,7 +16,7 @@ class TagRule < ApplicationRecord
         if mapping[tag]
           mapping[tag][:rules] += 1
         else
-          mapping[tag] = { text: tag, rules: 1 }
+          mapping[tag] = {text: tag, rules: 1}
         end
       end
     end
@@ -32,6 +32,6 @@ class TagRule < ApplicationRecord
 
   # The following method must be overriden in a concrete tagRule
   def tags
-    raise NotImplementedError, 'please use concrete TagRule'
+    raise NotImplementedError, "please use concrete TagRule"
   end
 end

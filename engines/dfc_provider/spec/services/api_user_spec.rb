@@ -9,19 +9,19 @@ RSpec.describe ApiUser do
     it "finds by URI" do
       uri = "https://api.proxy-dev.cqcm.startinblox.com/profile"
       user = ApiUser.from_client_id(uri)
-      expect(user.id).to eq "cqcm-dev"
+      expect(user.id).to(eq("cqcm-dev"))
     end
 
     it "finds by short id" do
       uri = "lf-dev"
       user = ApiUser.from_client_id(uri)
-      expect(user.id).to eq "lf-dev"
+      expect(user.id).to(eq("lf-dev"))
     end
   end
 
   describe "#customers" do
     it "returns nothing" do
-      expect(user.customers).to be_empty
+      expect(user.customers).to(be_empty)
     end
   end
 end

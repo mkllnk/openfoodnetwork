@@ -15,28 +15,30 @@ RSpec.describe I18nDigests do
       Rails.application.config.x.i18n_digests = {}
       I18nDigests.build_digests(available_locales)
 
-      expect(Rails.application.config.x.i18n_digests.keys).to eq [:en, :es]
-      expect(Rails.application.config.x.i18n_digests.values).to all match(md5_hex_regex)
+      expect(Rails.application.config.x.i18n_digests.keys).to(eq([:en, :es]))
+      expect(Rails.application.config.x.i18n_digests.values).to(all(match(md5_hex_regex)))
 
       expect(
         Rails.application.config.x.i18n_digests[:en]
-      ).to eq(Digest::MD5.hexdigest(Rails.root.join("config/locales/en.yml").read))
+      )
+        .to(eq(Digest::MD5.hexdigest(Rails.root.join("config/locales/en.yml").read)))
 
       expect(
         Rails.application.config.x.i18n_digests[:es]
-      ).to eq(Digest::MD5.hexdigest(Rails.root.join("config/locales/es.yml").read))
+      )
+        .to(eq(Digest::MD5.hexdigest(Rails.root.join("config/locales/es.yml").read)))
     end
   end
 
   describe "#for_locale" do
-    let(:digests) { { en: "as8d7a9sdh", es: "iausyd9asdh" } }
+    let(:digests) { {en: "as8d7a9sdh", es: "iausyd9asdh"} }
 
     before do
-      allow(Rails).to receive_message_chain(:application, :config, :x, :i18n_digests) { digests }
+      allow(Rails).to(receive_message_chain(:application, :config, :x, :i18n_digests) { digests })
     end
 
     it "returns the digest for a given locale" do
-      expect(I18nDigests.for_locale("en")).to eq "as8d7a9sdh"
+      expect(I18nDigests.for_locale("en")).to(eq("as8d7a9sdh"))
     end
   end
 end

@@ -25,14 +25,18 @@ module OrderCycles
     end
 
     def active_distributors_not_ready_for_checkout_message(distributors)
-      distributor_names = distributors.map(&:name).join ', '
+      distributor_names = distributors.map(&:name).join(", ")
 
       if distributors.count > 1
-        I18n.t(:active_distributors_not_ready_for_checkout_message_plural,
-               distributor_names:)
+        I18n.t(
+          :active_distributors_not_ready_for_checkout_message_plural,
+          distributor_names:
+        )
       else
-        I18n.t(:active_distributors_not_ready_for_checkout_message_singular,
-               distributor_names:)
+        I18n.t(
+          :active_distributors_not_ready_for_checkout_message_singular,
+          distributor_names:
+        )
       end
     end
   end

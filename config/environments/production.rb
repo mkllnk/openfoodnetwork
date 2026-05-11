@@ -50,8 +50,8 @@ Rails.application.configure do
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
-  config.action_cable.url = "#{ENV['OFN_URL']}/cable"
-  config.action_cable.allowed_request_origins = [/http:\/\/#{ENV['OFN_URL']}\/*/, /https:\/\/#{ENV['OFN_URL']}\/*/]
+  config.action_cable.url = "#{ENV["OFN_URL"]}/cable"
+  config.action_cable.allowed_request_origins = [/http:\/\/#{ENV["OFN_URL"]}\/*/, /https:\/\/#{ENV["OFN_URL"]}\/*/]
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
@@ -61,8 +61,9 @@ Rails.application.configure do
   config.force_ssl = true
 
   # Log to STDOUT by default
-  config.logger = ActiveSupport::Logger.new(STDOUT)
-    .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
+  config.logger = ActiveSupport::Logger
+    .new(STDOUT)
+    .tap { |logger| logger.formatter = ::Logger::Formatter.new }
     .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
   # Prepend all log lines with the following tags.
@@ -89,14 +90,13 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Use https in email links
-  config.action_mailer.default_url_options = { protocol: 'https' }
+  config.action_mailer.default_url_options = {protocol: "https"}
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
-
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com

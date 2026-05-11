@@ -14,10 +14,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
     end
 
     it "calculated line item price" do
-      expect(presenter.amount_with_adjustments_without_taxes).to eq(20.00)
+      expect(presenter.amount_with_adjustments_without_taxes).to(eq(20.00))
     end
 
-    context "with tax included in price" do
+    context("with tax included in price") do
       let(:data) do
         {
           price_with_adjustments: 10.0,
@@ -28,10 +28,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
       end
 
       it "removes the included tax" do
-        expect(presenter.amount_with_adjustments_without_taxes).to eq(19)
+        expect(presenter.amount_with_adjustments_without_taxes).to(eq(19))
       end
 
-      context "with enterprise fee" do
+      context("with enterprise fee") do
         let(:data) do
           {
             price_with_adjustments: 10.0,
@@ -42,7 +42,7 @@ RSpec.describe Invoice::DataPresenter::LineItem do
         end
 
         it "removes the enterpise fee tax" do
-          expect(presenter.amount_with_adjustments_without_taxes).to eq(19.5)
+          expect(presenter.amount_with_adjustments_without_taxes).to(eq(19.5))
         end
       end
     end
@@ -59,10 +59,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
     end
 
     it "cacluated the line item price with tax" do
-      expect(presenter.amount_with_adjustments_and_with_taxes).to eq(20.00)
+      expect(presenter.amount_with_adjustments_and_with_taxes).to(eq(20.00))
     end
 
-    context "with tax excluded from price" do
+    context("with tax excluded from price") do
       let(:data) do
         {
           price_with_adjustments: 10.0,
@@ -73,10 +73,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
       end
 
       it "includes the added tax" do
-        expect(presenter.amount_with_adjustments_and_with_taxes).to eq(21.00)
+        expect(presenter.amount_with_adjustments_and_with_taxes).to(eq(21.00))
       end
 
-      context "with enterprise fee" do
+      context("with enterprise fee") do
         let(:data) do
           {
             price_with_adjustments: 10.0,
@@ -87,7 +87,7 @@ RSpec.describe Invoice::DataPresenter::LineItem do
         end
 
         it "adds the enterpise fee tax" do
-          expect(presenter.amount_with_adjustments_and_with_taxes).to eq(20.50)
+          expect(presenter.amount_with_adjustments_and_with_taxes).to(eq(20.50))
         end
       end
     end
@@ -106,10 +106,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
     end
 
     it "displays single price with adjustments" do
-      expect(presenter.single_display_amount_with_adjustments).to eq(Spree::Money.new(10.0))
+      expect(presenter.single_display_amount_with_adjustments).to(eq(Spree::Money.new(10.0)))
     end
 
-    context "with included tax" do
+    context("with included tax") do
       let(:data) do
         {
           price_with_adjustments: 10.0,
@@ -120,10 +120,10 @@ RSpec.describe Invoice::DataPresenter::LineItem do
       end
 
       it "excludes the included tax" do
-        expect(presenter.single_display_amount_with_adjustments).to eq(Spree::Money.new(9.5))
+        expect(presenter.single_display_amount_with_adjustments).to(eq(Spree::Money.new(9.5)))
       end
 
-      context "with enterpise fee" do
+      context("with enterpise fee") do
         let(:data) do
           {
             price_with_adjustments: 10.0,
@@ -134,7 +134,7 @@ RSpec.describe Invoice::DataPresenter::LineItem do
         end
 
         it "includes fee but remove tax portion of the fee" do
-          expect(presenter.single_display_amount_with_adjustments).to eq(Spree::Money.new(9.25))
+          expect(presenter.single_display_amount_with_adjustments).to(eq(Spree::Money.new(9.25)))
         end
       end
     end

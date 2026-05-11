@@ -16,13 +16,17 @@ module AddressTransformation
 
     address.transform_keys! do |key|
       {
-        phone: :phone, latitude: :latitude, longitude: :longitude,
-        first_name: :firstname, last_name: :lastname,
-        street_address_1: :address1, street_address_2: :address2,
+        phone: :phone,
+        latitude: :latitude,
+        longitude: :longitude,
+        first_name: :firstname,
+        last_name: :lastname,
+        street_address_1: :address1,
+        street_address_2: :address2,
         postal_code: :zipcode,
         locality: :city,
         region: :state,
-        country: :country,
+        country: :country
       }.with_indifferent_access[key]
     end
 
@@ -35,14 +39,18 @@ module AddressTransformation
   private
 
   def find_state(address)
-    Spree::State.find_by("LOWER(abbr) = ? OR LOWER(name) = ?",
-                         address.dig(:state, :code)&.downcase,
-                         address.dig(:state, :name)&.downcase)
+    Spree::State.find_by(
+      "LOWER(abbr) = ? OR LOWER(name) = ?",
+      address.dig(:state, :code)&.downcase,
+      address.dig(:state, :name)&.downcase
+    )
   end
 
   def find_country(address)
-    Spree::Country.find_by("LOWER(iso) = ? OR LOWER(name) = ?",
-                           address.dig(:country, :code)&.downcase,
-                           address.dig(:country, :name)&.downcase)
+    Spree::Country.find_by(
+      "LOWER(iso) = ? OR LOWER(name) = ?",
+      address.dig(:country, :code)&.downcase,
+      address.dig(:country, :name)&.downcase
+    )
   end
 end

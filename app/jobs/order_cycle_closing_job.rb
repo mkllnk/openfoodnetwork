@@ -11,10 +11,16 @@ class OrderCycleClosingJob < ApplicationJob
   private
 
   def recently_closed_order_cycles
-    @recently_closed_order_cycles ||= OrderCycle.closed.unprocessed.
-      where(
-        'order_cycles.orders_close_at BETWEEN (?) AND (?)', 1.hour.ago, Time.zone.now
-      ).select(:id, :automatic_notifications).to_a
+    @recently_closed_order_cycles ||= OrderCycle
+      .closed
+      .unprocessed
+      .where(
+        "order_cycles.orders_close_at BETWEEN (?) AND (?)",
+        1.hour.ago,
+        Time.zone.now
+      )
+      .select(:id, :automatic_notifications)
+      .to_a
   end
 
   def send_notifications

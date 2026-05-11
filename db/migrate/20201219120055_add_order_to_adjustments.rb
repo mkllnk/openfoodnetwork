@@ -9,7 +9,7 @@ class AddOrderToAdjustments < ActiveRecord::Migration[4.2]
   end
 
   def up
-    add_column :spree_adjustments, :order_id, :integer
+    add_column(:spree_adjustments, :order_id, :integer)
 
     # Ensure migration can use the new column
     Spree::Adjustment.reset_column_information
@@ -20,22 +20,25 @@ class AddOrderToAdjustments < ActiveRecord::Migration[4.2]
     end
 
     # Migrate adjustments on line_items
-    Spree::Adjustment.where(order_id: nil, adjustable_type: "Spree::LineItem").includes(:adjustable).find_each do |adjustment|
-      line_item = adjustment.adjustable
+    Spree::Adjustment
+      .where(order_id: nil, adjustable_type: "Spree::LineItem")
+      .includes(:adjustable)
+      .find_each do |adjustment|
+        line_item = adjustment.adjustable
 
-      # In some cases a line item has been deleted but an orphaned adjustment remains in the
-      # database. There is no way for this orphan to ever be returned or accessed via any scopes,
-      # and no way to know what order it related to. In this case we can remove the record.
-      if line_item.nil?
-        adjustment.delete
-        next
+        # In some cases a line item has been deleted but an orphaned adjustment remains in the
+        # database. There is no way for this orphan to ever be returned or accessed via any scopes,
+        # and no way to know what order it related to. In this case we can remove the record.
+        if line_item.nil?
+          adjustment.delete
+          next
+        end
+
+        adjustment.update_column(:order_id, line_item.order_id)
       end
-
-      adjustment.update_column(:order_id, line_item.order_id)
-    end
   end
 
   def down
-    remove_column :spree_adjustments, :order_id
+    remove_column(:spree_adjustments, :order_id)
   end
 end

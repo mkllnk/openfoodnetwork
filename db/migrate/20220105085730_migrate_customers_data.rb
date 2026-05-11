@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class MigrateCustomersData < ActiveRecord::Migration[6.1]
-  class SpreeAddress < ApplicationRecord; end
+  class SpreeAddress < ApplicationRecord
+  end
 
   class Customer < ApplicationRecord
     belongs_to :bill_address, class_name: "SpreeAddress"
@@ -40,11 +41,11 @@ class MigrateCustomersData < ActiveRecord::Migration[6.1]
   end
 
   def split_customer_name!(customer)
-    return if (name_parts = customer.name.split(' ')).empty?
+    return if (name_parts = customer.name.split(" ")).empty?
 
     customer.update_columns(
       first_name: name_parts.first,
-      last_name: name_parts[1..].join(' '),
+      last_name: name_parts[1..].join(" "),
       updated_at: Time.zone.now
     )
   end

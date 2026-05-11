@@ -8,14 +8,14 @@ RSpec.describe OrderBuilder do
     let(:ofn_order) {
       create(
         :completed_order_with_totals,
-        id: 1,
+        id: 1
       )
     }
 
     it "builds a new order" do
-      expect(result.semanticId).to eq nil
-      expect(result.lines.count).to eq 0
-      expect(result.orderStatus).to eq "dfc-v:Held"
+      expect(result.semanticId).to(eq(nil))
+      expect(result.lines.count).to(eq(0))
+      expect(result.orderStatus).to(eq("dfc-v:Held"))
     end
   end
 end

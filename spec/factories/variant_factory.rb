@@ -3,19 +3,19 @@
 FactoryBot.define do
   sequence(:random_float) { BigDecimal("#{rand(200)}.#{rand(99)}") }
 
-  factory :base_variant, class: Spree::Variant do
+  factory(:base_variant, class: Spree::Variant) do
     price { 19.99 }
-    sku    { SecureRandom.hex }
+    sku { SecureRandom.hex }
     weight { generate(:random_float) }
     height { generate(:random_float) }
-    width  { generate(:random_float) }
-    depth  { generate(:random_float) }
+    width { generate(:random_float) }
+    depth { generate(:random_float) }
     unit_value { 1 }
-    unit_description { '' }
+    unit_description { "" }
 
-    variant_unit { 'weight' }
+    variant_unit { "weight" }
     variant_unit_scale { 1 }
-    variant_unit_name { '' }
+    variant_unit_name { "" }
 
     primary_taxon { Spree::Taxon.first || FactoryBot.create(:taxon) }
     supplier { Enterprise.is_primary_producer.first || FactoryBot.create(:supplier_enterprise) }
@@ -26,9 +26,9 @@ FactoryBot.define do
     # the product isn't associated yet. It's a chicken and egg problem.
     # It will be fixed once we finish the product refactor, and we don't need the product to
     # create a "standard variant"
-    product { association :base_product }
+    product { association(:base_product) }
 
-    factory :variant do
+    factory(:variant) do
       transient do
         on_demand { false }
         on_hand { 5 }
@@ -40,7 +40,7 @@ FactoryBot.define do
         variant.save
       end
 
-      trait :with_order_cycle do
+      trait(:with_order_cycle) do
         transient do
           order_cycle { create(:order_cycle) }
           producer { supplier }
@@ -51,18 +51,24 @@ FactoryBot.define do
         end
 
         after(:create) do |variant, evaluator|
-          exchange_attributes = { order_cycle_id: evaluator.order_cycle.id, incoming: true,
-                                  sender_id: evaluator.producer.id,
-                                  receiver_id: evaluator.coordinator.id }
+          exchange_attributes = {
+            order_cycle_id: evaluator.order_cycle.id,
+            incoming: true,
+            sender_id: evaluator.producer.id,
+            receiver_id: evaluator.coordinator.id
+          }
           exchange = Exchange.where(exchange_attributes).first_or_create!(exchange_attributes)
           exchange.variants << variant
           evaluator.incoming_exchange_fees.each do |enterprise_fee|
             exchange.enterprise_fees << enterprise_fee
           end
 
-          exchange_attributes = { order_cycle_id: evaluator.order_cycle.id, incoming: false,
-                                  sender_id: evaluator.coordinator.id,
-                                  receiver_id: evaluator.distributor.id }
+          exchange_attributes = {
+            order_cycle_id: evaluator.order_cycle.id,
+            incoming: false,
+            sender_id: evaluator.coordinator.id,
+            receiver_id: evaluator.distributor.id
+          }
           exchange = Exchange.where(exchange_attributes).first_or_create!(exchange_attributes)
           exchange.variants << variant
           (evaluator.outgoing_exchange_fees || []).each do |enterprise_fee|

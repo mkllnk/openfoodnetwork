@@ -24,41 +24,46 @@ RSpec.describe TaxHelper do
     it "displays included tax" do
       expect(
         helper.display_taxes(included_tax_adjustment)
-      ).to eq Spree::Money.new(included_tax_adjustment.included_tax_total)
+      )
+        .to(eq(Spree::Money.new(included_tax_adjustment.included_tax_total)))
     end
 
     it "displays additional tax" do
       expect(
         helper.display_taxes(additional_tax_adjustment)
-      ).to eq Spree::Money.new(additional_tax_adjustment.additional_tax_total)
+      )
+        .to(eq(Spree::Money.new(additional_tax_adjustment.additional_tax_total)))
     end
 
     it "displays formatted 0.00 amount when amount is zero" do
       expect(
         helper.display_taxes(no_tax_adjustment)
-      ).to eq Spree::Money.new(0.00)
+      )
+        .to(eq(Spree::Money.new(0.00)))
     end
 
     it "optionally displays nothing when amount is zero" do
       expect(
         helper.display_taxes(no_tax_adjustment, display_zero: false)
-      ).to be_nil
+      )
+        .to(be_nil)
     end
   end
 
   describe "#display_line_items_taxes" do
     let(:enterprise_fee) { create(:enterprise_fee, tax_category: tax_rate.tax_category) }
 
-    context "with included tax" do
+    context("with included tax") do
       it "displays included tax" do
         expect(
           helper.display_line_items_taxes(line_item)
-        ).to eq Spree::Money.new(line_item.included_tax, currency: line_item.currency)
+        )
+          .to(eq(Spree::Money.new(line_item.included_tax, currency: line_item.currency)))
       end
 
-      context "with enterprise fee incuring tax" do
+      context("with enterprise fee incuring tax") do
         let(:fee_adjustment) {
-          create( :adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
+          create(:adjustment, originator: enterprise_fee, adjustable: line_item, state: "closed")
         }
         let!(:fee_tax_adjustment) {
           create(
@@ -75,21 +80,23 @@ RSpec.describe TaxHelper do
           expected_tax = line_item.included_tax + fee_tax_adjustment.amount
           expect(
             helper.display_line_items_taxes(line_item)
-          ).to eq Spree::Money.new(expected_tax, currency: line_item.currency)
+          )
+            .to(eq(Spree::Money.new(expected_tax, currency: line_item.currency)))
         end
       end
     end
 
-    context "with additional tax (tax exluded from price)" do
+    context("with additional tax (tax exluded from price)") do
       it "displays additional tax" do
         expect(
           helper.display_line_items_taxes(line_item2)
-        ).to eq Spree::Money.new(line_item2.added_tax, currency: line_item2.currency)
+        )
+          .to(eq(Spree::Money.new(line_item2.added_tax, currency: line_item2.currency)))
       end
 
-      context "with enterprise fee incuring tax" do
+      context("with enterprise fee incuring tax") do
         let(:fee_adjustment) {
-          create( :adjustment, originator: enterprise_fee, adjustable: line_item2, state: "closed")
+          create(:adjustment, originator: enterprise_fee, adjustable: line_item2, state: "closed")
         }
         let(:fee_tax_adjustment) {
           create(
@@ -106,7 +113,8 @@ RSpec.describe TaxHelper do
           expected_tax = line_item2.added_tax + fee_tax_adjustment.amount
           expect(
             helper.display_line_items_taxes(line_item2)
-          ).to eq Spree::Money.new(expected_tax, currency: line_item2.currency)
+          )
+            .to(eq(Spree::Money.new(expected_tax, currency: line_item2.currency)))
         end
       end
     end
@@ -114,13 +122,15 @@ RSpec.describe TaxHelper do
     it "displays formatted 0.00 amount when amount is zero" do
       expect(
         helper.display_line_items_taxes(line_item3)
-      ).to eq Spree::Money.new(0.00)
+      )
+        .to(eq(Spree::Money.new(0.00)))
     end
 
     it "optionally displays nothing when amount is zero" do
       expect(
         helper.display_line_items_taxes(line_item3, display_zero: false)
-      ).to be_nil
+      )
+        .to(be_nil)
     end
   end
 
@@ -128,17 +138,27 @@ RSpec.describe TaxHelper do
     it "displays total with included tax" do
       expect(
         helper.display_total_with_tax(included_tax_adjustment)
-      ).to eq Spree::Money.new(
-        included_tax_adjustment.amount + + included_tax_adjustment.included_tax_total
       )
+        .to(
+          eq(
+            Spree::Money.new(
+              included_tax_adjustment.amount + +included_tax_adjustment.included_tax_total
+            )
+          )
+        )
     end
 
     it "displays total with additional tax" do
       expect(
         helper.display_total_with_tax(additional_tax_adjustment)
-      ).to eq Spree::Money.new(
-        additional_tax_adjustment.amount + additional_tax_adjustment.additional_tax_total
       )
+        .to(
+          eq(
+            Spree::Money.new(
+              additional_tax_adjustment.amount + additional_tax_adjustment.additional_tax_total
+            )
+          )
+        )
     end
   end
 end

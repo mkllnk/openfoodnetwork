@@ -33,7 +33,7 @@ module Reporting
           end
 
           def fee_placement
-            i18n_translate("fee_placements.#{data['placement_enterprise_role']}")
+            i18n_translate("fee_placements.#{data["placement_enterprise_role"]}")
           end
         end
       end

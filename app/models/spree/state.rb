@@ -2,12 +2,12 @@
 
 module Spree
   class State < ApplicationRecord
-    belongs_to :country, class_name: 'Spree::Country'
+    belongs_to :country, class_name: "Spree::Country"
 
     validates :name, presence: true
 
     def self.find_all_by_name_or_abbr(name_or_abbr)
-      where('name = ? OR abbr = ?', name_or_abbr, name_or_abbr)
+      where("name = ? OR abbr = ?", name_or_abbr, name_or_abbr)
     end
 
     def <=>(other)

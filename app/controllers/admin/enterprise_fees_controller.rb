@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/order_cycle_permissions'
+require "open_food_network/order_cycle_permissions"
 
 module Admin
   class EnterpriseFeesController < Admin::ResourceController
@@ -21,7 +21,7 @@ module Admin
       respond_to do |format|
         format.html
         format.json {
-          render_as_json @collection, controller: self, include_calculators: @include_calculators
+          render_as_json(@collection, controller: self, include_calculators: @include_calculators)
         }
       end
     end
@@ -29,7 +29,7 @@ module Admin
     def for_order_cycle
       respond_to do |format|
         format.html
-        format.json { render_as_json @collection, controller: self }
+        format.json { render_as_json(@collection, controller: self) }
       end
     end
 
@@ -39,22 +39,24 @@ module Admin
 
       if @enterprise_fee_set.save
         flash[:success] = I18n.t(:enterprise_fees_update_notice)
-        redirect_to redirect_path
+        redirect_to(redirect_path)
       else
-        redirect_to redirect_path,
-                    flash: { error: @enterprise_fee_set.errors.full_messages.to_sentence }
+        redirect_to(
+          redirect_path,
+          flash: {error: @enterprise_fee_set.errors.full_messages.to_sentence}
+        )
       end
     end
 
     private
 
     def load_enterprise_fee_set
-      @enterprise_fee_set = Sets::EnterpriseFeeSet.new collection:
+      @enterprise_fee_set = Sets::EnterpriseFeeSet.new(collection:)
     end
 
     def load_data
       @calculators = EnterpriseFee.calculators.sort_by(&:name)
-      @tax_categories = Spree::TaxCategory.order('is_default DESC, name ASC')
+      @tax_categories = Spree::TaxCategory.order("is_default DESC, name ASC")
     end
 
     def collection
@@ -63,14 +65,21 @@ module Admin
         order_cycle = OrderCycle.find_by(id: params[:order_cycle_id]) if params[:order_cycle_id]
         coordinator = Enterprise.find_by(id: params[:coordinator_id]) if params[:coordinator_id]
         order_cycle ||= OrderCycle.new(coordinator:) if coordinator.present?
-        enterprises = OpenFoodNetwork::OrderCyclePermissions.new(spree_current_user,
-                                                                 order_cycle).visible_enterprises
+        enterprises = OpenFoodNetwork::OrderCyclePermissions
+          .new(
+            spree_current_user,
+            order_cycle
+          )
+          .visible_enterprises
 
-        fees = EnterpriseFee.for_enterprises(enterprises).order('enterprise_id', 'fee_type', 'name')
+        fees = EnterpriseFee.for_enterprises(enterprises).order("enterprise_id", "fee_type", "name")
         filter_fees(fees)
       else
-        collection = EnterpriseFee.managed_by(spree_current_user).order('enterprise_id',
-                                                                        'fee_type', 'name')
+        collection = EnterpriseFee.managed_by(spree_current_user).order(
+          "enterprise_id",
+          "fee_type",
+          "name"
+        )
         collection = collection.for_enterprise(current_enterprise) if current_enterprise
         collection
       end
@@ -87,11 +96,11 @@ module Admin
     end
 
     def current_enterprise
-      Enterprise.find params[:enterprise_id] if params.key? :enterprise_id
+      Enterprise.find(params[:enterprise_id]) if params.key?(:enterprise_id)
     end
 
     def redirect_path
-      if params.key? :enterprise_id
+      if params.key?(:enterprise_id)
         return main_app.admin_enterprise_fees_path(enterprise_id: params[:enterprise_id])
       end
 

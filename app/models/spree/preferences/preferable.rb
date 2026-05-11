@@ -16,7 +16,7 @@ module Spree
     module Preferable
       def self.included(base)
         base.class_eval do
-          extend Spree::Preferences::PreferableClassMethods
+          extend(Spree::Preferences::PreferableClassMethods)
 
           # Disabling rubocop rule because the fix to this rubocop warning breaks specs
           # rubocop:disable Style/SymbolProc
@@ -36,52 +36,54 @@ module Spree
       end
 
       def get_preference(name)
-        has_preference! name
-        __send__ self.class.preference_getter_method(name)
+        has_preference!(name)
+        __send__(self.class.preference_getter_method(name))
       end
+
       alias :preferred :get_preference
       alias :prefers? :get_preference
 
       def set_preference(name, value)
-        has_preference! name
-        __send__ self.class.preference_setter_method(name), value
+        has_preference!(name)
+        __send__(self.class.preference_setter_method(name), value)
       end
 
       def preference_type(name)
-        has_preference! name
-        __send__ self.class.preference_type_getter_method(name)
+        has_preference!(name)
+        __send__(self.class.preference_type_getter_method(name))
       end
 
       def preference_default(name)
-        has_preference! name
-        __send__ self.class.preference_default_getter_method(name)
+        has_preference!(name)
+        __send__(self.class.preference_default_getter_method(name))
       end
 
       def preference_description(name)
-        has_preference! name
-        __send__ self.class.preference_description_getter_method(name)
+        has_preference!(name)
+        __send__(self.class.preference_description_getter_method(name))
       end
 
       def has_preference!(name)
-        raise NoMethodError, "#{name} preference not defined" unless has_preference? name
+        raise NoMethodError, "#{name} preference not defined" unless has_preference?(name)
       end
 
       def has_preference?(name)
-        respond_to? self.class.preference_getter_method(name)
+        respond_to?(self.class.preference_getter_method(name))
       end
 
       def preferences
         prefs = {}
         methods.grep(/^prefers_.*\?$/).each do |pref_method|
-          prefs[pref_method.to_s.gsub(/prefers_|\?/, '').to_sym] = __send__(pref_method)
+          prefs[pref_method.to_s.gsub(/prefers_|\?/, "").to_sym] = __send__(pref_method)
         end
+
         prefs
       end
 
       def preference_cache_key(name)
         return unless id
 
-        [ENV.fetch("RAILS_CACHE_ID", nil), self.class.name, name, id].join('::').underscore
+        [ENV.fetch("RAILS_CACHE_ID", nil), self.class.name, name, id].join("::").underscore
       end
 
       def save_pending_preferences
@@ -93,7 +95,7 @@ module Spree
       end
 
       def clear_preferences
-        preferences.each_key { |pref| preference_store.delete preference_cache_key(pref) }
+        preferences.each_key { |pref| preference_store.delete(preference_cache_key(pref)) }
       end
 
       private
@@ -120,10 +122,10 @@ module Spree
           value.to_i
         when :boolean
           if value.is_a?(FalseClass) ||
-             value.nil? ||
-             value == 0 ||
-             (value.is_a?(String) && value =~ /^(f|false|0)$/i) ||
-             (value.respond_to?(:empty?) && value.empty?)
+              value.nil? ||
+              value == 0 ||
+              (value.is_a?(String) && value =~ /^(f|false|0)$/i) ||
+              (value.respond_to?(:empty?) && value.empty?)
             false
           else
             true

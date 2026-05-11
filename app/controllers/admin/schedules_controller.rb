@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'open_food_network/permissions'
+require "open_food_network/permissions"
 
 module Admin
   class SchedulesController < Admin::ResourceController
@@ -13,16 +13,22 @@ module Admin
 
     respond_to :json
 
-    OVERRIDE_RESPONSE = { json: {
-      success: lambda {
-                 render_as_json @schedule,
-                                editable_schedule_ids: permissions.editable_schedules.pluck(:id)
-               },
-      failure: lambda {
-                 render json: { errors: @schedule.errors.full_messages },
-                        status: :unprocessable_entity
-               }
-    } }.freeze
+    OVERRIDE_RESPONSE = {
+      json: {
+        success: lambda {
+          render_as_json(
+            @schedule,
+            editable_schedule_ids: permissions.editable_schedules.pluck(:id)
+          )
+        },
+        failure: lambda {
+          render(
+            json: {errors: @schedule.errors.full_messages},
+            status: :unprocessable_entity
+          )
+        }
+      }
+    }.freeze
 
     respond_override create: OVERRIDE_RESPONSE
     respond_override update: OVERRIDE_RESPONSE
@@ -71,7 +77,7 @@ module Admin
 
     # Filter schedules by OCs with a given coordinator id
     def filter_schedules_by_enterprise_id(schedules, enterprise_id)
-      schedules.joins(:order_cycles).where(order_cycles: { coordinator_id: enterprise_id.to_i })
+      schedules.joins(:order_cycles).where(order_cycles: {coordinator_id: enterprise_id.to_i})
     end
 
     def collection_actions
@@ -90,8 +96,10 @@ module Admin
     def check_dependent_subscriptions
       return if Subscription.where(schedule_id: @schedule).empty?
 
-      render json: { errors: [t('admin.schedules.destroy.associated_subscriptions_error')] },
-             status: :conflict
+      render(
+        json: {errors: [t("admin.schedules.destroy.associated_subscriptions_error")]},
+        status: :conflict
+      )
     end
 
     def permissions

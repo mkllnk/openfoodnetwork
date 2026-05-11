@@ -5,9 +5,11 @@ class WellKnownController < ApplicationController
 
   def dfc
     base = "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/scopes.rdf#"
-    render json: {
-      "#{base}ReadEnterprise" => "/api/dfc/enterprises/",
-      "#{base}ReadProducts" => "/api/dfc/supplied_products/",
-    }
+    render(
+      json: {
+        "#{base}ReadEnterprise" => "/api/dfc/enterprises/",
+        "#{base}ReadProducts" => "/api/dfc/supplied_products/"
+      }
+    )
   end
 end

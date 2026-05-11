@@ -27,10 +27,12 @@ module Reporting
         def allowed_enterprise_fees
           return EnterpriseFee.where("1=0") if allowed_order_cycles.blank?
 
-          coordinator_enterprise_fees = EnterpriseFee.joins(:coordinator_fees)
-            .where(coordinator_fees: { order_cycle_id: allowed_order_cycle_ids })
-          exchange_enterprise_fees = EnterpriseFee.joins(exchange_fees: :exchange)
-            .where(exchanges: { order_cycle_id: allowed_order_cycle_ids })
+          coordinator_enterprise_fees = EnterpriseFee
+            .joins(:coordinator_fees)
+            .where(coordinator_fees: {order_cycle_id: allowed_order_cycle_ids})
+          exchange_enterprise_fees = EnterpriseFee
+            .joins(exchange_fees: :exchange)
+            .where(exchanges: {order_cycle_id: allowed_order_cycle_ids})
           @allowed_enterprise_fees ||= (coordinator_enterprise_fees | exchange_enterprise_fees).uniq
         end
 

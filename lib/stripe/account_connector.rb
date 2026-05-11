@@ -42,12 +42,12 @@ module Stripe
     def state
       # Returns the original payload
       key = Rails.application.secret_key_base
-      JWT.decode(params["state"], key, true, algorithm: 'HS256')[0]
+      JWT.decode(params["state"], key, true, algorithm: "HS256")[0]
     end
 
     def token
       # Request an access token based on the code provided
-      @token ||= OAuth.token(grant_type: 'authorization_code', code: params["code"])
+      @token ||= OAuth.token(grant_type: "authorization_code", code: params["code"])
     end
 
     def deauthorize

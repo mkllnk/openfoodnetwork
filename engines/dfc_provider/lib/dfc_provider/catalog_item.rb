@@ -9,8 +9,7 @@ module DfcProvider
       super(semantic_id, **properties)
       @managedBy = managedBy
 
-      registerSemanticProperty("dfc-b:managedBy", &method("managedBy"))
-        .valueSetter = method("managedBy=")
+      registerSemanticProperty("dfc-b:managedBy", &method("managedBy")).valueSetter = method("managedBy=")
     end
   end
 end

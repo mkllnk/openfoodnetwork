@@ -5,7 +5,7 @@ class PersonBuilder < DfcBuilder
     DataFoodConsortium::ConnectorV1::Person.new(
       urls.person_url(user.id),
       firstName: user.bill_address&.firstname,
-      lastName: user.bill_address&.lastname,
+      lastName: user.bill_address&.lastname
     )
   end
 end

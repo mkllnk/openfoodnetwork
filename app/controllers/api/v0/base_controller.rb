@@ -37,13 +37,13 @@ module Api
       check_authorization
 
       def respond_with_conflict(json_hash)
-        render json: json_hash, status: :conflict
+        render(json: json_hash, status: :conflict)
       end
 
       private
 
       def spree_current_user
-        @spree_current_user ||= request.env['warden'].user
+        @spree_current_user ||= request.env["warden"].user
       end
 
       # Use logged in user (spree_current_user) for API authentication (current_api_user)
@@ -66,10 +66,13 @@ module Api
       end
 
       def error_during_processing(exception)
-        Alert.raise(exception)
+        Alert.raise exception
 
-        render(json: { exception: exception.message },
-               status: :unprocessable_entity) && return
+        render(
+          json: {exception: exception.message},
+          status: :unprocessable_entity
+        ) &&
+          return
       end
 
       def current_ability
@@ -79,28 +82,42 @@ module Api
       def api_key
         request.headers["X-Spree-Token"] || params[:token]
       end
+
       helper_method :api_key
 
       def invalid_resource!(resource)
         @resource = resource
-        render(json: { error: I18n.t(:invalid_resource, scope: "spree.api"),
-                       errors: @resource.errors },
-               status: :unprocessable_entity)
+        render(
+          json: {
+            error: I18n.t(:invalid_resource, scope: "spree.api"),
+            errors: @resource.errors
+          },
+          status: :unprocessable_entity
+        )
       end
 
       def invalid_api_key
-        render(json: { error: I18n.t(:invalid_api_key, key: api_key, scope: "spree.api") },
-               status: :unauthorized) && return
+        render(
+          json: {error: I18n.t(:invalid_api_key, key: api_key, scope: "spree.api")},
+          status: :unauthorized
+        ) &&
+          return
       end
 
       def unauthorized
-        render(json: { error: I18n.t(:unauthorized, scope: "spree.api") },
-               status: :unauthorized) && return
+        render(
+          json: {error: I18n.t(:unauthorized, scope: "spree.api")},
+          status: :unauthorized
+        ) &&
+          return
       end
 
       def not_found
-        render(json: { error: I18n.t(:resource_not_found, scope: "spree.api") },
-               status: :not_found) && return
+        render(
+          json: {error: I18n.t(:resource_not_found, scope: "spree.api")},
+          status: :not_found
+        ) &&
+          return
       end
     end
   end

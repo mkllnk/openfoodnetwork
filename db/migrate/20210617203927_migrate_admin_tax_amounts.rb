@@ -3,7 +3,7 @@ class MigrateAdminTaxAmounts < ActiveRecord::Migration[6.0]
     belongs_to :originator, polymorphic: true
     belongs_to :adjustable, polymorphic: true
     belongs_to :order, class_name: "Spree::Order"
-    belongs_to :tax_category, class_name: 'Spree::TaxCategory'
+    belongs_to :tax_category, class_name: "Spree::TaxCategory"
     has_many :adjustments, as: :adjustable, dependent: :destroy
 
     scope :admin, -> { where(originator_type: nil) }
@@ -14,7 +14,7 @@ class MigrateAdminTaxAmounts < ActiveRecord::Migration[6.0]
   end
 
   def migrate_admin_taxes!
-    Spree::Adjustment.admin.where('included_tax <> 0').includes(:order).find_each do |adjustment|
+    Spree::Adjustment.admin.where("included_tax <> 0").includes(:order).find_each do |adjustment|
 
       tax_rate = find_tax_rate(adjustment)
       tax_category = tax_rate&.tax_category
@@ -42,7 +42,7 @@ class MigrateAdminTaxAmounts < ActiveRecord::Migration[6.0]
 
     return if approximation.infinite? || approximation.zero? || approximation.nan?
 
-    applicable_rates(adjustment).min_by{ |rate| (rate.amount - approximation).abs  }
+    applicable_rates(adjustment).min_by { |rate| (rate.amount - approximation).abs }
   end
 
   def applicable_rates(adjustment)
@@ -53,9 +53,9 @@ class MigrateAdminTaxAmounts < ActiveRecord::Migration[6.0]
 
   def tax_adjustment_label(tax_rate)
     if tax_rate.nil?
-      I18n.t('included_tax')
+      I18n.t("included_tax")
     else
-      "#{tax_rate.name} #{tax_rate.amount * 100}% (#{I18n.t('models.tax_rate.included_in_price')})"
+      "#{tax_rate.name} #{tax_rate.amount * 100}% (#{I18n.t("models.tax_rate.included_in_price")})"
     end
   end
 end

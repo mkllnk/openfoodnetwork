@@ -4,23 +4,23 @@ RSpec.describe CheckoutHelper do
   describe "#display_checkout_tax_total" do
     subject(:display_checkout_tax_total) { helper.display_checkout_tax_total(order) }
 
-    let(:order) { instance_double(Spree::Order, total_tax: 123.45, currency: 'AUD') }
-    let(:service) { instance_double(VoucherAdjustmentsService, voucher_included_tax: ) }
+    let(:order) { instance_double(Spree::Order, total_tax: 123.45, currency: "AUD") }
+    let(:service) { instance_double(VoucherAdjustmentsService, voucher_included_tax:) }
     let(:voucher_included_tax) { 0.0 }
 
     before do
-      allow(VoucherAdjustmentsService).to receive(:new).and_return(service)
+      allow(VoucherAdjustmentsService).to(receive(:new).and_return(service))
     end
 
     it "retrieves the total tax on the order" do
-      expect(display_checkout_tax_total).to eq(Spree::Money.new(123.45, currency: 'AUD'))
+      expect(display_checkout_tax_total).to(eq(Spree::Money.new(123.45, currency: "AUD")))
     end
 
-    context "with a voucher" do
+    context("with a voucher") do
       let(:voucher_included_tax) { -0.45 }
 
       it "displays the discounted total tax" do
-        expect(display_checkout_tax_total).to eq(Spree::Money.new(123.00, currency: 'AUD'))
+        expect(display_checkout_tax_total).to(eq(Spree::Money.new(123.00, currency: "AUD")))
       end
     end
   end
@@ -41,20 +41,24 @@ RSpec.describe CheckoutHelper do
     }
 
     it "produces an empty array without taxes" do
-      expect(helper.display_checkout_taxes_hash(order)).to eq([])
+      expect(helper.display_checkout_taxes_hash(order)).to(eq([]))
     end
 
     it "shows a single tax adjustment" do
       order.all_adjustments << adjustment1
       order.save!
 
-      expect(helper.display_checkout_taxes_hash(order)).to eq [
-        {
-          amount: Spree::Money.new(1, currency: order.currency),
-          percentage: "10.0%",
-          rate_amount: 0.1,
-        }
-      ]
+      expect(helper.display_checkout_taxes_hash(order)).to(
+        eq(
+          [
+            {
+              amount: Spree::Money.new(1, currency: order.currency),
+              percentage: "10.0%",
+              rate_amount: 0.1
+            }
+          ]
+        )
+      )
     end
 
     it "shows multiple tax adjustments" do
@@ -62,18 +66,22 @@ RSpec.describe CheckoutHelper do
       order.all_adjustments << adjustment2
       order.save!
 
-      expect(helper.display_checkout_taxes_hash(order)).to eq [
-        {
-          amount: Spree::Money.new(1, currency: order.currency),
-          percentage: "10.0%",
-          rate_amount: 0.1,
-        },
-        {
-          amount: Spree::Money.new(2, currency: order.currency),
-          percentage: "20.0%",
-          rate_amount: 0.2,
-        },
-      ]
+      expect(helper.display_checkout_taxes_hash(order)).to(
+        eq(
+          [
+            {
+              amount: Spree::Money.new(1, currency: order.currency),
+              percentage: "10.0%",
+              rate_amount: 0.1
+            },
+            {
+              amount: Spree::Money.new(2, currency: order.currency),
+              percentage: "20.0%",
+              rate_amount: 0.2
+            }
+          ]
+        )
+      )
     end
 
     it "sorts adjustments by percentage" do
@@ -81,18 +89,22 @@ RSpec.describe CheckoutHelper do
       order.all_adjustments << adjustment1
       order.save!
 
-      expect(helper.display_checkout_taxes_hash(order)).to eq [
-        {
-          amount: Spree::Money.new(1, currency: order.currency),
-          percentage: "10.0%",
-          rate_amount: 0.1,
-        },
-        {
-          amount: Spree::Money.new(2, currency: order.currency),
-          percentage: "20.0%",
-          rate_amount: 0.2,
-        },
-      ]
+      expect(helper.display_checkout_taxes_hash(order)).to(
+        eq(
+          [
+            {
+              amount: Spree::Money.new(1, currency: order.currency),
+              percentage: "10.0%",
+              rate_amount: 0.1
+            },
+            {
+              amount: Spree::Money.new(2, currency: order.currency),
+              percentage: "20.0%",
+              rate_amount: 0.2
+            }
+          ]
+        )
+      )
     end
 
     it "shows multiple tax adjustments with same percentage" do
@@ -100,20 +112,24 @@ RSpec.describe CheckoutHelper do
       order.all_adjustments << other_adjustment2
       order.save!
 
-      expect(helper.display_checkout_taxes_hash(order)).to eq [
-        {
-          amount: Spree::Money.new(2, currency: order.currency),
-          percentage: "20.0%",
-          rate_amount: 0.2,
-        },
-        {
-          amount: Spree::Money.new(2, currency: order.currency),
-          percentage: "20.0%",
-          rate_amount: 0.2,
-        },
-      ]
+      expect(helper.display_checkout_taxes_hash(order)).to(
+        eq(
+          [
+            {
+              amount: Spree::Money.new(2, currency: order.currency),
+              percentage: "20.0%",
+              rate_amount: 0.2
+            },
+            {
+              amount: Spree::Money.new(2, currency: order.currency),
+              percentage: "20.0%",
+              rate_amount: 0.2
+            }
+          ]
+        )
+      )
 
-      expect(helper.display_checkout_taxes_hash(order).size).to eq 2
+      expect(helper.display_checkout_taxes_hash(order).size).to(eq(2))
     end
   end
 
@@ -121,15 +137,20 @@ RSpec.describe CheckoutHelper do
     let(:order) { create(:order_with_totals_and_distribution) }
     let(:enterprise_fee) { create(:enterprise_fee, amount: 123) }
     let!(:fee_adjustment) {
-      create(:adjustment, originator: enterprise_fee, adjustable: order,
-                          order:, label: "Enterprise Fee")
+      create(
+        :adjustment,
+        originator: enterprise_fee,
+        adjustable: order,
+        order:,
+        label: "Enterprise Fee"
+      )
     }
 
     before do
       order.update_order!
       # Sanity check initial adjustments state
-      expect(order.shipment_adjustments.count).to eq 1
-      expect(order.adjustments.enterprise_fee.count).to eq 1
+      expect(order.shipment_adjustments.count).to(eq(1))
+      expect(order.adjustments.enterprise_fee.count).to(eq(1))
     end
 
     it "collects adjustments on the order" do
@@ -137,69 +158,85 @@ RSpec.describe CheckoutHelper do
 
       shipping_adjustment = order.shipment_adjustments.first
 
-      expect(adjustments).to match_array [shipping_adjustment, fee_adjustment]
+      expect(adjustments).to(match_array([shipping_adjustment, fee_adjustment]))
     end
 
-    context "tax rate adjustments" do
+    context("tax rate adjustments") do
       let!(:tax_rate) { create(:tax_rate, amount: 0.1, calculator: Calculator::DefaultTax.new) }
       let!(:line_item_fee_adjustment) {
-        create(:adjustment, originator: enterprise_fee, adjustable: order.line_items.first,
-                            order:)
+        create(
+          :adjustment,
+          originator: enterprise_fee,
+          adjustable: order.line_items.first,
+          order:
+        )
       }
       let!(:order_tax_adjustment) {
-        create(:adjustment,
-               originator: tax_rate,
-               adjustable: fee_adjustment,
-               order:)
+        create(
+          :adjustment,
+          originator: tax_rate,
+          adjustable: fee_adjustment,
+          order:
+        )
       }
       let!(:line_item_fee_adjustment_tax_adjustment) {
-        create(:adjustment,
-               originator: tax_rate,
-               adjustable: line_item_fee_adjustment,
-               order:)
+        create(
+          :adjustment,
+          originator: tax_rate,
+          adjustable: line_item_fee_adjustment,
+          order:
+        )
       }
 
       it "removes tax rate adjustments" do
-        expect(order.all_adjustments.tax.count).to eq(2)
+        expect(order.all_adjustments.tax.count).to(eq(2))
 
         adjustments = helper.checkout_adjustments_for(order)
         tax_adjustments = adjustments.select { |a| a.originator_type == "Spree::TaxRate" }
-        expect(tax_adjustments.count).to eq(0)
+        expect(tax_adjustments.count).to(eq(0))
       end
     end
 
-    context "with return authorization adjustments" do
+    context("with return authorization adjustments") do
       let!(:return_adjustment) {
-        create(:adjustment, originator_type: 'Spree::ReturnAuthorization', adjustable: order,
-                            order:)
+        create(
+          :adjustment,
+          originator_type: "Spree::ReturnAuthorization",
+          adjustable: order,
+          order:
+        )
       }
 
       it "includes return adjustments" do
         adjustments = helper.checkout_adjustments_for(order)
 
-        expect(adjustments).to include return_adjustment
+        expect(adjustments).to(include(return_adjustment))
       end
     end
   end
 
   describe "#stripe_card_options" do
     let(:year) { Time.zone.now.year + 1 }
-    let(:card) { create(:credit_card, cc_type: 'visa', last_digits: '1111', month: 1, year:) }
+    let(:card) { create(:credit_card, cc_type: "visa", last_digits: "1111", month: 1, year:) }
     let(:cards) { [card] }
 
     it "formats credit cards for Stripe options" do
       options = helper.stripe_card_options(cards)
 
-      expect(options).to eq([
-                              ["visa 1111 Exp:01/#{year}", card.id]
-                            ])
+      expect(options).to(
+        eq(
+          [
+            ["visa 1111 Exp:01/#{year}", card.id]
+          ]
+        )
+      )
     end
 
     it "zero-pads the month" do
       card.update(month: 5)
       options = helper.stripe_card_options(cards)
 
-      expect(options.first.first).to match(%r{05/#{year}})
+      expect(options.first.first).to(match(%r{05/#{year}}))
     end
   end
 end

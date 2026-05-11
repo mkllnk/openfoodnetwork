@@ -7,8 +7,9 @@ module OrderStockCheck
   delegate :sufficient_stock?, to: :check_stock_service
 
   def valid_order_line_items?
-    OrderCycles::DistributedVariantsService.new(@order.order_cycle, @order.distributor).
-      distributes_order_variants?(@order)
+    OrderCycles::DistributedVariantsService
+      .new(@order.order_cycle, @order.distributor)
+      .distributes_order_variants?(@order)
   end
 
   def handle_insufficient_stock
@@ -40,7 +41,7 @@ module OrderStockCheck
 
   def build_order_cycle_message(should_empty_order)
     # If order is not emptied, we assume user will contact support for next steps
-    key = should_empty_order ? 'order_cycle_closed' : 'order_cycle_closed_next_steps'
+    key = should_empty_order ? "order_cycle_closed" : "order_cycle_closed_next_steps"
     I18n.t(key, order_number: current_order.number)
   end
 
@@ -50,10 +51,10 @@ module OrderStockCheck
 
     respond_to do |format|
       format.cable_ready {
-        render status: :see_other, cable_ready: cable_car.redirect_to(url: redirect_url)
+        render(status: :see_other, cable_ready: cable_car.redirect_to(url: redirect_url))
       }
-      format.json { render json: { path: redirect_url }, status: :see_other }
-      format.html { redirect_to redirect_url, status: :see_other }
+      format.json { render(json: {path: redirect_url}, status: :see_other) }
+      format.html { redirect_to(redirect_url, status: :see_other) }
     end
   end
 

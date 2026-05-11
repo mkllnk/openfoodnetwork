@@ -9,16 +9,16 @@ RSpec.describe EnterpriseMailer do
 
     it "sends a welcome email when given an enterprise" do
       expect(mail.subject)
-        .to eq "Fred's Farm is now on OFN Demo Site"
+        .to(eq("Fred's Farm is now on OFN Demo Site"))
     end
 
     it "does not set a reply-to email" do
-      expect(mail.reply_to).to eq nil
+      expect(mail.reply_to).to(eq(nil))
     end
 
-    context "white labelling" do
-      it_behaves_like 'email with inactive white labelling', :mail
-      it_behaves_like 'non-customer facing email with active white labelling', :mail
+    context("white labelling") do
+      it_behaves_like("email with inactive white labelling", :mail)
+      it_behaves_like("non-customer facing email with active white labelling", :mail)
     end
   end
 
@@ -27,16 +27,16 @@ RSpec.describe EnterpriseMailer do
     let(:user) { build(:user) }
 
     it "should send a manager invitation email when given an enterprise and user" do
-      expect(mail.subject).to eq "Fred's Farm has invited you to be a manager"
+      expect(mail.subject).to(eq("Fred's Farm has invited you to be a manager"))
     end
 
     it "sets a reply-to of the enterprise email" do
-      expect(mail.reply_to).to eq([enterprise.contact.email])
+      expect(mail.reply_to).to(eq([enterprise.contact.email]))
     end
 
-    context "white labelling" do
-      it_behaves_like 'email with inactive white labelling', :mail
-      it_behaves_like 'non-customer facing email with active white labelling', :mail
+    context("white labelling") do
+      it_behaves_like("email with inactive white labelling", :mail)
+      it_behaves_like("non-customer facing email with active white labelling", :mail)
     end
   end
 end

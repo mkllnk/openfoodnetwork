@@ -36,7 +36,7 @@ Rails.application.configure do
 
   # Separate cache stores when running in parallel
   config.cache_store = :redis_cache_store, {
-     # Unique database number to avoid conflict with others
+    # Unique database number to avoid conflict with others
     url: ENV.fetch("OFN_REDIS_TEST_URL", "redis://localhost:6379/3"),
     reconnect_attempts: 1
   }
@@ -70,7 +70,7 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", :fatal)
 
   # Fail tests on deprecated code unless it's a known case to solve.
-  Rails.application.deprecators.behavior = ->(message, callstack, deprecator) do
+  Rails.application.deprecators.behavior = -> (message, callstack, deprecator) do
     allowed_warnings = [
       # List strings here to allow matching deprecations.
       #

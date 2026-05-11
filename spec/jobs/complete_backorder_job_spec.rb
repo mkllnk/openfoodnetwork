@@ -35,20 +35,22 @@ RSpec.describe CompleteBackorderJob do
   let(:beans) { ofn_order.line_items[0].variant }
   let(:chia) { chia_item.variant }
   let(:chia_item) { ofn_order.line_items[1] }
-  let(:order_status) { DfcLoader.vocabulary("vocabulary").STATES.ORDERSTATE }
+  let(:order_status) { DfcLoader.vocabulary("vocabulary").STATES.ORDERSTATE() }
 
   describe "#perform" do
     before do
-      beans.semantic_links << SemanticLink.new(
-        semantic_id: product_link
-      )
-      chia.semantic_links << SemanticLink.new(
-        semantic_id: chia_seed_retail_link
-      )
+      beans.semantic_links <<
+        SemanticLink.new(
+          semantic_id: product_link
+        )
+      chia.semantic_links <<
+        SemanticLink.new(
+          semantic_id: chia_seed_retail_link
+        )
       ofn_order.order_cycle = create(
         :simple_order_cycle,
         distributors: [distributor],
-        variants: ofn_order.variants,
+        variants: ofn_order.variants
       )
       ofn_order.save!
     end
@@ -68,21 +70,41 @@ RSpec.describe CompleteBackorderJob do
       expect {
         subject.perform(user, distributor, order_cycle, order.semanticId)
         current_order = orderer.find_order(order.semanticId)
-      }.to change {
-        current_order.orderStatus
-      }.from(order_status.HELD).to(order_status.COMPLETE)
-        .and change {
-          current_order.lines[0].quantity.to_i
-        }.from(3).to(2)
-        .and change {
-          beans.on_hand
-        }.from(13).to(1)
-        .and change {
-          current_order.lines[1].quantity.to_i
-        }.from(5).to(7)
-        .and change {
-          exchange.semantic_links.count
-        }.by(-1)
+      }
+        .to(
+          change {
+            current_order.orderStatus
+          }
+            .from(order_status.HELD())
+            .to(order_status.COMPLETE())
+            .and(
+              change {
+                current_order.lines[0].quantity.to_i
+              }
+                .from(3)
+                .to(2)
+                .and(
+                  change {
+                    beans.on_hand
+                  }
+                    .from(13)
+                    .to(1)
+                    .and(
+                      change {
+                        current_order.lines[1].quantity.to_i
+                      }
+                        .from(5)
+                        .to(7)
+                        .and(
+                          change {
+                            exchange.semantic_links.count
+                          }
+                            .by(-1)
+                        )
+                    )
+                )
+            )
+        )
     end
 
     it "removes line items", vcr: true do
@@ -98,22 +120,39 @@ RSpec.describe CompleteBackorderJob do
       expect {
         subject.perform(user, distributor, order_cycle, order.semanticId)
         current_order = orderer.find_order(order.semanticId)
-      }.to change {
-        current_order.orderStatus
-      }.from(order_status.HELD).to(order_status.COMPLETE)
-        .and change {
-          current_order.lines.count
-        }.from(1).to(0)
-        .and change {
-          beans.on_hand
-        }.from(49).to(13) # minus 3 backordered slabs (3 * 12 = 36)
+      }
+        .to(
+          change {
+            current_order.orderStatus
+          }
+            .from(order_status.HELD())
+            .to(order_status.COMPLETE())
+            .and(
+              change {
+                current_order.lines.count
+              }
+                .from(1)
+                .to(0)
+                .and(
+                  change {
+                    beans.on_hand
+                    # minus 3 backordered slabs (3 * 12 = 36)
+                  }
+                    .from(49)
+                    .to(13)
+                )
+            )
+        )
     end
 
     it "reports errors" do
       expect {
         subject.perform(user, distributor, order_cycle, "https://nil")
-      }.to enqueue_mail(BackorderMailer, :backorder_incomplete)
-        .and raise_error VCR::Errors::UnhandledHTTPRequestError
+      }
+        .to(
+          enqueue_mail(BackorderMailer, :backorder_incomplete)
+            .and(raise_error(VCR::Errors::UnhandledHTTPRequestError))
+        )
     end
 
     it "skips empty backorders" do
@@ -122,14 +161,16 @@ RSpec.describe CompleteBackorderJob do
       order_cycle = nil
       order_id = nil
       backorder = DataFoodConsortium::ConnectorV1::Order.new(
-        order_id, orderStatus: "dfc-v:Held"
+        order_id,
+        orderStatus: "dfc-v:Held"
       )
       expect_any_instance_of(FdcBackorderer)
-        .to receive(:find_order).and_return(backorder)
+        .to(receive(:find_order).and_return(backorder))
 
       expect {
         subject.perform(user, distributor, order_cycle, order_id)
-      }.not_to raise_error
+      }
+        .not_to(raise_error)
     end
   end
 end

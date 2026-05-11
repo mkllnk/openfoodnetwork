@@ -30,7 +30,7 @@ RSpec.describe ProductImport::EntryValidator do
       unscaled_units: "500",
       units: "500",
       unit_type: "g",
-      name: 'Tomato',
+      name: "Tomato",
       enterprise:,
       enterprise_id: enterprise.id,
       producer: enterprise,
@@ -46,7 +46,7 @@ RSpec.describe ProductImport::EntryValidator do
       unscaled_units: "1",
       units: "1",
       unit_type: "kg",
-      name: 'Potatoes',
+      name: "Potatoes",
       enterprise:,
       enterprise_id: enterprise.id,
       producer: enterprise,
@@ -61,11 +61,11 @@ RSpec.describe ProductImport::EntryValidator do
     let(:potatoes) {
       create(
         :simple_product,
-        on_hand: '100',
-        name: 'Potatoes',
+        on_hand: "100",
+        name: "Potatoes",
         unit_value: 1000,
         variant_unit_scale: 1000,
-        variant_unit: 'weight',
+        variant_unit: "weight",
         variants: [create(:variant, supplier: enterprise)]
       )
     }
@@ -77,51 +77,51 @@ RSpec.describe ProductImport::EntryValidator do
         unit_type: "",
         variant_unit_name: "",
         name: potatoes.name,
-        display_name: 'Potatoes',
+        display_name: "Potatoes",
         enterprise:,
         enterprise_id: enterprise.id,
         producer: enterprise,
-        producer_id: enterprise.id,
+        producer_id: enterprise.id
       )
     end
 
     before do
-      allow(import_settings).to receive(:dig)
-      allow(spreadsheet_data).to receive(:tax_index)
-      allow(spreadsheet_data).to receive(:shipping_index)
-      allow(spreadsheet_data).to receive(:categories_index)
-      allow(entry_validator).to receive(:enterprise_validation)
-      allow(entry_validator).to receive(:tax_and_shipping_validation)
-      allow(entry_validator).to receive(:variant_of_product_validation)
-      allow(entry_validator).to receive(:category_validation)
-      allow(entry_validator).to receive(:shipping_presence_validation)
-      allow(entry_validator).to receive(:product_validation)
+      allow(import_settings).to(receive(:dig))
+      allow(spreadsheet_data).to(receive(:tax_index))
+      allow(spreadsheet_data).to(receive(:shipping_index))
+      allow(spreadsheet_data).to(receive(:categories_index))
+      allow(entry_validator).to(receive(:enterprise_validation))
+      allow(entry_validator).to(receive(:tax_and_shipping_validation))
+      allow(entry_validator).to(receive(:variant_of_product_validation))
+      allow(entry_validator).to(receive(:category_validation))
+      allow(entry_validator).to(receive(:shipping_presence_validation))
+      allow(entry_validator).to(receive(:product_validation))
     end
 
     it "validates a product" do
       entries = [potato_variant]
       entry_validator.validate_all(entries)
-      expect(potato_variant.errors.count).to eq 4
+      expect(potato_variant.errors.count).to(eq(4))
     end
   end
 
   describe "inventory validation" do
     before do
-      allow(entry_validator).to receive(:import_into_inventory?) { true }
-      allow(entry_validator).to receive(:enterprise_validation)
-      allow(entry_validator).to receive(:producer_validation)
-      allow(entry_validator).to receive(:variant_of_product_validation)
+      allow(entry_validator).to(receive(:import_into_inventory?) { true })
+      allow(entry_validator).to(receive(:enterprise_validation))
+      allow(entry_validator).to(receive(:producer_validation))
+      allow(entry_validator).to(receive(:variant_of_product_validation))
     end
 
-    context "products exist" do
+    context("products exist") do
       let!(:product_g) {
         create(
           :simple_product,
-          on_hand: '100',
-          name: 'Tomato',
+          on_hand: "100",
+          name: "Tomato",
           unit_value: 500,
           variant_unit_scale: 1,
-          variant_unit: 'weight',
+          variant_unit: "weight",
           supplier_id: enterprise.id
         )
       }
@@ -129,11 +129,11 @@ RSpec.describe ProductImport::EntryValidator do
       let!(:product_kg) {
         create(
           :simple_product,
-          on_hand: '100',
-          name: 'Potatoes',
+          on_hand: "100",
+          name: "Potatoes",
           unit_value: 1000,
           variant_unit_scale: 1000,
-          variant_unit: 'weight',
+          variant_unit: "weight",
           supplier_id: enterprise.id
         )
       }
@@ -141,17 +141,17 @@ RSpec.describe ProductImport::EntryValidator do
       it "validates a spreadsheet entry in g" do
         entries = [entry_g]
         entry_validator.validate_all(entries)
-        expect(entries.first.errors.count).to eq(0)
+        expect(entries.first.errors.count).to(eq(0))
       end
 
       it "validates a spreadsheet entry in kg" do
         entries = [entry_kg]
         entry_validator.validate_all(entries)
-        expect(entries.first.errors.count).to eq(0)
+        expect(entries.first.errors.count).to(eq(0))
       end
     end
 
-    context "products do not exist" do
+    context("products do not exist") do
       # stub
     end
   end

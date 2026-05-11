@@ -20,7 +20,7 @@ class OpenOrderCycleJob < ApplicationJob
       order_cycle.update_columns(opened_at:)
 
       # And notify any subscribers
-      OrderCycles::WebhookService.create_webhook_job(order_cycle, 'order_cycle.opened', opened_at)
+      OrderCycles::WebhookService.create_webhook_job(order_cycle, "order_cycle.opened", opened_at)
     end
   end
 
@@ -33,7 +33,8 @@ class OpenOrderCycleJob < ApplicationJob
       next if links.empty?
 
       # Find authorised user to access remote products
-      dfc_user = supplier.owner # we assume the owner's account is the one used to import from dfc.
+      # we assume the owner's account is the one used to import from dfc.
+      dfc_user = supplier.owner
 
       import_variants(links, dfc_user)
     end
@@ -41,8 +42,12 @@ class OpenOrderCycleJob < ApplicationJob
 
   # Fetch all remote variants for this supplier in the order cycle
   def variant_links_for(order_cycle, supplier)
-    variants = order_cycle.exchanges.incoming.from_enterprise(supplier)
-      .joins(:exchange_variants).select('exchange_variants.variant_id')
+    variants = order_cycle
+      .exchanges
+      .incoming
+      .from_enterprise(supplier)
+      .joins(:exchange_variants)
+      .select("exchange_variants.variant_id")
     SemanticLink.where(subject_id: variants)
   end
 

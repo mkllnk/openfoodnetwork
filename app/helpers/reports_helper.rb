@@ -3,8 +3,8 @@
 module ReportsHelper
   def report_order_cycle_options(order_cycles)
     order_cycles.map do |oc|
-      orders_open_at = oc.orders_open_at&.to_fs(:short) || 'NA'
-      orders_close_at = oc.orders_close_at&.to_fs(:short) || 'NA'
+      orders_open_at = oc.orders_open_at&.to_fs(:short) || "NA"
+      orders_close_at = oc.orders_close_at&.to_fs(:short) || "NA"
       # rubocop:disable Rails/OutputSafety
       ["#{oc.name} &nbsp; (#{orders_open_at} - #{orders_close_at})".html_safe, oc.id]
       # rubocop:enable Rails/OutputSafety
@@ -12,20 +12,25 @@ module ReportsHelper
   end
 
   def report_payment_method_options(orders)
-    orders.map do |order|
-      payment_method = order.payments.last&.payment_method
+    orders
+      .map do |order|
+        payment_method = order.payments.last&.payment_method
 
-      next unless payment_method
+        next unless payment_method
 
-      [payment_method.display_name, payment_method.id]
-    end.compact.uniq
+        [payment_method.display_name, payment_method.id]
+      end
+      .compact
+      .uniq
   end
 
   def report_shipping_method_options(orders)
-    orders.map do |o|
-      sm = o.shipping_method
-      [sm&.name, sm&.id]
-    end.uniq
+    orders
+      .map do |o|
+        sm = o.shipping_method
+        [sm&.name, sm&.id]
+      end
+      .uniq
   end
 
   def customer_email_options(order_customers)
@@ -34,10 +39,10 @@ module ReportsHelper
     end
   end
 
-  delegate :currency_symbol, to: :'Spree::Money'
+  delegate :currency_symbol, to: :"Spree::Money"
 
   def datepicker_time(datetime)
-    datetime = Time.zone.parse(datetime) if datetime.is_a? String
-    datetime.strftime('%Y-%m-%d %H:%M')
+    datetime = Time.zone.parse(datetime) if datetime.is_a?(String)
+    datetime.strftime("%Y-%m-%d %H:%M")
   end
 end

@@ -5,46 +5,48 @@ RSpec.describe Api::V0::EnterprisesController do
 
   let(:enterprise) { create(:distributor_enterprise) }
 
-  context "as an admin user" do
+  context("as an admin user") do
     let(:admin) { create(:admin_user) }
     let!(:enterprise) { create(:distributor_enterprise) }
 
     before do
-      allow(controller).to receive(:spree_current_user) { admin }
+      allow(controller).to(receive(:spree_current_user) { admin })
     end
 
     describe "updating an enterprise" do
       let(:enterprise_params) do
         {
-          external_billing_id: 'INV123456'
+          external_billing_id: "INV123456"
         }
       end
 
       it "changes the external_billing_id field" do
-        api_put :update, id: enterprise.id, enterprise: enterprise_params
-        expect(response).to have_http_status :ok
+        api_put(:update, id: enterprise.id, enterprise: enterprise_params)
+        expect(response).to(have_http_status(:ok))
 
-        expect(enterprise.reload.external_billing_id).to eq('INV123456')
+        expect(enterprise.reload.external_billing_id).to(eq("INV123456"))
       end
     end
   end
 
-  context "as an enterprise owner" do
+  context("as an enterprise owner") do
     let(:enterprise_owner) { create(:user) }
     let!(:enterprise) { create(:distributor_enterprise, owner: enterprise_owner) }
 
     before do
-      allow(controller).to receive(:spree_current_user) { enterprise_owner }
+      allow(controller).to(receive(:spree_current_user) { enterprise_owner })
     end
 
     describe "creating an enterprise" do
-      let(:australia) { Spree::Country.find_by(name: 'Australia') }
+      let(:australia) { Spree::Country.find_by(name: "Australia") }
       let(:new_enterprise_params) do
         {
-          name: 'name', contact_name: 'Sheila', address_attributes: {
-            address1: '123 Abc Street',
-            city: 'Northcote',
-            zipcode: '3070',
+          name: "name",
+          contact_name: "Sheila",
+          address_attributes: {
+            address1: "123 Abc Street",
+            city: "Northcote",
+            zipcode: "3070",
             state_id: australia.states.first.id,
             country_id: australia.id
           }
@@ -52,119 +54,123 @@ RSpec.describe Api::V0::EnterprisesController do
       end
 
       it "creates as sells=any when it is not a producer" do
-        api_post :create, { enterprise: new_enterprise_params }
-        expect(response).to have_http_status :created
+        api_post(:create, {enterprise: new_enterprise_params})
+        expect(response).to(have_http_status(:created))
 
         enterprise = Enterprise.last
-        expect(enterprise.sells).to eq('any')
+        expect(enterprise.sells).to(eq("any"))
       end
 
       it "creates a visible=hidden enterprise" do
-        api_post :create, { enterprise: new_enterprise_params }
-        expect(response).to have_http_status :created
+        api_post(:create, {enterprise: new_enterprise_params})
+        expect(response).to(have_http_status(:created))
 
         enterprise = Enterprise.last
-        expect(enterprise.visible).to eq("only_through_links")
+        expect(enterprise.visible).to(eq("only_through_links"))
       end
 
       it "saves all user ids submitted" do
         manager1 = create(:user)
         manager2 = create(:user)
-        api_post :create, {
-          enterprise: new_enterprise_params.
-            merge({ user_ids: [enterprise_owner.id, manager1.id, manager2.id] })
-        }
-        expect(response).to have_http_status :created
+        api_post(
+          :create,
+          {
+            enterprise: new_enterprise_params.merge({user_ids: [enterprise_owner.id, manager1.id, manager2.id]})
+          }
+        )
+        expect(response).to(have_http_status(:created))
 
         enterprise = Enterprise.last
-        expect(enterprise.user_ids).to match_array([enterprise_owner.id, manager1.id, manager2.id])
+        expect(enterprise.user_ids).to(match_array([enterprise_owner.id, manager1.id, manager2.id]))
       end
 
-      context "geocoding" do
+      context("geocoding") do
         it "geocodes the address when the :use_geocoder parameter is set" do
-          expect_any_instance_of(AddressGeocoder).to receive(:geocode)
+          expect_any_instance_of(AddressGeocoder).to(receive(:geocode))
 
-          api_post :create, { enterprise: new_enterprise_params, use_geocoder: "1" }
+          api_post(:create, {enterprise: new_enterprise_params, use_geocoder: "1"})
         end
 
         it "doesn't geocode the address when the :use_geocoder parameter is not set" do
-          expect_any_instance_of(AddressGeocoder).not_to receive(:geocode)
+          expect_any_instance_of(AddressGeocoder).not_to(receive(:geocode))
 
-          api_post :create, { enterprise: new_enterprise_params, use_geocoder: "0" }
+          api_post(:create, {enterprise: new_enterprise_params, use_geocoder: "0"})
         end
       end
 
-      context "when Terms of Service acceptance is required" do
-        before { allow(Spree::Config).to receive(:enterprises_require_tos).and_return(true) }
+      context("when Terms of Service acceptance is required") do
+        before { allow(Spree::Config).to(receive(:enterprises_require_tos).and_return(true)) }
 
         it "records ToS acceptance on the owner when the enterprise is created" do
           expect {
-            api_post :create, { enterprise: new_enterprise_params }
+            api_post(:create, {enterprise: new_enterprise_params})
             enterprise_owner.reload
-          }.to change { enterprise_owner.terms_of_service_accepted_at }
+          }
+            .to(change { enterprise_owner.terms_of_service_accepted_at })
 
-          expect(response).to have_http_status :created
+          expect(response).to(have_http_status(:created))
         end
       end
 
-      context "when Terms of Service acceptance is not required" do
-        before { allow(Spree::Config).to receive(:enterprises_require_tos).and_return(false) }
+      context("when Terms of Service acceptance is not required") do
+        before { allow(Spree::Config).to(receive(:enterprises_require_tos).and_return(false)) }
 
         it "does not update terms_of_service_accepted_at" do
           expect {
-            api_post :create, { enterprise: new_enterprise_params }
+            api_post(:create, {enterprise: new_enterprise_params})
             enterprise_owner.reload
-          }.not_to change { enterprise_owner.terms_of_service_accepted_at }
+          }
+            .not_to(change { enterprise_owner.terms_of_service_accepted_at })
 
-          expect(response).to have_http_status :created
+          expect(response).to(have_http_status(:created))
         end
       end
     end
   end
 
-  context "as an enterprise manager" do
+  context("as an enterprise manager") do
     let(:enterprise_manager) { create(:user) }
 
     before do
       enterprise_manager.enterprise_roles.build(enterprise:).save
-      allow(controller).to receive(:spree_current_user) { enterprise_manager }
+      allow(controller).to(receive(:spree_current_user) { enterprise_manager })
     end
 
     describe "submitting a valid image" do
       let!(:logo) { fixture_file_upload("logo.png", "image/png") }
       before do
         allow(Enterprise)
-          .to receive(:find_by).with({ permalink: enterprise.id.to_s }) { enterprise }
+          .to(receive(:find_by).with({permalink: enterprise.id.to_s}) { enterprise })
       end
 
       it "I can update enterprise logo image" do
-        api_post :update_image, logo:, id: enterprise.id
-        expect(response).to have_http_status :ok
-        expect(response.content_type).to eq "text/html"
-        expect(response.body).to match /logo\.png$/
+        api_post(:update_image, logo:, id: enterprise.id)
+        expect(response).to(have_http_status(:ok))
+        expect(response.content_type).to(eq("text/html"))
+        expect(response.body).to(match(/logo\.png$/))
       end
 
       it "I can update enterprise promo image" do
-        api_post :update_image, promo: logo, id: enterprise.id
-        expect(response).to have_http_status :ok
-        expect(response.content_type).to eq "text/html"
-        expect(response.body).to match /logo\.png$/
+        api_post(:update_image, promo: logo, id: enterprise.id)
+        expect(response).to(have_http_status(:ok))
+        expect(response.content_type).to(eq("text/html"))
+        expect(response.body).to(match(/logo\.png$/))
       end
     end
   end
 
-  context "as an non-managing user" do
+  context("as an non-managing user") do
     let(:non_managing_user) { create(:user) }
 
     before do
       allow(Enterprise)
-        .to receive(:find_by).with({ permalink: enterprise.id.to_s }) { enterprise }
-      allow(controller).to receive(:spree_current_user) { non_managing_user }
+        .to(receive(:find_by).with({permalink: enterprise.id.to_s}) { enterprise })
+      allow(controller).to(receive(:spree_current_user) { non_managing_user })
     end
 
     describe "submitting a valid image" do
       it "I can't update enterprise image" do
-        api_post :update_image, logo: 'a logo', id: enterprise.id
+        api_post(:update_image, logo: "a logo", id: enterprise.id)
         assert_unauthorized!
       end
     end

@@ -3,63 +3,67 @@
 RSpec.describe Spree::Admin::BaseController do
   controller(Spree::Admin::BaseController) do
     def index
-      before_action :unauthorized
-      render plain: ""
+      before_action(:unauthorized)
+      render(plain: "")
     end
   end
 
   it "redirects to Angular login" do
-    spree_get :index
-    expect(response).to redirect_to root_path(anchor: "/login", after_login: "/spree/admin/base")
+    spree_get(:index)
+    expect(response).to(redirect_to(root_path(anchor: "/login", after_login: "/spree/admin/base")))
   end
 
   describe "rendering as json ActiveModelSerializer" do
-    context "when data is an object" do
-      let(:data) { { attr: 'value' } }
+    context("when data is an object") do
+      let(:data) { {attr: "value"} }
 
-      context "when an ams prefix is passed" do
+      context("when an ams prefix is passed") do
         let(:prefix) { "prefix" }
 
         it "passes a prefix to the serializer method and renders with serializer" do
-          expect(controller).to receive(:serializer).with(prefix) { "SerializerClass" }
-          expect(controller).to receive(:render).with({ json: data, serializer: "SerializerClass" })
+          expect(controller).to(receive(:serializer).with(prefix) { "SerializerClass" })
+          expect(controller).to(receive(:render).with({json: data, serializer: "SerializerClass"}))
           controller.__send__(:render_as_json, data, ams_prefix: prefix)
         end
       end
 
-      context "when no ams prefix is passed" do
+      context("when no ams prefix is passed") do
         let(:prefix) { "prefix" }
 
         it "does not pass a prefix to the serializer method and renders with serializer" do
-          expect(controller).to receive(:serializer).with(prefix) { "SerializerClass" }
-          expect(controller).to receive(:render).with({ json: data, serializer: "SerializerClass" })
+          expect(controller).to(receive(:serializer).with(prefix) { "SerializerClass" })
+          expect(controller).to(receive(:render).with({json: data, serializer: "SerializerClass"}))
           controller.__send__(:render_as_json, data, ams_prefix: prefix)
         end
       end
     end
 
-    context "when data is an array" do
-      let(:data) { [{ attr: 'value' }] }
+    context("when data is an array") do
+      let(:data) { [{attr: "value"}] }
 
-      context "when an ams prefix is passed" do
+      context("when an ams prefix is passed") do
         let(:prefix) { "prefix" }
 
         it "passes a prefix to the serializer method and renders with each_serializer" do
-          expect(controller).to receive(:serializer).with(prefix) { "SerializerClass" }
-          expect(controller).to receive(:render).with(
-            { json: data, each_serializer: "SerializerClass" }
+          expect(controller).to(receive(:serializer).with(prefix) { "SerializerClass" })
+          expect(controller).to(
+            receive(:render).with(
+              {json: data, each_serializer: "SerializerClass"}
+            )
           )
           controller.__send__(:render_as_json, data, ams_prefix: prefix)
         end
       end
 
-      context "when no ams prefix is passed" do
+      context("when no ams prefix is passed") do
         let(:prefix) { "prefix" }
 
         it "does not pass a prefix to the serializer method and renders with each_serializer" do
-          expect(controller).to receive(:serializer).with(prefix) { "SerializerClass" }
-          expect(controller).to receive(:render).with(
-            { json: data, each_serializer: "SerializerClass" }
+          expect(controller).to(receive(:serializer).with(prefix) { "SerializerClass" })
+          expect(controller).to(
+            receive(:render).with(
+              {json: data, each_serializer: "SerializerClass"}
+            )
           )
           controller.__send__(:render_as_json, data, ams_prefix: prefix)
         end
@@ -69,30 +73,31 @@ RSpec.describe Spree::Admin::BaseController do
 
   describe "determining the name of the serializer to be used" do
     before do
-      allow(controller).to receive(:ams_prefix_whitelist) { [:allowed_prefix] }
-      stub_const('Api::Admin::AllowedPrefixBaseSerializer', Class)
-      stub_const('Api::Admin::BaseSerializer', Class)
+      allow(controller).to(receive(:ams_prefix_whitelist) { [:allowed_prefix] })
+      stub_const("Api::Admin::AllowedPrefixBaseSerializer", Class)
+      stub_const("Api::Admin::BaseSerializer", Class)
     end
 
-    context "when a prefix is passed in" do
-      context "and the prefix appears in the whitelist" do
+    context("when a prefix is passed in") do
+      context("and the prefix appears in the whitelist") do
         it "returns the requested serializer" do
           expect(
-            controller.__send__(:serializer, 'allowed_prefix')
-          ).to eq Api::Admin::AllowedPrefixBaseSerializer
+            controller.__send__(:serializer, "allowed_prefix")
+          )
+            .to(eq(Api::Admin::AllowedPrefixBaseSerializer))
         end
       end
 
-      context "and the prefix does not appear in the whitelist" do
+      context("and the prefix does not appear in the whitelist") do
         it "raises an error" do
-          expect{ controller.__send__(:serializer, 'other_prefix') }.to raise_error RuntimeError
+          expect { controller.__send__(:serializer, "other_prefix") }.to(raise_error(RuntimeError))
         end
       end
     end
 
-    context "when no prefix is passed in" do
+    context("when no prefix is passed in") do
       it "returns the default serializer" do
-        expect(controller.__send__(:serializer, nil)).to eq Api::Admin::BaseSerializer
+        expect(controller.__send__(:serializer, nil)).to(eq(Api::Admin::BaseSerializer))
       end
     end
   end

@@ -4,7 +4,7 @@ module Admin
   class ContentsController < Spree::Admin::BaseController
     def edit
       @preference_sections = preference_sections.map do |preference_section|
-        { name: preference_section.name, preferences: preference_section.preferences }
+        {name: preference_section.name, preferences: preference_section.preferences}
       end
     end
 
@@ -20,10 +20,9 @@ module Admin
 
       ContentConfig.updated_at = Time.zone.now
 
-      flash[:success] =
-        t(:successfully_updated, resource: I18n.t('admin.contents.edit.your_content'))
+      flash[:success] = t(:successfully_updated, resource: I18n.t("admin.contents.edit.your_content"))
 
-      redirect_to main_app.edit_admin_contents_path
+      redirect_to(main_app.edit_admin_contents_path)
     end
 
     private
@@ -34,7 +33,7 @@ module Admin
         filename: attachable.original_filename,
         content_type: attachable.content_type,
         service_name: :local,
-        identify: false,
+        identify: false
       )
     end
 

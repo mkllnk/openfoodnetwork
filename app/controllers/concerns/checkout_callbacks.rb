@@ -49,8 +49,11 @@ module CheckoutCallbacks
   end
 
   def load_saved_addresses
-    finder = OpenFoodNetwork::AddressFinder.new(email: @order.email, customer: @order.customer,
-                                                user: spree_current_user)
+    finder = OpenFoodNetwork::AddressFinder.new(
+      email: @order.email,
+      customer: @order.customer,
+      user: spree_current_user
+    )
 
     @order.bill_address ||= finder.bill_address
     @order.ship_address ||= finder.ship_address
@@ -69,21 +72,21 @@ module CheckoutCallbacks
   def redirect_to_cart_path
     respond_to do |format|
       format.html do
-        redirect_to main_app.cart_path
+        redirect_to(main_app.cart_path)
       end
 
       format.json do
-        render json: { path: main_app.cart_path }, status: :bad_request
+        render(json: {path: main_app.cart_path}, status: :bad_request)
       end
     end
   end
 
   def ensure_order_not_completed
-    redirect_to main_app.cart_path if @order.completed?
+    redirect_to(main_app.cart_path) if @order.completed?
   end
 
   def ensure_checkout_allowed
-    redirect_to main_app.cart_path unless @order.checkout_allowed?
+    redirect_to(main_app.cart_path) unless @order.checkout_allowed?
   end
 
   def check_authorization

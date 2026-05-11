@@ -39,15 +39,18 @@ class RemoveAllMasterVariantsFromExchanges < ActiveRecord::Migration[4.2]
       "INSERT INTO exchange_variants (exchange_id, variant_id, created_at, updated_at)
       SELECT lonely_masters.exchange_id, latest_standard_variants.standard_variant_id, now(), now()
       FROM (#{lonely_masters_sql}) lonely_masters
-      JOIN (#{latest_standard_variants_sql}) latest_standard_variants on (lonely_masters.master_variant_id = latest_standard_variants.master_variant_id)" )
+      JOIN (#{latest_standard_variants_sql}) latest_standard_variants on (lonely_masters.master_variant_id = latest_standard_variants.master_variant_id)"
+    )
   end
 
   def delete_master_variants
-    execute("
+    execute(
+      "
       DELETE
       FROM exchange_variants ev
       USING spree_variants v
       WHERE ev.variant_id = v.id
-        AND v.is_master = true")
+        AND v.is_master = true"
+    )
   end
 end

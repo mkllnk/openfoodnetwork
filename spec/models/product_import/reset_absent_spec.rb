@@ -8,8 +8,8 @@ module ProductImport
       described_class.new(entry_processor, settings, reset_stock_strategy)
     end
 
-    describe '#call' do
-      context 'when there are no enterprises_to_reset' do
+    describe "#call" do
+      context "when there are no enterprises_to_reset" do
         let(:settings) { instance_double(Settings, enterprises_to_reset: []) }
         let(:reset_stock_strategy) { instance_double(InventoryResetStrategy) }
 
@@ -17,17 +17,17 @@ module ProductImport
           allow(reset_stock_strategy).to receive(:reset).with([]) { 0 }
         end
 
-        it 'returns 0' do
+        it "returns 0" do
           expect(reset_absent.call).to eq(0)
         end
 
-        it 'calls the strategy' do
+        it "calls the strategy" do
           reset_absent.call
           expect(reset_stock_strategy).to have_received(:reset)
         end
       end
 
-      context 'when there are enterprises_to_reset' do
+      context "when there are enterprises_to_reset" do
         let(:enterprise) { instance_double(Enterprise, id: 1) }
 
         let(:settings) do
@@ -49,17 +49,17 @@ module ProductImport
             .to receive(:reset).with([enterprise.id]) { 2 }
         end
 
-        it 'returns the number of products reset' do
+        it "returns the number of products reset" do
           expect(reset_absent.call).to eq(2)
         end
 
-        it 'resets the products of the specified suppliers' do
+        it "resets the products of the specified suppliers" do
           reset_absent.call
           expect(reset_stock_strategy).to have_received(:reset)
         end
       end
 
-      context 'when the enterprise has no permission' do
+      context "when the enterprise has no permission" do
         let(:enterprise) { instance_double(Enterprise, id: 1) }
 
         let(:settings) do
@@ -78,12 +78,12 @@ module ProductImport
           allow(reset_stock_strategy).to receive(:reset).with([nil]) { 0 }
         end
 
-        it 'calls the strategy' do
+        it "calls the strategy" do
           reset_absent.call
           expect(reset_stock_strategy).to have_received(:reset)
         end
 
-        it 'returns 0' do
+        it "returns 0" do
           expect(reset_absent.call).to eq(0)
         end
       end

@@ -5,12 +5,34 @@ module Api
     class OrderSerializer < ActiveModel::Serializer
       include AddressDisplay
 
-      attributes :id, :number, :user_id, :full_name, :full_name_for_sorting, :email, :phone,
-                 :completed_at, :completed_at_utc_iso8601, :display_total,
-                 :edit_path, :state, :payment_state, :shipment_state,
-                 :payments_path, :ready_to_ship, :ready_to_capture, :created_at,
-                 :distributor_name, :special_instructions, :display_outstanding_balance,
-                 :item_total, :adjustment_total, :payment_total, :total, :item_count
+      attributes(
+        :id,
+        :number,
+        :user_id,
+        :full_name,
+        :full_name_for_sorting,
+        :email,
+        :phone,
+        :completed_at,
+        :completed_at_utc_iso8601,
+        :display_total,
+        :edit_path,
+        :state,
+        :payment_state,
+        :shipment_state,
+        :payments_path,
+        :ready_to_ship,
+        :ready_to_capture,
+        :created_at,
+        :distributor_name,
+        :special_instructions,
+        :display_outstanding_balance,
+        :item_total,
+        :adjustment_total,
+        :payment_total,
+        :total,
+        :item_count
+      )
 
       has_one :distributor, serializer: Api::Admin::IdSerializer
       has_one :order_cycle, serializer: Api::Admin::IdSerializer
@@ -21,7 +43,7 @@ module Api
       end
 
       def full_name
-        value = object.billing_address.nil? ? "" : ( object.billing_address.full_name || "" )
+        value = object.billing_address.nil? ? "" : (object.billing_address.full_name || "")
         display_value_for_producer(object, value)
       end
 
@@ -44,13 +66,13 @@ module Api
       end
 
       def edit_path
-        return '' unless object.id
+        return "" unless object.id
 
         spree_routes_helper.edit_admin_order_path(object)
       end
 
       def payments_path
-        return '' unless object.payment_state
+        return "" unless object.payment_state
 
         spree_routes_helper.admin_order_payments_path(object)
       end
@@ -75,16 +97,16 @@ module Api
       end
 
       def phone
-        value = object.billing_address.nil? ? "a" : ( object.billing_address.phone || "" )
+        value = object.billing_address.nil? ? "a" : (object.billing_address.phone || "")
         display_value_for_producer(object, value)
       end
 
       def created_at
-        object.created_at.blank? ? "" : I18n.l(object.created_at, format: '%B %d, %Y')
+        object.created_at.blank? ? "" : I18n.l(object.created_at, format: "%B %d, %Y")
       end
 
       def completed_at
-        object.completed_at.blank? ? "" : I18n.l(object.completed_at, format: '%B %d, %Y')
+        object.completed_at.blank? ? "" : I18n.l(object.completed_at, format: "%B %d, %Y")
       end
 
       def item_count

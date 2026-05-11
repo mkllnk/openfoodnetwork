@@ -11,19 +11,23 @@ module Spree
 
     localize_number :amount
 
-    IDENTIFIER_CHARS = (('A'..'Z').to_a + ('0'..'9').to_a - %w(0 1 I O)).freeze
+    IDENTIFIER_CHARS = (("A".."Z").to_a + ("0".."9").to_a - %w[0 1 I O]).freeze
 
     delegate :line_items, to: :order
     delegate :currency, to: :order
 
-    belongs_to :order, class_name: 'Spree::Order'
+    belongs_to :order, class_name: "Spree::Order"
     belongs_to :source, polymorphic: true
     belongs_to :payment_method, class_name: "Spree::PaymentMethod", inverse_of: :payments
 
-    has_many :offsets, -> { where("source_type = 'Spree::Payment' AND amount < 0").completed },
-             class_name: "Spree::Payment", foreign_key: :source_id,
-             inverse_of: :source,
-             dependent: :restrict_with_exception
+    has_many(
+      :offsets,
+      -> { where("source_type = 'Spree::Payment' AND amount < 0").completed },
+      class_name: "Spree::Payment",
+      foreign_key: :source_id,
+      inverse_of: :source,
+      dependent: :restrict_with_exception
+    )
     has_many :log_entries, as: :source, dependent: :destroy
 
     has_one :adjustment, as: :adjustable, dependent: :destroy
@@ -48,18 +52,18 @@ module Spree
     attr_accessor :skip_source_validation
     attr_accessor :source_attributes
 
-    scope :from_credit_card, -> { where(source_type: 'Spree::CreditCard') }
-    scope :with_state, ->(s) { where(state: s.to_s) }
-    scope :completed, -> { with_state('completed') }
-    scope :incomplete, -> { where(state: %w(checkout pending requires_authorization)) }
-    scope :checkout, -> { with_state('checkout') }
-    scope :pending, -> { with_state('pending') }
-    scope :failed, -> { with_state('failed') }
-    scope :valid, -> { where.not(state: %w(failed invalid)) }
-    scope :void, -> { with_state('void') }
+    scope :from_credit_card, -> { where(source_type: "Spree::CreditCard") }
+    scope :with_state, -> (s) { where(state: s.to_s) }
+    scope :completed, -> { with_state("completed") }
+    scope :incomplete, -> { where(state: %w[checkout pending requires_authorization]) }
+    scope :checkout, -> { with_state("checkout") }
+    scope :pending, -> { with_state("pending") }
+    scope :failed, -> { with_state("failed") }
+    scope :valid, -> { where.not(state: %w[failed invalid]) }
+    scope :void, -> { with_state("void") }
     scope :authorization_action_required, -> { where.not(redirect_auth_url: nil) }
     scope :requires_authorization, -> { with_state("requires_authorization") }
-    scope :with_payment_intent, ->(code) { where(response_code: code) }
+    scope :with_payment_intent, -> (code) { where(response_code: code) }
     scope :customer_credit, -> { where(payment_method: Spree::PaymentMethod.customer_credit) }
     scope :not_customer_credit, -> { where.not(payment_method: Spree::PaymentMethod.customer_credit) }
 
@@ -67,8 +71,10 @@ module Spree
     state_machine initial: :checkout do
       # With card payments, happens before purchase or authorization happens
       event :started_processing do
-        transition from: [:checkout, :pending, :completed, :processing, :requires_authorization],
-                   to: :processing
+        transition(
+          from: [:checkout, :pending, :completed, :processing, :requires_authorization],
+          to: :processing
+        )
       end
       # When processing during checkout fails
       event :failure do
@@ -82,6 +88,7 @@ module Spree
       event :complete do
         transition from: [:processing, :pending, :checkout, :requires_authorization], to: :completed
       end
+
       event :void do
         transition from: [:pending, :completed, :requires_authorization, :checkout], to: :void
       end
@@ -89,15 +96,19 @@ module Spree
       event :invalidate do
         transition from: [:checkout], to: :invalid
       end
+
       event :require_authorization do
         transition from: [:checkout, :processing], to: :requires_authorization
       end
+
       event :fail_authorization do
         transition from: [:requires_authorization], to: :failed
       end
+
       event :complete_authorization do
         transition from: [:requires_authorization], to: :completed
       end
+
       event :resume do
         transition from: [:void], to: :checkout
       end
@@ -107,17 +118,23 @@ module Spree
         # Catch any exceptions to prevent any rollback potentially
         # preventing payment from going through
         ActiveSupport::Notifications.instrument(
-          "ofn.payment_transition", payment: payment, event: transition.to
+          "ofn.payment_transition",
+          payment: payment,
+          event: transition.to
         )
       rescue StandardError => e
-        Rails.logger.fatal "ActiveSupport::Notification.instrument failed params: " \
-                           "<event_type:ofn.payment_transition> " \
-                           "<payment_id:#{payment.id}> " \
-                           "<event:#{transition.to}>"
+        Rails.logger.fatal(
+          "ActiveSupport::Notification.instrument failed params: " \
+            "<event_type:ofn.payment_transition> " \
+            "<payment_id:#{payment.id}> " \
+            "<event:#{transition.to}>"
+        )
         Alert.raise(
           e,
           metadata: {
-            event_type: "ofn.payment_transition", payment_id: payment.id, event: transition.to
+            event_type: "ofn.payment_transition",
+            payment_id: payment.id,
+            event: transition.to
           }
         )
       end
@@ -134,6 +151,7 @@ module Spree
     def money
       Spree::Money.new(amount, currency:)
     end
+
     alias display_amount money
 
     def offsets_total
@@ -168,7 +186,7 @@ module Spree
     end
 
     def ensure_correct_adjustment
-      revoke_adjustment_eligibility if ['failed', 'invalid', 'void'].include?(state)
+      revoke_adjustment_eligibility if ["failed", "invalid", "void"].include?(state)
       return if adjustment.try(:finalized?)
 
       if adjustment
@@ -182,7 +200,7 @@ module Spree
     end
 
     def adjustment_label
-      I18n.t('payment_method_fee')
+      I18n.t("payment_method_fee")
     end
 
     def clear_authorization_url
@@ -212,12 +230,14 @@ module Spree
     def validate_source
       if source && !skip_source_validation && !source.valid?
         source.errors.each do |error|
-          field_name =
-            I18n.t("activerecord.attributes.#{source.class.to_s.underscore}.#{error.attribute}")
-          errors.add(Spree.t(source.class.to_s.demodulize.underscore),
-                     "#{field_name} #{error.message}")
+          field_name = I18n.t("activerecord.attributes.#{source.class.to_s.underscore}.#{error.attribute}")
+          errors.add(
+            Spree.t(source.class.to_s.demodulize.underscore),
+            "#{field_name} #{error.message}"
+          )
         end
       end
+
       errors.blank?
     end
 
@@ -229,7 +249,7 @@ module Spree
 
       payment_method.try(:create_profile, self)
     rescue ActiveMerchant::ConnectionError => e
-      gateway_error e
+      gateway_error(e)
     end
 
     # Makes newly entered payments invalidate previously entered payments so the most recent payment
@@ -239,7 +259,7 @@ module Spree
         # Using update_column skips validations and so it skips validate_source. As we are just
         # invalidating past payments here, we don't want to validate all of them at this stage.
         payment.update_columns(
-          state: 'invalid',
+          state: "invalid",
           updated_at: Time.zone.now
         )
         payment.ensure_correct_adjustment
@@ -264,7 +284,7 @@ module Spree
     end
 
     def generate_identifier
-      Array.new(8){ IDENTIFIER_CHARS.sample }.join
+      Array.new(8) { IDENTIFIER_CHARS.sample }.join
     end
   end
 end

@@ -3,9 +3,11 @@
 module Api
   module V0
     class EnterpriseAttachmentController < Api::V0::BaseController
-      class MissingImplementationError < StandardError; end
+      class MissingImplementationError < StandardError
+      end
 
-      class UnknownEnterpriseAuthorizationActionError < StandardError; end
+      class UnknownEnterpriseAuthorizationActionError < StandardError
+      end
 
       before_action :load_enterprise
 
@@ -17,9 +19,11 @@ module Api
         end
 
         @enterprise.update!(attachment_name => nil)
-        render json: @enterprise,
-               serializer: Admin::EnterpriseSerializer,
-               spree_current_user:
+        render(
+          json: @enterprise,
+          serializer: Admin::EnterpriseSerializer,
+          spree_current_user:
+        )
       end
 
       protected

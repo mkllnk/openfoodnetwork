@@ -8,7 +8,7 @@ ActiveSupport::Notifications.subscribe(/deprecation/) do |_name, _start, _finish
     report.severity = "warning"
     report.add_tab(
       :deprecation,
-      payload.except(:callstack),
+      payload.except(:callstack)
     )
   end
 end

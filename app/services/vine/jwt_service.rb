@@ -5,7 +5,7 @@ module Vine
     ALGORITHM = "HS256"
     ISSUER = "openfoodnetwork"
 
-    def initialize(secret: )
+    def initialize(secret:)
       @secret = secret
     end
 
@@ -14,7 +14,7 @@ module Vine
       payload = {
         iss: ISSUER,
         iat: generation_time.to_i,
-        exp: (generation_time + 1.minute).to_i,
+        exp: (generation_time + 1.minute).to_i
       }
 
       JWT.encode(payload, @secret, ALGORITHM)

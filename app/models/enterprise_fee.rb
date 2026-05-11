@@ -6,7 +6,7 @@ class EnterpriseFee < ApplicationRecord
   acts_as_paranoid
 
   belongs_to :enterprise
-  belongs_to :tax_category, optional: true, class_name: 'Spree::TaxCategory'
+  belongs_to :tax_category, optional: true, class_name: "Spree::TaxCategory"
 
   has_many :coordinator_fees, dependent: :destroy
   has_many :order_cycles, through: :coordinator_fees
@@ -14,12 +14,14 @@ class EnterpriseFee < ApplicationRecord
   has_many :exchange_fees, dependent: :destroy
   has_many :exchanges, through: :exchange_fees
 
-  FEE_TYPES = %w(packing transport admin sales fundraising).freeze
-  PER_ORDER_CALCULATORS = ['Calculator::FlatRate',
-                           'Calculator::FlexiRate',
-                           'Calculator::PriceSack'].freeze
+  FEE_TYPES = %w[packing transport admin sales fundraising].freeze
+  PER_ORDER_CALCULATORS = [
+    "Calculator::FlatRate",
+    "Calculator::FlexiRate",
+    "Calculator::PriceSack"
+  ].freeze
 
-  validates :fee_type, inclusion: { in: FEE_TYPES }
+  validates :fee_type, inclusion: {in: FEE_TYPES}
   validates :name, presence: true
 
   before_save :ensure_valid_tax_category_settings
@@ -27,20 +29,29 @@ class EnterpriseFee < ApplicationRecord
   scope :for_enterprise, lambda { |enterprise| where(enterprise_id: enterprise) }
   scope :for_enterprises, lambda { |enterprises| where(enterprise_id: enterprises) }
 
-  scope :managed_by, lambda { |user|
-    if user.admin?
-      where(nil)
-    else
-      where(enterprise_id: user.enterprises.select(&:id))
-    end
-  }
+  scope(
+    :managed_by,
+    lambda { |user|
+      if user.admin?
+        where(nil)
+      else
+        where(enterprise_id: user.enterprises.select(&:id))
+      end
+    }
+  )
 
-  scope :per_item, lambda {
-    joins(:calculator).where.not(spree_calculators: { type: PER_ORDER_CALCULATORS })
-  }
-  scope :per_order, lambda {
-    joins(:calculator).where(spree_calculators: { type: PER_ORDER_CALCULATORS })
-  }
+  scope(
+    :per_item,
+    lambda {
+      joins(:calculator).where.not(spree_calculators: {type: PER_ORDER_CALCULATORS})
+    }
+  )
+  scope(
+    :per_order,
+    lambda {
+      joins(:calculator).where(spree_calculators: {type: PER_ORDER_CALCULATORS})
+    }
+  )
 
   def self.clear_order_adjustments(order)
     order.all_adjustments.enterprise_fee.where.not(adjustable_type: "Spree::LineItem").destroy_all
@@ -60,7 +71,7 @@ class EnterpriseFee < ApplicationRecord
 
     if inherits_tax_category? && PER_ORDER_CALCULATORS.include?(calculator_type)
       errors.add(:base, :inherit_tax_requires_per_item_calculator)
-      throw :abort
+      throw(:abort)
     end
 
     true

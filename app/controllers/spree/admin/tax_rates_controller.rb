@@ -35,11 +35,15 @@ module Spree
 
       def transition_tax_rate
         if transition_rate!
-          redirect_to location_after_save,
-                      flash: { success: flash_message_for(updated_rate, :successfully_updated) }
+          redirect_to(
+            location_after_save,
+            flash: {success: flash_message_for(updated_rate, :successfully_updated)}
+          )
         else
-          redirect_to spree.edit_admin_tax_rate_path(@tax_rate),
-                      flash: { error: updated_rate.errors.full_messages.to_sentence }
+          redirect_to(
+            spree.edit_admin_tax_rate_path(@tax_rate),
+            flash: {error: updated_rate.errors.full_messages.to_sentence}
+          )
         end
       end
 
@@ -55,8 +59,13 @@ module Spree
 
       def permitted_resource_params
         params.require(:tax_rate).permit(
-          :name, :amount, :included_in_price, :zone_id,
-          :tax_category_id, :show_rate_in_label, :calculator_type
+          :name,
+          :amount,
+          :included_in_price,
+          :zone_id,
+          :tax_category_id,
+          :show_rate_in_label,
+          :calculator_type
         )
       end
     end

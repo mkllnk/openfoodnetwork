@@ -8,31 +8,31 @@
 # This script was written for a once-off import. If we want to perform this
 # task more often, we can make it more flexible and eventually add a
 # feature to the user interface.
-require 'csv'
+require "csv"
 
 enterprise_id = ARGV.first
 
 def check_enterprise_exists(id)
   enterprise = Enterprise.find(id)
-  puts "Importing customers for #{enterprise.name}:"
+  puts("Importing customers for #{enterprise.name}:")
 end
 
 def import_customer(row, enterprise_id)
   email = row["Email"].downcase
   tag = row["Tag"]
 
-  print email
+  print(email)
   customer = find_or_create_customer(email, enterprise_id)
   add_tag(customer, tag)
-  puts ""
+  puts("")
 end
 
 def find_or_create_customer(email, enterprise_id)
   Customer.find_or_create_by(
     email: email,
-    enterprise_id: enterprise_id,
-  ) { print " - newly imported" }
-  print " - user exists" if Spree::User.where(email: email).exists?
+    enterprise_id: enterprise_id
+  ) { print(" - newly imported") }
+  print(" - user exists") if Spree::User.where(email: email).exists?
 end
 
 def add_tag(customer, tag)

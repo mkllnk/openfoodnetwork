@@ -47,7 +47,7 @@ module Reporting
             total_tax_on_product:,
             total_tax_on_fees:,
             total_tax:,
-            total:,
+            total:
           }
         end
 
@@ -88,13 +88,15 @@ module Reporting
         end
 
         def line_item_includes
-          [{
-            order: [
-              :distributor,
-              :adjustments,
-            ],
-            variant: [:product, :supplier]
-          }]
+          [
+            {
+              order: [
+                :distributor,
+                :adjustments
+              ],
+              variant: [:product, :supplier]
+            }
+          ]
         end
       end
     end

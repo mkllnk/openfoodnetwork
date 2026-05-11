@@ -16,9 +16,14 @@ module Admin
     end
 
     def additional_tax_total_representation(order)
-      adjustment = Spree::Adjustment.additional.tax.where(
-        order_id: order.id, adjustable_type: 'Spree::Adjustment'
-      ).sum(:amount)
+      adjustment = Spree::Adjustment
+        .additional
+        .tax
+        .where(
+          order_id: order.id,
+          adjustable_type: "Spree::Adjustment"
+        )
+        .sum(:amount)
 
       return [] unless adjustment != 0
 
@@ -37,8 +42,10 @@ module Admin
 
       [
         AdjustmentData.new(
-          I18n.t("admin.orders.edit.voucher_tax_included_in_price",
-                 label: adjustment.label),
+          I18n.t(
+            "admin.orders.edit.voucher_tax_included_in_price",
+            label: adjustment.label
+          ),
           adjustment.included_tax
         )
       ]

@@ -25,7 +25,8 @@ class AmendBackorderJob < ApplicationJob
 
     if backorder
       user = order.distributor.owner
-      urls = nil # Not needed to send order. The backorder id is the URL.
+      # Not needed to send order. The backorder id is the URL.
+      urls = nil
       FdcBackorderer.new(user, urls).send_order(backorder)
     elsif !order.order_cycle.closed?
 

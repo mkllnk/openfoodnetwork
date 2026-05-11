@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module Orders
-  class HandleFeesService # rubocop:disable Metrics/ClassLength
+  # rubocop:disable Metrics/ClassLength
+  class HandleFeesService
     attr_reader :order
 
     delegate :distributor, :order_cycle, to: :order
@@ -18,7 +19,7 @@ module Orders
       # See https://github.com/rails/rails/blob/3-2-stable/activerecord/lib/active_record/locking/pessimistic.rb#L69
       # and https://www.postgresql.org/docs/current/static/sql-select.html#SQL-FOR-UPDATE-SHARE
       order.with_lock do
-        EnterpriseFee.clear_order_adjustments order
+        EnterpriseFee.clear_order_adjustments(order)
 
         # To prevent issue with fee being removed when a product is not linked to the order cycle
         # anymore, we now create or update line item fees.
@@ -38,6 +39,7 @@ module Orders
           create_line_item_fees!(line_item)
           next
         end
+
         create_or_update_line_item_fee!(line_item)
 
         # delete any fees removed from the Order Cycle
@@ -48,7 +50,7 @@ module Orders
     def create_order_fees!
       return unless order_cycle
 
-      calculator.create_order_adjustments_for order
+      calculator.create_order_adjustments_for(order)
     end
 
     def tax_enterprise_fees!
@@ -62,7 +64,7 @@ module Orders
     end
 
     def update_order_fees!
-      order.adjustments.enterprise_fee.where(adjustable_type: 'Spree::Order').each do |fee|
+      order.adjustments.enterprise_fee.where(adjustable_type: "Spree::Order").each do |fee|
         fee.update_adjustment!(order, force: true)
       end
     end
@@ -70,7 +72,7 @@ module Orders
     private
 
     def create_line_item_fees!(line_item)
-      return unless provided_by_order_cycle? line_item
+      return unless provided_by_order_cycle?(line_item)
 
       calculator.create_line_item_adjustments_for(line_item)
     end
@@ -80,12 +82,13 @@ module Orders
 
       applicators.each do |fee_applicator|
         fee_adjustment = line_item.adjustments.by_originator_and_enterprise_role(
-          fee_applicator.enterprise_fee, fee_applicator.role
+          fee_applicator.enterprise_fee,
+          fee_applicator.role
         )
 
         if fee_adjustment
           fee_adjustment.update_adjustment!(line_item, force: true)
-        elsif provided_by_order_cycle? line_item
+        elsif provided_by_order_cycle?(line_item)
           fee_applicator.create_line_item_adjustment(line_item)
         end
       end
@@ -113,7 +116,8 @@ module Orders
       order_cycle_fees.each do |order_cycle_fee|
         # Check if there is any fee adjustment with a role other than the one in the order cycle fee
         fee = line_item.enterprise_fee_adjustments.by_originator_and_not_enterprise_role(
-          order_cycle_fee.fee, order_cycle_fee.role
+          order_cycle_fee.fee,
+          order_cycle_fee.role
         )
 
         # Check if the fee matches a fee linked to the order cycle
@@ -129,7 +133,7 @@ module Orders
     end
 
     def order_cycle_fees
-      return @order_cycle_fees if defined? @order_cycle_fees
+      return @order_cycle_fees if defined?(@order_cycle_fees)
       return [] unless order_cycle && distributor
 
       @order_cycle_fees = begin
@@ -155,6 +159,7 @@ module Orders
         order_cycle_fee.fee == fee.originator &&
           order_cycle_fee.role == fee.metadata.enterprise_role
       end
+
       matching.present?
     end
 
@@ -164,7 +169,7 @@ module Orders
 
     def provided_by_order_cycle?(line_item)
       @order_cycle_variant_ids ||= order_cycle&.variants&.map(&:id) || []
-      @order_cycle_variant_ids.include? line_item.variant_id
+      @order_cycle_variant_ids.include?(line_item.variant_id)
     end
   end
 end

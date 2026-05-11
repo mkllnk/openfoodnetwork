@@ -10,7 +10,7 @@ class UserInvitation
 
   before_validation :normalize_email
 
-  validates :email, presence: true, 'valid_email_2/email': { mx: true }
+  validates :email, presence: true, 'valid_email_2/email': {mx: true}
   validates :enterprise, presence: true
   validate :not_existing_enterprise_user
 

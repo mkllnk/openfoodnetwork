@@ -2,7 +2,11 @@
 
 class ProductFilters
   PRODUCT_FILTERS = [
-    'query', 'producerFilter', 'categoryFilter', 'sorting', 'importDateFilter'
+    "query",
+    "producerFilter",
+    "categoryFilter",
+    "sorting",
+    "importDateFilter"
   ].freeze
 
   def extract(params)

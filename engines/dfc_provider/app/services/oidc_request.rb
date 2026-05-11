@@ -12,7 +12,7 @@ class OidcRequest
   def call(url, data = nil, method: nil)
     request(url, data, method:)
   rescue StandardError => e
-    Alert.raise(e, { dfc_request: { data: } })
+    Alert.raise e, {dfc_request: {data:}}
     raise
   end
 
@@ -32,16 +32,16 @@ class OidcRequest
 
   def connection
     Faraday.new(
-      request: { timeout: 30 },
+      request: {timeout: 30},
       headers: {
-        'Authorization' => "Bearer #{@token}",
+        "Authorization" => "Bearer #{@token}"
       }
     ) do |f|
-      f.request :json
-      f.response :json
+      f.request(:json)
+      f.response(:json)
 
       # Configure Faraday to raise errors on status 4xx and 5xx responses.
-      f.response :raise_error
+      f.response(:raise_error)
     end
   end
 

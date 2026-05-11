@@ -13,7 +13,7 @@ module Stripe
 
     def create_customer_from_token
       token = ActiveMerchant::Billing::StripeGateway::StripePaymentToken.new(
-        { 'id' => @payment.source.gateway_payment_profile_id }
+        {"id" => @payment.source.gateway_payment_profile_id}
       )
       response = @provider.store(token, options)
 
@@ -65,14 +65,15 @@ module Stripe
     end
 
     def customer_profile_id(response)
-      response.params['customer'] || response.params['id']
+      response.params["customer"] || response.params["id"]
     end
 
     def payment_profile_id(response)
-      if response.params['customer'] # Payment Intents API
-        response.params['id']
+      # Payment Intents API
+      if response.params["customer"]
+        response.params["id"]
       else
-        response.params['default_source'] || response.params['default_card']
+        response.params["default_source"] || response.params["default_card"]
       end
     end
   end

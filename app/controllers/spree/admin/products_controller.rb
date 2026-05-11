@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'open_food_network/spree_api_key_loader'
-require 'open_food_network/referer_parser'
-require 'open_food_network/permissions'
+require "open_food_network/spree_api_key_loader"
+require "open_food_network/referer_parser"
+require "open_food_network/permissions"
 
 module Spree
   module Admin
@@ -22,7 +22,7 @@ module Spree
 
       def show
         session[:return_to] ||= request.referer
-        redirect_to( action: :edit )
+        redirect_to(action: :edit)
       end
 
       def new
@@ -44,7 +44,7 @@ module Spree
             # Re-fill the form with deleted params on product
             @on_hand = request.params[:product][:on_hand]
             @on_demand = request.params[:product][:on_demand]
-            render :new
+            render(:new)
           end
         end
       end
@@ -57,7 +57,8 @@ module Spree
           if @object.update(permitted_resource_params)
             flash[:success] = flash_message_for(@object, :successfully_updated)
           end
-          redirect_to spree.edit_admin_product_url(@object, @url_filters)
+
+          redirect_to(spree.edit_admin_product_url(@object, @url_filters))
         end
       end
 
@@ -90,7 +91,7 @@ module Spree
       end
 
       def product_includes
-        [:image, { variants: [:images] }]
+        [:image, {variants: [:images]}]
       end
 
       def collection_actions
@@ -101,9 +102,9 @@ module Spree
 
       def redirect_after_save
         if params[:button] == "add_another"
-          redirect_to spree.new_admin_product_path
+          redirect_to(spree.new_admin_product_path)
         else
-          redirect_to spree.admin_products_path
+          redirect_to(spree.admin_products_path)
         end
       end
 
@@ -115,8 +116,10 @@ module Spree
       end
 
       def products_bulk_params
-        params.permit(products: ::PermittedAttributes::Product.attributes).
-          to_h.with_indifferent_access
+        params
+          .permit(products: ::PermittedAttributes::Product.attributes)
+          .to_h
+          .with_indifferent_access
       end
 
       def permitted_resource_params
@@ -135,24 +138,30 @@ module Spree
       end
 
       def load_producers
-        @producers = OpenFoodNetwork::Permissions.new(spree_current_user).
-          managed_product_enterprises.is_primary_producer.by_name
+        @producers = OpenFoodNetwork::Permissions
+          .new(spree_current_user)
+          .managed_product_enterprises
+          .is_primary_producer
+          .by_name
       end
 
       def product_import_dates
-        options = [{ id: '0', name: '' }]
-        product_import_dates_query.collect(&:import_date).
-          map { |i| options.push(id: i.to_date, name: i.to_date.to_fs(:long)) }
+        options = [{id: "0", name: ""}]
+        product_import_dates_query.collect(&:import_date).map { |i|
+          options.push(id: i.to_date, name: i.to_date.to_fs(:long))
+        }
 
         options
       end
 
       def product_import_dates_query
-        Spree::Variant.
-          select('import_date').distinct.
-          where(supplier_id: editable_enterprises.collect(&:id)).
-          where.not(spree_variants: { import_date: nil }).
-          order('import_date DESC')
+        Spree::Variant
+          .select("import_date")
+          .distinct
+          .where(supplier_id: editable_enterprises.collect(&:id))
+          .where
+          .not(spree_variants: {import_date: nil})
+          .order("import_date DESC")
       end
 
       def strip_new_properties
@@ -160,8 +169,8 @@ module Spree
 
         names = Spree::Property.pluck(:name)
         params[:product][:product_properties_attributes].each do |key, property|
-          unless names.include? property[:property_name]
-            params[:product][:product_properties_attributes].delete key
+          unless names.include?(property[:property_name])
+            params[:product][:product_properties_attributes].delete(key)
           end
         end
       end
@@ -188,9 +197,11 @@ module Spree
       end
 
       def notify_bugsnag(error, product, variant)
-        Alert.raise(error) do |report|
-          report.add_metadata(:product,
-                              { product: product.attributes, variant: variant.attributes })
+        Alert.raise error do |report|
+          report.add_metadata(
+            :product,
+            {product: product.attributes, variant: variant.attributes}
+          )
           report.add_metadata(:product, :product_error, product.errors.first) unless product.valid?
           report.add_metadata(:product, :variant_error, variant.errors.first) unless variant.valid?
         end

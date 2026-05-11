@@ -7,8 +7,12 @@ module PermittedAttributes
 
       describe "permits basic attributes" do
         let(:params) {
-          ActionController::Parameters.new(user: { name: "John",
-                                                   email: "email@example.com" } )
+          ActionController::Parameters.new(
+            user: {
+              name: "John",
+              email: "email@example.com"
+            }
+          )
         }
 
         it "keeps permitted and removes not permitted" do
@@ -30,8 +34,12 @@ module PermittedAttributes
     describe "with custom resource_name" do
       let(:user_permitted_attributes) { PermittedAttributes::User.new(params, :spree_user) }
       let(:params) {
-        ActionController::Parameters.new(spree_user: { name: "John",
-                                                       email: "email@example.com" } )
+        ActionController::Parameters.new(
+          spree_user: {
+            name: "John",
+            email: "email@example.com"
+          }
+        )
       }
 
       it "keeps permitted and removes not permitted" do

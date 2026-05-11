@@ -3,7 +3,7 @@
 require_relative "../spec_helper"
 
 RSpec.describe ImageBuilder do
-  include FileHelper
+  include(FileHelper)
 
   let(:url) { "https://example.net/image.png" }
 
@@ -14,8 +14,8 @@ RSpec.describe ImageBuilder do
   describe ".import" do
     it "downloads an image" do
       image = ImageBuilder.import(url)
-      expect(image).to be_a Spree::Image
-      expect(image.attachment.blob.custom_metadata["origin"]).to eq url
+      expect(image).to(be_a(Spree::Image))
+      expect(image.attachment.blob.custom_metadata["origin"]).to(eq(url))
     end
   end
 end

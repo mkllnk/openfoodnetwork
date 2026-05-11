@@ -14,7 +14,8 @@ module Admin
         @enterprise_group = find_resource
         @enterprise_group.move_higher
       end
-      redirect_to main_app.admin_enterprise_groups_path
+
+      redirect_to(main_app.admin_enterprise_groups_path)
     end
 
     def move_down
@@ -22,7 +23,8 @@ module Admin
         @enterprise_group = find_resource
         @enterprise_group.move_lower
       end
-      redirect_to main_app.admin_enterprise_groups_path
+
+      redirect_to(main_app.admin_enterprise_groups_path)
     end
 
     protected
@@ -59,9 +61,22 @@ module Admin
 
     def permitted_resource_params
       params.require(:enterprise_group).permit(
-        :name, :description, :long_description, :logo, :promo_image, :on_front_page,
-        :owner_id, :permalink, :email, :website, :facebook, :instagram, :linkedin, :twitter,
-        enterprise_ids: [], address_attributes: PermittedAttributes::Address.attributes
+        :name,
+        :description,
+        :long_description,
+        :logo,
+        :promo_image,
+        :on_front_page,
+        :owner_id,
+        :permalink,
+        :email,
+        :website,
+        :facebook,
+        :instagram,
+        :linkedin,
+        :twitter,
+        enterprise_ids: [],
+        address_attributes: PermittedAttributes::Address.attributes
       )
     end
   end

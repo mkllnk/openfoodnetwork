@@ -20,10 +20,12 @@ module I18n
           scope_symbol = scope.respond_to?(:to_sym) ? scope.to_sym : scope.to_s.to_sym
           results[scope_symbol] = tmp unless tmp.nil?
         end
+
         return results
       elsif translations.respond_to?(:key?) && translations.key?(scope.to_sym)
         return {scope.to_sym => scopes.empty? ? translations[scope.to_sym] : filter(translations[scope.to_sym], scopes)}
       end
+
       nil
     end
   end

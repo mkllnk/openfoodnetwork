@@ -7,7 +7,7 @@
 class ProxyOrder < ApplicationRecord
   self.belongs_to_required_by_default = false
 
-  belongs_to :order, class_name: 'Spree::Order'
+  belongs_to :order, class_name: "Spree::Order"
   belongs_to :subscription
   belongs_to :order_cycle
 
@@ -16,18 +16,23 @@ class ProxyOrder < ApplicationRecord
   scope :active, -> { joins(:order_cycle).merge(OrderCycle.active) }
   scope :closed, -> { joins(:order_cycle).merge(OrderCycle.closed) }
   scope :not_closed, -> { joins(:order_cycle).merge(OrderCycle.not_closed) }
-  scope :canceled, -> { where.not(proxy_orders: { canceled_at: nil }) }
-  scope :not_canceled, -> { where(proxy_orders: { canceled_at: nil }) }
-  scope :placed_and_open, -> {
-                            joins(:order).not_closed
-                              .where(spree_orders: { state: ['complete', 'resumed'] })
-                          }
+  scope :canceled, -> { where.not(proxy_orders: {canceled_at: nil}) }
+  scope :not_canceled, -> { where(proxy_orders: {canceled_at: nil}) }
+  scope(
+    :placed_and_open,
+    -> {
+      joins(:order)
+        .not_closed
+        .where(spree_orders: {state: ["complete", "resumed"]})
+    }
+  )
 
   def state
     # NOTE: the order is important here
-    %w(canceled paused pending cart).each do |state|
+    %w[canceled paused pending cart].each do |state|
       return state if __send__("#{state}?")
     end
+
     order.state
   end
 
@@ -75,7 +80,7 @@ class ProxyOrder < ApplicationRecord
   end
 
   def cart?
-    order&.state == 'complete' &&
+    order&.state == "complete" &&
       order_cycle.orders_close_at.present? &&
       order_cycle.orders_close_at > Time.zone.now
   end
@@ -87,7 +92,7 @@ class ProxyOrder < ApplicationRecord
     attrs[:bill_address_attributes] = subscription.bill_address.attributes.except("id")
     attrs[:ship_address_attributes] = subscription.ship_address.attributes.except("id")
     attrs[:line_items] = subscription.subscription_line_items.map do |sli|
-      { variant_id: sli.variant_id, quantity: sli.quantity }
+      {variant_id: sli.variant_id, quantity: sli.quantity}
     end
     attrs
   end

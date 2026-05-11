@@ -11,8 +11,9 @@ module Reporting
           let!(:order) do
             create(:completed_order_with_totals, line_items_count: 3, distributor:)
           end
+
           let(:current_user) { distributor.owner }
-          let(:params) { { display_summary_row: true } }
+          let(:params) { {display_summary_row: true} }
           let(:report) do
             OrderCycleSupplierTotalsByDistributor.new(current_user, params)
           end
@@ -43,10 +44,14 @@ module Reporting
 
         describe "as the supplier permitting products in the order cycle" do
           let!(:order) {
-            create(:completed_order_with_totals, line_items_count: 0, distributor:,
-                                                 order_cycle_id: order_cycle.id)
+            create(
+              :completed_order_with_totals,
+              line_items_count: 0,
+              distributor:,
+              order_cycle_id: order_cycle.id
+            )
           }
-          let(:supplier){ order.line_items.first.variant.supplier }
+          let(:supplier) { order.line_items.first.variant.supplier }
 
           before do
             3.times do
@@ -56,12 +61,16 @@ module Reporting
               create(:line_item_with_shipment, variant:, quantity: 1, order:)
             end
 
-            create(:enterprise_relationship, parent: supplier, child: distributor,
-                                             permissions_list: [:add_to_order_cycle])
+            create(
+              :enterprise_relationship,
+              parent: supplier,
+              child: distributor,
+              permissions_list: [:add_to_order_cycle]
+            )
           end
 
           let(:current_user) { supplier.owner }
-          let(:params) { { display_summary_row: true } }
+          let(:params) { {display_summary_row: true} }
           let(:report) do
             OrderCycleSupplierTotalsByDistributor.new(current_user, params)
           end

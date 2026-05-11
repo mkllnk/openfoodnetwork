@@ -15,8 +15,11 @@ module Orders
 
     def sync!
       orders_in_order_cycles_not_closed.all? do |order|
-        order.assign_attributes(customer_id:, email: customer&.email,
-                                distributor_id: shop_id)
+        order.assign_attributes(
+          customer_id:,
+          email: customer&.email,
+          distributor_id: shop_id
+        )
         update_associations_for(order)
         line_item_syncer.sync!(order)
         order.update_order!
@@ -30,8 +33,13 @@ module Orders
 
     delegate :orders, :bill_address, :ship_address, :subscription_line_items, to: :subscription
     delegate :shop_id, :customer, :customer_id, to: :subscription
-    delegate :shipping_method, :shipping_method_id,
-             :payment_method, :payment_method_id, to: :subscription
+    delegate(
+      :shipping_method,
+      :shipping_method_id,
+      :payment_method,
+      :payment_method_id,
+      to: :subscription
+    )
     delegate :shipping_method_id_changed?, :shipping_method_id_was, to: :subscription
     delegate :payment_method_id_changed?, :payment_method_id_was, to: :subscription
 
@@ -45,38 +53,44 @@ module Orders
     def orders_in_order_cycles_not_closed
       return @orders_in_order_cycles_not_closed unless @orders_in_order_cycles_not_closed.nil?
 
-      @orders_in_order_cycles_not_closed = orders.joins(:order_cycle).
-        merge(OrderCycle.not_closed).readonly(false)
+      @orders_in_order_cycles_not_closed = orders
+        .joins(:order_cycle)
+        .merge(OrderCycle.not_closed)
+        .readonly(false)
     end
 
     def update_bill_address_for(order)
       unless addresses_match?(order.bill_address, bill_address)
-        return order_update_issues.add(order, I18n.t('bill_address'))
+        return order_update_issues.add(order, I18n.t("bill_address"))
       end
 
       order.bill_address.update(bill_address.attributes.slice(*relevant_address_attrs))
     end
 
     def update_payment_for(order)
-      payment = order.payments.
-        with_state('checkout').where(payment_method_id: payment_method_id_was).last
+      payment = order
+        .payments
+        .with_state("checkout")
+        .where(payment_method_id: payment_method_id_was)
+        .last
       if payment
         payment&.void_transaction!
         order.payments.create(payment_method_id:, amount: order.reload.total)
       else
-        unless order.payments.with_state('checkout').where(payment_method_id:).any?
-          order_update_issues.add(order, I18n.t('admin.payment_method'))
+        unless order.payments.with_state("checkout").where(payment_method_id:).any?
+          order_update_issues.add(order, I18n.t("admin.payment_method"))
         end
       end
     end
 
     def update_shipment_for(order)
-      return if pending_shipment_with?(order, shipping_method_id) # No need to do anything.
+      # No need to do anything.
+      return if pending_shipment_with?(order, shipping_method_id)
 
       if pending_shipment_with?(order, shipping_method_id_was)
         order.select_shipping_method(shipping_method_id)
       else
-        order_update_issues.add(order, I18n.t('admin.shipping_method'))
+        order_update_issues.add(order, I18n.t("admin.shipping_method"))
       end
     end
 
@@ -86,9 +100,10 @@ module Orders
       # are ignored or not.
       pickup_to_delivery = force_ship_address_required?(order)
       if (!pickup_to_delivery || order.shipment.present?) &&
-         ship_address.changes.keys.intersect?(relevant_address_attrs)
+          ship_address.changes.keys.intersect?(relevant_address_attrs)
         save_ship_address_in_order(order)
       end
+
       return unless !pickup_to_delivery || order.shipment.blank?
 
       order.updater.shipping_address_from_distributor
@@ -110,7 +125,7 @@ module Orders
       return false unless order.shipping_method.require_ship_address?
       return true if addresses_match?(order.ship_address, ship_address)
 
-      order_update_issues.add(order, I18n.t('ship_address'))
+      order_update_issues.add(order, I18n.t("ship_address"))
       false
     end
 

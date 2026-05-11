@@ -8,8 +8,8 @@
 # The concurrency flag enables multiple threads to see the same database
 # without isolated transactions.
 RSpec.describe "Concurrent checkouts", concurrency: true do
-  include AuthenticationHelper
-  include ShopWorkflow
+  include(AuthenticationHelper)
+  include(ShopWorkflow)
 
   let(:order_cycle) { create(:order_cycle) }
   let(:distributor) { order_cycle.distributors.first }
@@ -28,11 +28,11 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
         }
       ],
       "bill_address_attributes" => address_params,
-      "ship_address_attributes" => address_params,
+      "ship_address_attributes" => address_params
     }
   }
   let(:path) { checkout_update_path(:summary) }
-  let(:params) { { format: :json } }
+  let(:params) { {format: :json} }
 
   before do
     # Create a valid order ready for checkout:
@@ -42,10 +42,14 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
 
     # Transition cart to confirmation state:
     order.update(order_params)
-    order.next # => address
-    order.next # => delivery
-    order.next # => payment
-    order.next # => confirmation
+    # => address
+    order.next
+    # => delivery
+    order.next
+    # => payment
+    order.next
+    # => confirmation
+    order.next
 
     pick_order(order)
     login_as(order.user)
@@ -59,9 +63,9 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
     # state and making payments. If two requests reach this breakpoint at the
     # same time, they are in a race condition and bad things can happen.
     # Examples are processing payments twice or selling more than we have.
-    allow_any_instance_of(CheckoutController).
-      to receive(:advance_order_state).
-      and_wrap_original do |method, *args|
+    allow_any_instance_of(CheckoutController).to(
+      receive(:advance_order_state).and_wrap_original
+    ) do |method, *args|
       breakpoint_reached_counter += 1
       breakpoint.synchronize do
         # Wait here until the breakpoint is unlocked.
@@ -69,6 +73,7 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
         # The second thread is told by the controller to wait before
         # loading the order.
       end
+
       method.call(*args)
     end
 
@@ -83,19 +88,19 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
     #    the same checkout action.
     threads = [
       Thread.new { put(path, params:) },
-      Thread.new { put(path, params:) },
+      Thread.new { put(path, params:) }
     ]
 
     # Wait for the first thread to reach the breakpoint:
     Timeout.timeout(1) do
-      sleep 0.1 while breakpoint_reached_counter < 1
+      sleep(0.1) while breakpoint_reached_counter < 1
     end
 
     # Give the second thread a chance to reach the breakpoint, too.
     # But we hope that it waits for the first thread earlier and doesn't
     # reach the breakpoint yet.
-    sleep 1
-    expect(breakpoint_reached_counter).to eq 1
+    sleep(1)
+    expect(breakpoint_reached_counter).to(eq(1))
 
     # Let the requests continue and finish.
     breakpoint.unlock
@@ -103,7 +108,7 @@ RSpec.describe "Concurrent checkouts", concurrency: true do
 
     # Verify that the checkout happened once.
     order.reload
-    expect(order.completed?).to be true
-    expect(order.payments.count).to eq 1
+    expect(order.completed?).to(be(true))
+    expect(order.payments.count).to(eq(1))
   end
 end

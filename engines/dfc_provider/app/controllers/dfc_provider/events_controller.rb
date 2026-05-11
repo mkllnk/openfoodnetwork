@@ -3,9 +3,12 @@
 # Webhook events
 module DfcProvider
   class EventsController < DfcProvider::ApplicationController
-    rescue_from JSON::ParserError, with: -> do
-      head :bad_request
-    end
+    rescue_from(
+      JSON::ParserError,
+      with: -> do
+        head(:bad_request)
+      end
+    )
 
     # Trigger a webhook event.
     #
@@ -19,10 +22,13 @@ module DfcProvider
       enterprises_url = event["enterpriseUrlid"]
 
       if enterprises_url.blank?
-        render status: :bad_request, json: {
-          success: false,
-          message: "Missing parameter `enterpriseUrlid`",
-        }
+        render(
+          status: :bad_request,
+          json: {
+            success: false,
+            message: "Missing parameter `enterpriseUrlid`"
+          }
+        )
         return
       end
 
@@ -30,26 +36,27 @@ module DfcProvider
       importer.import_enterprise_profiles(current_user.id, enterprises_url)
 
       if importer.errors.blank?
-        render json: { success: true }
+        render(json: {success: true})
       else
-        render json: { success: true, messages: error_messages(importer.errors) }
+        render(json: {success: true, messages: error_messages(importer.errors)})
       end
     end
 
     private
 
     def rendered_errors?
-      unless current_user.is_a? ApiUser
+      unless current_user.is_a?(ApiUser)
         render_message(
           :unauthorized,
-          "You need to authenticate as authorised platform (client_id).",
+          "You need to authenticate as authorised platform (client_id)."
         )
         return true
       end
+
       unless current_user.id == "lf-dev"
         render_message(
           :unauthorized,
-          "Your client_id is not authorised on this platform.",
+          "Your client_id is not authorised on this platform."
         )
         return true
       end
@@ -58,7 +65,7 @@ module DfcProvider
     end
 
     def render_message(status, message)
-      render status:, json: { success: false, message: }
+      render(status:, json: {success: false, message:})
     end
 
     def error_messages(errors)

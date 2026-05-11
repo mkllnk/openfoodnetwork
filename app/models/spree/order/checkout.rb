@@ -5,9 +5,9 @@ module Spree
     module Checkout
       def self.included(klass)
         klass.class_eval do
-          class_attribute :next_event_transitions
-          class_attribute :previous_states
-          class_attribute :checkout_flow
+          class_attribute(:next_event_transitions)
+          class_attribute(:previous_states)
+          class_attribute(:checkout_flow)
 
           def self.checkout_flow(&block)
             if block_given?
@@ -36,67 +36,68 @@ module Spree
             # To avoid multiple occurrences of the same transition being defined
             # On first definition, state_machines will not be defined
             state_machines.clear if respond_to?(:state_machines)
-            state_machine :state, initial: :cart do
+            state_machine(:state, initial: :cart) do
               klass.next_event_transitions.each { |t| transition(t.merge(on: :next)) }
 
               # Persist the state on the order
-              after_transition ->(order) { order.save }
+              after_transition(-> (order) { order.save })
 
-              event :cancel do
-                transition to: :canceled, if: :allow_cancel?
+              event(:cancel) do
+                transition(to: :canceled, if: :allow_cancel?)
               end
 
-              event :return do
-                transition to: :returned, from: :awaiting_return, unless: :awaiting_returns?
+              event(:return) do
+                transition(to: :returned, from: :awaiting_return, unless: :awaiting_returns?)
               end
 
-              event :resume do
-                transition to: :resumed, from: :canceled, if: :allow_resume?
+              event(:resume) do
+                transition(to: :resumed, from: :canceled, if: :allow_resume?)
               end
 
-              event :authorize_return do
-                transition to: :awaiting_return
+              event(:authorize_return) do
+                transition(to: :awaiting_return)
               end
 
-              event :restart_checkout do
-                transition to: :cart, unless: :completed?
+              event(:restart_checkout) do
+                transition(to: :cart, unless: :completed?)
               end
 
-              event :confirm do
-                transition to: :complete, from: :confirmation
+              event(:confirm) do
+                transition(to: :complete, from: :confirmation)
               end
 
-              event :back_to_payment do
-                transition to: :payment, from: :confirmation
+              event(:back_to_payment) do
+                transition(to: :payment, from: :confirmation)
               end
 
-              event :back_to_address do
-                transition to: :address, from: [:payment, :confirmation]
+              event(:back_to_address) do
+                transition(to: :address, from: [:payment, :confirmation])
               end
 
-              before_transition from: :cart, do: :ensure_line_items_present
+              before_transition(from: :cart, do: :ensure_line_items_present)
 
-              before_transition to: :delivery, do: :create_proposed_shipments
-              before_transition to: :delivery, do: :ensure_available_shipping_rates
-              before_transition to: :payment, do: :apply_customer_credit
+              before_transition(to: :delivery, do: :create_proposed_shipments)
+              before_transition(to: :delivery, do: :ensure_available_shipping_rates)
+              before_transition(to: :payment, do: :apply_customer_credit)
 
-              before_transition to: :confirmation, do: :validate_payment_method!
+              before_transition(to: :confirmation, do: :validate_payment_method!)
 
-              after_transition to: :payment do |order|
+              after_transition(to: :payment) do |order|
                 order.create_tax_charge!
                 order.update_totals_and_states
               end
 
-              after_transition to: :complete, do: :finalize!
-              after_transition to: :resumed,  do: :after_resume
-              after_transition to: :canceled, do: :after_cancel
+              after_transition(to: :complete, do: :finalize!)
+              after_transition(to: :resumed, do: :after_resume)
+              after_transition(to: :canceled, do: :after_cancel)
             end
           end
 
           def self.go_to_state(name, options = {})
             previous_states.each do |state|
-              add_transition({ from: state, to: name }.merge(options))
+              add_transition({from: state, to: name}.merge(options))
             end
+
             if options[:if]
               previous_states << name
             else
@@ -109,14 +110,14 @@ module Spree
           end
 
           def self.add_transition(options)
-            next_event_transitions << { options.delete(:from) => options.delete(:to) }.
-              merge(options)
+            next_event_transitions <<
+              {options.delete(:from) => options.delete(:to)}.merge(options)
           end
 
           def restart_checkout_flow
             update_columns(
               state: "address",
-              updated_at: Time.zone.now,
+              updated_at: Time.zone.now
             )
           end
 
@@ -154,8 +155,8 @@ module Spree
             return unless checkout_processing
             return if payments.any?
 
-            errors.add :payment_method, I18n.t('checkout.errors.select_a_payment_method')
-            throw :halt
+            errors.add(:payment_method, I18n.t("checkout.errors.select_a_payment_method"))
+            throw(:halt)
           end
         end
       end

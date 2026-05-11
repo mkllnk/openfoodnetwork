@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :base_product, class: Spree::Product do
+  factory(:base_product, class: Spree::Product) do
     sequence(:name) { |n| "Product ##{n} - #{Kernel.rand(9999)}" }
 
     supplier_id do
@@ -15,15 +15,15 @@ FactoryBot.define do
     primary_taxon_id { |p| (p.primary_taxon || Spree::Taxon.first || create(:taxon)).id }
     description { generate(:random_description) }
     price { 19.99 }
-    sku { 'ABC' }
+    sku { "ABC" }
     deleted_at { nil }
 
     unit_value { 1 }
-    unit_description { '' }
-    variant_unit { 'weight' }
+    unit_description { "" }
+    variant_unit { "weight" }
     variant_unit_scale { 1 }
 
-    factory :product do
+    factory(:product) do
       transient do
         on_hand { 5 }
         tax_category { |r| Spree::TaxCategory.first || r.association(:tax_category) }
@@ -37,15 +37,17 @@ FactoryBot.define do
     end
   end
 
-  factory :product_with_image, parent: :product do
+  factory(:product_with_image, parent: :product) do
     after(:create) do |product|
-      Spree::Image.create(attachment: white_logo_file,
-                          viewable_id: product.id,
-                          viewable_type: 'Spree::Product')
+      Spree::Image.create(
+        attachment: white_logo_file,
+        viewable_id: product.id,
+        viewable_type: "Spree::Product"
+      )
     end
   end
 
-  factory :simple_product, parent: :base_product do
+  factory(:simple_product, parent: :base_product) do
     transient do
       on_demand { false }
       on_hand { 5 }
@@ -58,7 +60,7 @@ FactoryBot.define do
     end
   end
 
-  factory :taxed_product, parent: :product do
+  factory(:taxed_product, parent: :product) do
     transient do
       tax_rate_amount { 0 }
       tax_rate_name { "" }
@@ -70,12 +72,15 @@ FactoryBot.define do
     after(:create) do |product, proxy|
       raise "taxed_product factory requires a zone" unless proxy.zone
 
-      create(:tax_rate, amount: proxy.tax_rate_amount,
-                        tax_category: proxy.tax_category,
-                        included_in_price: proxy.included_in_price,
-                        calculator: Calculator::DefaultTax.new,
-                        zone: proxy.zone,
-                        name: proxy.tax_rate_name)
+      create(
+        :tax_rate,
+        amount: proxy.tax_rate_amount,
+        tax_category: proxy.tax_category,
+        included_in_price: proxy.included_in_price,
+        calculator: Calculator::DefaultTax.new,
+        zone: proxy.zone,
+        name: proxy.tax_rate_name
+      )
 
       product.variants.first.update(tax_category: proxy.tax_category)
     end

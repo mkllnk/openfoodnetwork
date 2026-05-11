@@ -6,8 +6,7 @@ module Reporting
     def initialize(order_permissions, params, orders_relation = nil)
       @order_permissions = order_permissions
       @params = params
-      complete_not_canceled_visible_orders =
-        CompleteVisibleOrdersQuery.new(order_permissions).call.not_state(:canceled)
+      complete_not_canceled_visible_orders = CompleteVisibleOrdersQuery.new(order_permissions).call.not_state(:canceled)
       @orders_relation = orders_relation || complete_not_canceled_visible_orders
     end
 
@@ -15,8 +14,10 @@ module Reporting
       @orders ||= search_orders
     end
 
-    def list(line_item_includes = [{ variant: [:supplier, :product] }])
-      line_items = order_permissions.visible_line_items.in_orders(orders.result)
+    def list(line_item_includes = [{variant: [:supplier, :product]}])
+      line_items = order_permissions
+        .visible_line_items
+        .in_orders(orders.result)
         .order(
           "supplier.name",
           "product.name",

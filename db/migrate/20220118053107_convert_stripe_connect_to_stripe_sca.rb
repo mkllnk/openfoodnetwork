@@ -1,13 +1,18 @@
 class ConvertStripeConnectToStripeSca < ActiveRecord::Migration[6.1]
   class SpreePreference < ActiveRecord::Base
-    scope :leftover_from_payment_type, ->(class_name) {
-      joins <<~SQL
-         JOIN spree_payment_methods
-           ON spree_preferences.key =
-              CONCAT('/#{class_name.underscore}/enterprise_id/', spree_payment_methods.id)
-          AND spree_payment_methods.type != '#{class_name}'
-      SQL
-    }
+    scope(
+      :leftover_from_payment_type,
+      -> (class_name) {
+        joins(
+          <<~SQL
+            JOIN spree_payment_methods
+              ON spree_preferences.key =
+                 CONCAT('/#{class_name.underscore}/enterprise_id/', spree_payment_methods.id)
+             AND spree_payment_methods.type != '#{class_name}'
+          SQL
+        )
+      }
+    )
   end
 
   def up
@@ -27,8 +32,7 @@ class ConvertStripeConnectToStripeSca < ActiveRecord::Migration[6.1]
   # conflicts later when updating preferences alongside the connected
   # payment methods.
   def delete_outdated_spree_preferences
-    outdated_keys =
-      SpreePreference.leftover_from_payment_type("Spree::Gateway::StripeConnect").pluck(:key) +
+    outdated_keys = SpreePreference.leftover_from_payment_type("Spree::Gateway::StripeConnect").pluck(:key) +
       SpreePreference.leftover_from_payment_type("Spree::Gateway::StripeSCA").pluck(:key)
 
     SpreePreference.where(key: outdated_keys).delete_all
@@ -40,18 +44,22 @@ class ConvertStripeConnectToStripeSca < ActiveRecord::Migration[6.1]
   end
 
   def upgrade_stripe_payment_methods
-    execute <<~SQL
-      UPDATE spree_payment_methods
-        SET type = 'Spree::Gateway::StripeSCA'
-      WHERE type = 'Spree::Gateway::StripeConnect'
-    SQL
+    execute(
+      <<~SQL
+        UPDATE spree_payment_methods
+          SET type = 'Spree::Gateway::StripeSCA'
+        WHERE type = 'Spree::Gateway::StripeConnect'
+      SQL
+    )
   end
 
   def update_payment_method_preferences
-    execute <<~SQL
-      UPDATE spree_preferences
-         SET key = replace(key, 'stripe_connect', 'stripe_sca')
-       WHERE key LIKE '/spree/gateway/stripe_connect/%'
-    SQL
+    execute(
+      <<~SQL
+        UPDATE spree_preferences
+           SET key = replace(key, 'stripe_connect', 'stripe_sca')
+         WHERE key LIKE '/spree/gateway/stripe_connect/%'
+      SQL
+    )
   end
 end
