@@ -97,9 +97,6 @@ Openfoodnetwork::Application.routes.draw do
     put '/checkout/:step', to: 'checkout#update', as: :checkout_update
   end
 
-  # Redirects to the new checkout for any other 'step' (ie. /checkout/cart from the legacy checkout)
-  get '/checkout/:other', to: redirect('/checkout')
-
   get 'embedded_shopfront/shopfront_session', to: 'application#shopfront_session'
   post 'embedded_shopfront/enable', to: 'application#enable_embedded_styles'
   post 'embedded_shopfront/disable', to: 'application#disable_embedded_styles'
