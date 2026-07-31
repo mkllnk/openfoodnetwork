@@ -113,7 +113,6 @@ Openfoodnetwork::Application.routes.draw do
     end
   end
   get '/:id/shop', to: 'enterprises#shop', as: 'enterprise_shop'
-  get "/enterprises/:permalink", to: redirect("/") # Legacy enterprise URL
 
   resources :voucher_adjustments, only: [:create, :destroy]
 
