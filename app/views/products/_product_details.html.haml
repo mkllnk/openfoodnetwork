@@ -1,32 +1,45 @@
 -# locals: (product:)
 .row
-  .columns.small-12.medium-6.large-6.product-header
-    %h3
-      = product.name
+  .columns.product-header
+    %h3= product.name
     %span
       %em
         = t("products_from")
       %span
-        = product.variants.first.enterprise.name
-
+        = product.variants.first.enterprise.name # TODO: only display if same for all variants
     %br
-
-    .filter-shopfront.property-selectors.inline-block
-      %ul
-        - product.properties_including_inherited.each do |property|
-          %li
-            - if property[:value].present?
-              = render TooltipComponent.new(text: property[:value], element_text: property[:name], placement: "bottom-start")
-            - else
-              %span= property[:name]
-
-
     - if product.description
       .product-description{ 'data-controller': "add-blank-to-link" }
         %p.text-small
-          - # description is sanitized in Spree::Product#description method
           = product.description.html_safe
-
-  .columns.small-12.medium-6.large-6.product-img
-    - carousel_images = product_carousel_images_data(product)
-    = render ThumbnailCarouselComponent.new(images: carousel_images, class: (product.images.any? ? nil : "placeholder"))
+.row.footer-pad
+  .columns.product-body
+    .product-images{ style: "width: 146px" }
+      .product-img
+        - carousel_images = product_carousel_images_data(product)
+        = render ThumbnailCarouselComponent.new(images: carousel_images, class: (product.images.any? ? nil : "placeholder"))
+    .product-variants
+      %ul
+        - # TODO: DRY
+        - variants_in_cart = current_order.line_items.to_h { |li| [li.variant.id, li.quantity] }
+        - low_stock_display = product.variants.first.enterprise.preferred_product_low_stock_display
+        - product.variants.each do |variant| # TODO: use OC variants
+          %li
+            .row
+              .small-8.columns
+                - if variant.display_name.present?
+                  .variant-columns.variant-name
+                    = "#{variant.name_to_display}"
+                .variant-columns.variant-unit
+                  = variant.unit_to_display
+                .variant-producer
+                  - # TODO: unless same_producers?
+                  = t("components.shop_variant_overlay.from_producer", name: variant.enterprise.name)
+                .prices
+                  = variant.display_price
+                  %span.unit-price
+                    = # TODO: "#{variant.display_unit_price}"
+                    &nbsp;/&nbsp;
+                    = # TODO: "#{variant.unit_price.unit}"
+              .small-4.columns
+                = render AddToCartComponent.new(variant: variant, quantity: variants_in_cart[variant.id], low_stock_display: low_stock_display)
