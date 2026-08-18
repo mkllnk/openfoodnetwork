@@ -20,9 +20,6 @@
         = render ThumbnailCarouselComponent.new(images: carousel_images, class: (product.images.any? ? nil : "placeholder"))
     .product-variants
       %ul
-        - # TODO: DRY
-        - variants_in_cart = current_order.line_items.to_h { |li| [li.variant.id, li.quantity] }
-        - low_stock_display = product.variants.first.enterprise.preferred_product_low_stock_display
         - product.variants.each do |variant| # TODO: use OC variants
           %li
             .row
@@ -42,4 +39,4 @@
                     &nbsp;/&nbsp;
                     = # TODO: "#{variant.unit_price.unit}"
               .small-4.columns
-                = render AddToCartComponent.new(variant: variant, quantity: variants_in_cart[variant.id], low_stock_display: low_stock_display)
+                = render AddToCartComponent.new(variant: variant, quantity: @variants_in_cart[variant.id], low_stock_display: @low_stock_display)
