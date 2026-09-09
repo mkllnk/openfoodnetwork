@@ -58,6 +58,13 @@ RSpec.describe ExternalPage do
 
       expect(page.content.strip).to eq "<p>Hi</p>"
     end
+
+    it "matches recorded content of a real world example", :vcr do
+      url = "https://openfoodnetwork.org/open-food-network-marketplace-au/"
+      page = described_class.fetch(url)
+      expected_content = file_fixture("external_page_content.html").read
+      expect(page.content).to eq expected_content
+    end
   end
 
   describe "#styles" do
