@@ -19,8 +19,6 @@ TriggerOrderCyclesToOpenJob:
   every: "5m"
 OrderCycleClosingJob:
   every: "5m"
-ExternalPageJob:
-  every: ["15m", first_in: "0s"]
 
 backup:
   class: "RakeJob"
