@@ -12,6 +12,6 @@ class ExternalPageJob < ApplicationJob
   rescue StandardError => e
     # We keep serving the previously cached content. There's no point in
     # retrying immediately, the next scheduled run will try again.
-    Bugsnag.notify(e)
+    Alert.raise(e)
   end
 end
