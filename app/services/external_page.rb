@@ -53,30 +53,26 @@ class ExternalPage
     node = CONTENT_SELECTORS.lazy.filter_map { |selector| @document.at_css(selector) }.first
     return "" if node.nil?
 
-    remove_scripts(node)
-    resolve_urls(node)
+    raw_html = node.name == "body" ? node.inner_html : node.to_s
+    clean_html = sanitize(raw_html)
 
-    # We keep the wrapping element because its classes are part of the layout.
-    node.name == "body" ? node.inner_html : node.to_s
+    resolve_urls(clean_html)
   end
 
   # We render this HTML within our own page and therefore don't want it to
   # execute any code. The CMS is trusted but it may load third party scripts,
   # like a cookie banner, which we provide ourselves.
-  def remove_scripts(node)
-    node.css("script, noscript, link, style").each(&:remove)
+  def sanitize(html)
+    sanitizer = Rails::HTML5::SafeListSanitizer.new(prune: true)
+    tags = Rails::HTML::Concern::Scrubber::SafeList::DEFAULT_ALLOWED_TAGS + %w(figure section video)
+    attributes = Rails::HTML::Concern::Scrubber::SafeList::DEFAULT_ALLOWED_ATTRIBUTES + %w(style autoplay muted loop playsinline poster aria-hidden)
 
-    node.traverse do |element|
-      next unless element.element?
-
-      element.attribute_nodes.each do |attribute|
-        attribute.remove if attribute.name.start_with?("on")
-      end
-    end
+    sanitizer.sanitize(html, tags:, attributes:)
   end
 
   # Relative URLs would point at our own app instead of the CMS.
-  def resolve_urls(node)
+  def resolve_urls(html)
+    node = Nokogiri::HTML5.fragment(html)
     node.css("[href], [src], [poster]").each do |element|
       %w[href src poster].each do |attribute|
         value = element[attribute]
@@ -87,6 +83,8 @@ class ExternalPage
         next
       end
     end
+
+    node.to_html
   end
 
   def extract_styles
